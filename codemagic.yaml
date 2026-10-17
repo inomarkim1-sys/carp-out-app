@@ -12,14 +12,6 @@ workflows:
       - name: Автоматическая генерация структуры Android
         script: |
           flutter create . --platforms=android
-      - name: Генерация фирменной иконки CarpOut
-        script: |
-          curl -L -o icon.png https://postimg.cc
-          flutter pub add --dev flutter_launcher_icons
-          echo "flutter_launcher_icons:" >> pubspec.yaml
-          echo "  android: true" >> pubspec.yaml
-          echo "  image_path: \"icon.png\"" >> pubspec.yaml
-          flutter pub run flutter_launcher_icons
       - name: Сборка мобильного приложения APK
         script: |
           flutter build apk --release
