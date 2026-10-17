@@ -406,7 +406,7 @@ class _MarkerMapScreenState extends State<MarkerMapScreen> {
                         return Card(
                           margin: const EdgeInsets.only(bottom: 12),
                           elevation: 2,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: Border.all(color: Colors.grey.shade200)),
+                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: BorderSide(color: Colors.grey.shade200)),
                           child: ListTile(
                             leading: Container(
                               padding: const EdgeInsets.all(10),
