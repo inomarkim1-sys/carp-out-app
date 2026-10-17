@@ -491,3 +491,126 @@ class _MarkerMapScreenState extends State<MarkerMapScreen> {
       ),
     );
   }
+
+    // Окно для просмотра нашей лучевой схемы сектора CarpOut во весь экран
+  void _showSectorMapDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog.fullscreen(
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text('Лучевая сетка сектора CarpOut', style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
+            backgroundColor: Colors.grey.shade900,
+            leading: IconButton(
+              icon: const Icon(Icons.close, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+          backgroundColor: Colors.white,
+          body: Center(
+            child: InteractiveViewer(
+              panEnabled: true,
+              boundaryMargin: const EdgeInsets.all(20),
+              minScale: 0.5,
+              maxScale: 4.0,
+              child: Image.network(
+                'https://postimg.cc',
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return const Center(child: CircularProgressIndicator(color: Colors.green));
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return const Center(child: Text('Сетка загружается... Проверьте интернет на телефоне.', style: TextStyle(color: Colors.grey)));
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _points.sort((a, b) => b.distance.compareTo(a.distance));
+
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.only(top: 50.0, left: 16.0, right: 16.0, bottom: 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Журнал промеров', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    TextButton.icon(
+                      style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                      onPressed: _showSectorMapDialog,
+                      icon: const Icon(Icons.grid_on, size: 14, color: Colors.blue),
+                      label: const Text('Карта сектора', style: TextStyle(color: Colors.blue, fontSize: 13, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green.shade800, 
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
+                  ),
+                  onPressed: _addNewPointDialog,
+                  icon: const Icon(Icons.add, color: Colors.white, size: 18),
+                  label: const Text('Точка', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: _points.isEmpty
+                  ? const Center(child: Text('Нет сохраненных точек. Нажмите "+ Точка", чтобы добавить.', style: TextStyle(color: Colors.grey)))
+                  : ListView.builder(
+                      itemCount: _points.length,
+                      itemBuilder: (context, index) {
+                        final point = _points[index];
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: BorderSide(color: Colors.grey.shade200)),
+                          child: ListTile(
+                            onTap: () => _showEditPointDialog(point, index),
+                            leading: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(color: Colors.green.shade50, shape: BoxShape.circle),
+                              child: Icon(Icons.location_on, color: Colors.green.shade800),
+                            ),
+                            title: Row(
+                              children: [
+                                Expanded(child: Text(point.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15))),
+                                const Icon(Icons.edit, size: 14, color: Colors.grey),
+                              ],
+                            ),
+                            subtitle: Padding(
+                              padding: const EdgeInsets.only(top: 4.0),
+                              child: Text('Дно: ${point.bottomType}', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                            ),
+                            trailing: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text('${point.distance} м', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green.shade900)),
+                                Text('Гл: ${point.depth} м', style: const TextStyle(fontSize: 12, color: Colors.blueGrey)),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
