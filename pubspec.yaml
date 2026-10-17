@@ -18,6 +18,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  # Вшиваем нашу карту сектора в память приложения, чтобы она работала без интернета
-  assets:
-    - icon.png
