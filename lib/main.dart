@@ -96,3 +96,192 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 }
+// ===================================================================
+// ЧАСТЬ 2: РЕАЛИЗАЦИЯ ДАШБОРДА С ИЗМЕНЕНИЕМ ДАННЫХ СЕССИИ И УЛОВА
+// ===================================================================
+class CarpOutDashboard extends StatelessWidget {
+  final String lake;
+  final String sector;
+  final int catches;
+  final double weight;
+  final String bigFish;
+  final Function(String, String) onUpdateSession;
+  final Function(int, double, String) onUpdateStats;
+
+  const CarpOutDashboard({
+    Key? key,
+    required this.lake,
+    required this.sector,
+    required this.catches,
+    required this.weight,
+    required this.bigFish,
+    required this.onUpdateSession,
+    required this.onUpdateStats,
+  }) : super(key: key);
+
+  void _showEditSessionDialog(BuildContext context) {
+    final lakeController = TextEditingController(text: lake);
+    final sectorController = TextEditingController(text: sector);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Редактировать сессию', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: lakeController, decoration: const InputDecoration(labelText: 'Название водоема')),
+            TextField(controller: sectorController, decoration: const InputDecoration(labelText: 'Номер сектора')),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.grey))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green.shade700),
+            onPressed: () {
+              onUpdateSession(lakeController.text, sectorController.text);
+              Navigator.pop(context);
+            },
+            child: const Text('Сохранить', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditStatsDialog(BuildContext context) {
+    final catchesController = TextEditingController(text: catches.toString());
+    final weightController = TextEditingController(text: weight.toString());
+    final bigController = TextEditingController(text: bigFish);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Обновить аналитику улова', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: catchesController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Всего хвостов (шт)')),
+            TextField(controller: weightController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Общий вес улова (кг)')),
+            TextField(controller: bigController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Вес BIG FISH (кг)')),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.grey))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green.shade700),
+            onPressed: () {
+              int c = int.tryParse(catchesController.text) ?? catches;
+              double w = double.tryParse(weightController.text) ?? weight;
+              onUpdateStats(c, w, bigController.text);
+              Navigator.pop(context);
+            },
+            child: const Text('Обновить', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    double averageWeight = catches > 0 ? weight / catches : 0.0;
+
+    return Scaffold(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.only(top: 50.0, left: 16.0, right: 16.0, bottom: 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(colors: [Colors.green.shade800, Colors.green]),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('ТЕКУЩАЯ СЕССИЯ', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.white70, size: 20),
+                        onPressed: () => _showEditSessionDialog(context),
+                      ),
+                    ],
+                  ),
+                  Text(lake, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                  Text(sector, style: const TextStyle(color: Colors.white90, fontSize: 16, fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 8),
+                  const Row(
+                    children: [
+                      Icon(Icons.timer, color: Colors.white70, size: 16),
+                      SizedBox(width: 6),
+                      Text('Длительность: 48 часов', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Аналитика улова:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                TextButton.icon(
+                  onPressed: () => _showEditStatsDialog(context),
+                  icon: const Icon(Icons.tune, size: 16, color: Colors.green),
+                  label: const Text('Изменить', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 1.3,
+              children: [
+                _buildStatCard('Всего хвостов', '$catches шт.', Icons.phishing, Colors.blue),
+                _buildStatCard('Общий вес', '${weight.toStringAsFixed(3)} кг', Icons.scale, Colors.orange),
+                _buildStatCard('Средний вес', '${averageWeight.toStringAsFixed(3)} кг', Icons.analytics, Colors.purple),
+                _buildStatCard('BIG FISH 🔥', '$bigFish кг', Icons.emoji_events, Colors.red, isLongText: true),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String title, String value, IconData icon, Color color, {bool isLongText = false}) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: color, size: 18),
+              const SizedBox(width: 6),
+              Text(title, style: const TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(value, style: TextStyle(fontSize: isLongText ? 13 : 18, fontWeight: FontWeight.bold, color: Colors.black87)),
+        ],
+      ),
+    );
+  }
+}
