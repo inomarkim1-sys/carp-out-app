@@ -12,6 +12,10 @@ workflows:
       - name: Автоматическая генерация структуры Android
         script: |
           flutter create . --platforms=android
+      - name: Принудительное обновление Android SDK до версии 34
+        script: |
+          sed -i 's/compileSdk = .*/compileSdk = 34/g' android/app/build.gradle
+          sed -i 's/targetSdk = .*/targetSdk = 34/g' android/app/build.gradle
       - name: Сборка мобильного приложения APK
         script: |
           flutter build apk --release
