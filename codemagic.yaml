@@ -12,7 +12,7 @@ workflows:
       - name: Автоматическая генерация структуры Android
         script: |
           flutter create . --platforms=android
-      - name: Сборка mobile APK (Релиз)
+      - name: Сборка мобильного приложения APK
         script: |
           flutter build apk --release
     artifacts:
