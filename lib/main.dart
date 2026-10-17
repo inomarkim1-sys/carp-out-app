@@ -285,3 +285,155 @@ class CarpOutDashboard extends StatelessWidget {
     );
   }
 }
+// ===================================================================
+// ЧАСТЬ 3: ИНТЕРАКТИВНАЯ МАРКЕРНАЯ КАРТА С КНОПКОЙ ДОБАВЛЕНИЯ ТОЧЕК
+// ===================================================================
+class MarkerPoint {
+  final String name;
+  final double distance;
+  final double depth;
+  final String bottomType;
+
+  MarkerPoint({
+    required this.name,
+    required this.distance,
+    required this.depth,
+    required this.bottomType,
+  });
+}
+
+class MarkerMapScreen extends StatefulWidget {
+  const MarkerMapScreen({Key? key}) : super(key: key);
+
+  @override
+  _MarkerMapScreenState createState() => _MarkerMapScreenState();
+}
+
+class _MarkerMapScreenState extends State<MarkerMapScreen> {
+  final List<MarkerPoint> _points = [
+    MarkerPoint(name: 'Дальняя бровка (ракушка)', distance: 94.0, depth: 3.5, bottomType: 'Твердое / Ракушка'),
+    MarkerPoint(name: 'Ближнее плато (ил)', distance: 62.0, depth: 2.1, bottomType: 'Глубокий ил'),
+  ];
+
+  final _nameController = TextEditingController();
+  final _distanceController = TextEditingController();
+  final _depthController = TextEditingController();
+  final _bottomController = TextEditingController();
+
+  void _addNewPointDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Новая маркерная точка', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: _nameController, decoration: const InputDecoration(labelText: 'Название / Ориентир')),
+              TextField(controller: _distanceController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Дистанция (метры)')),
+              TextField(controller: _depthController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Глубина (метры)')),
+              TextField(controller: _bottomController, decoration: const InputDecoration(labelText: 'Структура дна (ракушка, ил...)')),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.grey))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green.shade700),
+            onPressed: () {
+              if (_nameController.text.isNotEmpty && _distanceController.text.isNotEmpty) {
+                setState(() {
+                  _points.add(MarkerPoint(
+                    name: _nameController.text,
+                    distance: double.tryParse(_distanceController.text) ?? 0.0,
+                    depth: double.tryParse(_depthController.text) ?? 0.0,
+                    bottomType: _bottomController.text.isEmpty ? 'Не указано' : _bottomController.text,
+                  ));
+                });
+                _nameController.clear();
+                _distanceController.clear();
+                _depthController.clear();
+                _bottomController.clear();
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('Добавить', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _points.sort((a, b) => b.distance.compareTo(a.distance));
+
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.only(top: 50.0, left: 16.0, right: 16.0, bottom: 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Журнал промеров', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text('Точки сектора (от дальних к ближним)', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  ],
+                ),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green.shade800, 
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
+                  ),
+                  onPressed: _addNewPointDialog,
+                  icon: const Icon(Icons.add, color: Colors.white, size: 18),
+                  label: const Text('Точка', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Expanded(
+              child: _points.isEmpty
+                  ? const Center(child: Text('Нет сохраненных точек. Нажмите "+ Точка", чтобы добавить.', style: TextStyle(color: Colors.grey)))
+                  : ListView.builder(
+                      itemCount: _points.length,
+                      itemBuilder: (context, index) {
+                        final point = _points[index];
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: Border.all(color: Colors.grey.shade200)),
+                          child: ListTile(
+                            leading: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(color: Colors.green.shade50, shape: BoxShape.circle),
+                              child: Icon(Icons.location_on, color: Colors.green.shade800),
+                            ),
+                            title: Text(point.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                            subtitle: Padding(
+                              padding: const EdgeInsets.only(top: 4.0),
+                              child: Text('Дно: ${point.bottomType}', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                            ),
+                            trailing: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text('${point.distance} м', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green.shade900)),
+                                Text('Гл: ${point.depth} м', style: const TextStyle(fontSize: 12, color: Colors.blueGrey)),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
