@@ -12,11 +12,6 @@ workflows:
       - name: Автоматическая генерация структуры Android
         script: |
           flutter create . --platforms=android
-      - name: Принудительное обновление Android SDK до версии 34
-        script: |
-          flutter build apk --config-only --target-platform android-arm64
-          echo "flutter.compileSdkVersion=34" >> android/local.properties
-          echo "flutter.targetSdkVersion=34" >> android/local.properties
       - name: Сборка мобильного приложения APK
         script: |
           flutter build apk --release
