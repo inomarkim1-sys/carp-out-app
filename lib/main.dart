@@ -938,3 +938,185 @@ class CarpOutRadarPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+
+// ===================================================================
+// ЧАСТЬ 4: ДВУХСТОРОННИЙ ИНТЕРАКТИВНЫЙ КАЛЬКУЛЯТОР КЛИПСЫ (ХАКИ)
+// ===================================================================
+class CarpClipsCalculator extends StatefulWidget {
+  const CarpClipsCalculator({Key? key}) : super(key: key);
+
+  @override
+  _CarpClipsCalculatorState createState() => _CarpClipsCalculatorState();
+}
+
+class _CarpClipsCalculatorState extends State<CarpClipsCalculator> {
+  final TextEditingController _distanceController = TextEditingController();
+  final TextEditingController _turnsController = TextEditingController();
+  double _distanceBetweenSticks = 4.0; // Базовое расстояние между колышками
+
+  double _turnsResult = 0.0;
+  double _metersResult = 0.0;
+
+  void _calculateFromMeters() {
+    double distance = double.tryParse(_distanceController.text) ?? 0.0;
+    if (distance > 0 && _distanceBetweenSticks > 0) {
+      setState(() {
+        _turnsResult = distance / _distanceBetweenSticks;
+      });
+    } else {
+      setState(() { _turnsResult = 0.0; });
+    }
+  }
+
+  void _calculateFromTurns() {
+    double turns = double.tryParse(_turnsController.text) ?? 0.0;
+    if (turns > 0 && _distanceBetweenSticks > 0) {
+      setState(() {
+        _metersResult = turns * _distanceBetweenSticks;
+      });
+    } else {
+      setState(() { _metersResult = 0.0; });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F6F0), // Мягкий фон Хаки
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.only(top: 50.0, left: 20.0, right: 20.0, bottom: 20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Калькулятор дистанции',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E)),
+            ),
+            const SizedBox(height: 16),
+            
+            // ВЫБОР БАЗЫ КОЛЫШКОВ
+            const Text(
+              'База между колышками:',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                _buildDistanceChip(3.0, '3 м'),
+                const SizedBox(width: 8),
+                _buildDistanceChip(4.0, '4 м (Стандарт)'),
+                const SizedBox(width: 8),
+                _buildDistanceChip(5.0, '5 м'),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // БЛОК ПРЯМОГО РАСЧЕТА: МЕТРЫ -> ОБОРОТЫ
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFF2E3B1E).withOpacity(0.15)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('1. Из метров в обороты', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _distanceController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: InputDecoration(
+                      labelText: 'Дистанция ловли (метры)',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      prefixIcon: const Icon(Icons.straighten, color: Color(0xFF2E3B1E)),
+                    ),
+                    onChanged: (_) {
+                      _turnsController.clear();
+                      _metersResult = 0.0;
+                      _calculateFromMeters();
+                    },
+                  ),
+                  if (_turnsResult > 0) ...[
+                    const SizedBox(height: 16),
+                    Center(
+                      child: Column(
+                        children: [
+                          Text(_turnsResult.toStringAsFixed(2), style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))),
+                          const Text('оборотов на колышках', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // БЛОК ОБРАТНОГО РАСЧЕТА: ОБОРОТЫ -> МЕТРЫ
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFF2E3B1E).withOpacity(0.15)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('2. Из оборотов в метры (Обратный счет)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _turnsController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: InputDecoration(
+                      labelText: 'Количество оборотов на колышках',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      prefixIcon: const Icon(Icons.refresh, color: Color(0xFF2E3B1E)),
+                    ),
+                    onChanged: (_) {
+                      _distanceController.clear();
+                      _turnsResult = 0.0;
+                      _calculateFromTurns();
+                    },
+                  ),
+                  if (_metersResult > 0) ...[
+                    const SizedBox(height: 16),
+                    Center(
+                      child: Column(
+                        children: [
+                          Text('${_metersResult.toStringAsFixed(1)} м', style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))),
+                          const Text('дистанция до точки ловли', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDistanceChip(double value, String label) {
+    bool isSelected = _distanceBetweenSticks == value;
+    return ChoiceChip(
+      label: Text(label, style: TextStyle(color: isSelected ? Colors.white : Colors.black87, fontWeight: FontWeight.bold)),
+      selected: isSelected,
+      selectedColor: const Color(0xFF2E3B1E),
+      backgroundColor: Colors.white,
+      onSelected: (bool selected) {
+        if (selected) {
+          setState(() {
+            _distanceBetweenSticks = value;
+            if (_distanceController.text.isNotEmpty) _calculateFromMeters();
+            if (_turnsController.text.isNotEmpty) _calculateFromTurns();
+          });
+        }
+      },
+    );
+  }
+}
