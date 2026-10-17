@@ -5,7 +5,7 @@ void main() {
 }
 
 class CarpOutApp extends StatelessWidget {
-  const CarpOutApp({Key? super.key}) : super(key: super);
+  const CarpOutApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +22,7 @@ class CarpOutApp extends StatelessWidget {
 }
 
 class MainNavigationScreen extends StatefulWidget {
-  const MainNavigationScreen({Key? super.key}) : super(key: super);
+  const MainNavigationScreen({Key? key}) : super(key: key);
 
   @override
   _MainNavigationScreenState createState() => _MainNavigationScreenState();
@@ -31,13 +31,12 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
 
-  // Список экранов приложения CarpOut
   final List<Widget> _screens = [
-    const CarpOutDashboard(), // Главная статистика сессии
-    const Center(child: Text('Экран: Маркерная карта (В разработке)', style: TextStyle(fontSize: 18, color: Colors.darkGreen))), 
-    const Center(child: Text('Экран: Калькулятор клипс (В разработке)', style: TextStyle(fontSize: 18, color: Colors.darkGreen))), 
-    const Center(child: Text('Экран: Журнал прикормки (В разработке)', style: TextStyle(fontSize: 18, color: Colors.darkGreen))),   
-    const Center(child: Text('Экран: Новая поимка (В разработке)', style: TextStyle(fontSize: 18, color: Colors.darkGreen))),    
+    const CarpOutDashboard(), 
+    const Center(child: Text('Экран: Маркерная карта (В разработке)', style: TextStyle(fontSize: 18, color: Colors.green))), 
+    const Center(child: Text('Экран: Калькулятор клипс (В разработке)', style: TextStyle(fontSize: 18, color: Colors.green))), 
+    const Center(child: Text('Экран: Журнал прикормки (В разработке)', style: TextStyle(fontSize: 18, color: Colors.green))),   
+    const Center(child: Text('Экран: Новая поимка (В разработке)', style: TextStyle(fontSize: 18, color: Colors.green))),    
   ];
 
   @override
@@ -73,7 +72,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 }
 
 class CarpOutDashboard extends StatelessWidget {
-  const CarpOutDashboard({Key? super.key}) : super(key: super);
+  const CarpOutDashboard({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +89,7 @@ class CarpOutDashboard extends StatelessWidget {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: Cross CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               width: double.infinity,
