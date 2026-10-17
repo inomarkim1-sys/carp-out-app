@@ -14,8 +14,9 @@ workflows:
           flutter create . --platforms=android
       - name: Принудительное обновление Android SDK до версии 34
         script: |
-          sed -i 's/compileSdk = .*/compileSdk = 34/g' android/app/build.gradle
-          sed -i 's/targetSdk = .*/targetSdk = 34/g' android/app/build.gradle
+          flutter build apk --config-only --target-platform android-arm64
+          echo "flutter.compileSdkVersion=34" >> android/local.properties
+          echo "flutter.targetSdkVersion=34" >> android/local.properties
       - name: Сборка мобильного приложения APK
         script: |
           flutter build apk --release
