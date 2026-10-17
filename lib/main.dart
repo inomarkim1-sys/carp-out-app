@@ -489,3 +489,129 @@ class CarpOutRadarPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+
+// ===================================================================
+// ЧАСТЬ 4: ПОЛНОСТЬЮ ИНТЕРАКТИВНЫЙ МОДУЛЬ КАЛЬКУЛЯТОРА КЛИПСЫ (ХАКИ)
+// ===================================================================
+class CarpClipsCalculator extends StatefulWidget {
+  const CarpClipsCalculator({Key? key}) : super(key: key);
+
+  @override
+  _CarpClipsCalculatorState createState() => _CarpClipsCalculatorState();
+}
+
+class _CarpClipsCalculatorState extends State<CarpClipsCalculator> {
+  final TextEditingController _distanceController = TextEditingController();
+  double _distanceBetweenSticks = 4.0; // Стандартная дистанция между колышками (4 метра)
+  double _turnsResult = 0.0;
+
+  void _calculateClips() {
+    double distance = double.tryParse(_distanceController.text) ?? 0.0;
+    if (distance > 0 && _distanceBetweenSticks > 0) {
+      setState(() {
+        _turnsResult = distance / _distanceBetweenSticks;
+      });
+    } else {
+      setState(() {
+        _turnsResult = 0.0;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.only(top: 50.0, left: 20.0, right: 20.0, bottom: 20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Перенос дистанции',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Введите параметры маркерного замера для расчета точного числа колышков.',
+              style: TextStyle(color: Colors.grey, fontSize: 13),
+            ),
+            const SizedBox(height: 24),
+            TextField(
+              controller: _distanceController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: 'Дистанция ловли (метры)',
+                hintText: 'Например, 87',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                prefixIcon: const Icon(Icons.straighten, color: Color(0xFF2E3B1E)),
+              ),
+              onChanged: (_) => _calculateClips(),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'База между колышками:',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                _buildDistanceChip(3.0, '3 м'),
+                const SizedBox(width: 8),
+                _buildDistanceChip(4.0, '4 м (Стандарт)'),
+                const SizedBox(width: 8),
+                _buildDistanceChip(5.0, '5 м'),
+              ],
+            ),
+            const SizedBox(height: 32),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8F5E9),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFF2E3B1E), width: 1.5),
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    'РЕЗУЛЬТАТ ДЛЯ КЛИПСОВАНИЯ:',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E)),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _turnsResult.toStringAsFixed(2),
+                    style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E)),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'оборотов на колышках',
+                    style: TextStyle(fontSize: 14, color: Colors.black54, fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDistanceChip(double value, String label) {
+    bool isSelected = _distanceBetweenSticks == value;
+    return ChoiceChip(
+      label: Text(label, style: TextStyle(color: isSelected ? Colors.white : Colors.black87, fontWeight: FontWeight.bold)),
+      selected: isSelected,
+      selectedColor: const Color(0xFF2E3B1E),
+      backgroundColor: Colors.grey.shade100,
+      onSelected: (bool selected) {
+        if (selected) {
+          setState(() {
+            _distanceBetweenSticks = value;
+            _calculateClips();
+          });
+        }
+      },
+    );
+  }
+}
