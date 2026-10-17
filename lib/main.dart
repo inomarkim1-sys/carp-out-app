@@ -214,7 +214,7 @@ class CarpOutDashboard extends StatelessWidget {
                     ],
                   ),
                   Text(lake, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-                  Text(sector, style: const TextStyle(color: Colors.white90, fontSize: 16, fontWeight: FontWeight.w500)),
+                  Text(sector, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500)),
                   const SizedBox(height: 8),
                   const Row(
                     children: [
