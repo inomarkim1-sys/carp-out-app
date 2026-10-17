@@ -330,3 +330,162 @@ class _MarkerMapScreenState extends State<MarkerMapScreen> {
       ),
     );
   }
+
+    void _showSectorMapDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog.fullscreen(
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text('Автономная сетка CarpOut', style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
+            backgroundColor: const Color(0xFF2E3B1E),
+            leading: IconButton(
+              icon: const Icon(Icons.close, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+          backgroundColor: Colors.grey.shade50,
+          body: InteractiveViewer(
+            panEnabled: true,
+            boundaryMargin: const EdgeInsets.all(50),
+            minScale: 0.5,
+            maxScale: 3.0,
+            child: Center(
+              child: Container(
+                width: 400,
+                height: 600,
+                padding: const EdgeInsets.all(16),
+                child: CustomPaint(
+                  painter: CarpOutRadarPainter(),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _points.sort((a, b) => b.distance.compareTo(a.distance));
+
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.only(top: 50.0, left: 16.0, right: 16.0, bottom: 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Журнал промеров', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    TextButton.icon(
+                      style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                      onPressed: _showSectorMapDialog,
+                      icon: const Icon(Icons.grid_on, size: 14, color: Colors.blue),
+                      label: const Text('Карта сектора', style: TextStyle(color: Colors.blue, fontSize: 13, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2E3B1E), 
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
+                  ),
+                  onPressed: _addNewPointDialog,
+                  icon: const Icon(Icons.add, color: Colors.white, size: 18),
+                  label: const Text('Точка', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: _points.isEmpty
+                  ? const Center(child: Text('Нет сохраненных точек. Нажмите "+ Точка", чтобы добавить.', style: TextStyle(color: Colors.grey)))
+                  : ListView.builder(
+                      itemCount: _points.length,
+                      itemBuilder: (context, index) {
+                        final point = _points[index];
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: Colors.grey)),
+                          child: ListTile(
+                            onTap: () => _showEditPointDialog(point, index),
+                            leading: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: const BoxDecoration(color: Color(0xFFE8F5E9), shape: BoxShape.circle),
+                              child: const Icon(Icons.location_on, color: Color(0xFF2E3B1E)),
+                            ),
+                            title: Row(
+                              children: [
+                                Expanded(child: Text(point.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15))),
+                                const Icon(Icons.edit, size: 14, color: Colors.grey),
+                              ],
+                            ),
+                            subtitle: Padding(
+                              padding: const EdgeInsets.only(top: 4.0),
+                              child: Text('Дно: ${point.bottomType}', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                            ),
+                            trailing: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text('${point.distance} м', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))),
+                                Text('Гл: ${point.depth} м', style: const TextStyle(fontSize: 12, color: Colors.blueGrey)),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CarpOutRadarPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final linePaint = Paint()
+      ..color = Colors.grey.shade400
+      ..strokeWidth = 1.0
+      ..style = PaintingStyle.stroke;
+
+    final dashPaint = Paint()
+      ..color = Colors.grey.shade300
+      ..strokeWidth = 0.8
+      ..style = PaintingStyle.stroke;
+
+    final textPaint = TextStyle(color: Colors.grey.shade700, fontSize: 9);
+
+    double centerX = size.width / 2;
+    double bottomY = size.height - 20;
+
+    for (int angle = -50; angle <= 50; angle += 5) {
+      double rad = (angle - 90) * 3.141592653589793 / 180;
+      double endX = centerX + (size.height - 40) * 0.9 * (angle % 10 == 0 ? 1 : 0.95); // симуляция косинуса
+      double endY = bottomY - (size.height - 40) * 0.9 * (angle % 10 == 0 ? 1 : 0.95); // симуляция синуса
+      canvas.drawLine(Offset(centerX, bottomY), Offset(centerX + (angle * 2), bottomY - (size.height - 60)), (angle % 10 == 0) ? linePaint : dashPaint);
+    }
+
+    for (int d = 55; d <= 160; d += 15) {
+      double radius = (d - 50) * (size.height - 80) / 110;
+      Rect rect = Rect.fromCircle(center: Offset(centerX, bottomY), radius: radius);
+      canvas.drawArc(rect, 3.14159, 3.14159, false, (d % 30 == 0) ? linePaint : dashPaint);
+
+      final textPainter = TextPainter(text: TextSpan(text: '$d', style: textPaint), textDirection: TextDirection.ltr)..layout();
+      textPainter.paint(canvas, Offset(centerX - textPainter.width / 2, bottomY - radius - 12));
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
