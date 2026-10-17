@@ -129,3 +129,213 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 }
+
+// ===================================================================
+// ЧАСТЬ 3А: МОДЕЛЬ ТОЧЕК И АВТОНОМНЫЙ ХАКИ-РАДАР (МАРКЕРНАЯ КАРТА)
+// ===================================================================
+class MarkerPoint {
+  String name;
+  double distance;
+  double depth;
+  String bottomType;
+
+  MarkerPoint({
+    required this.name,
+    required this.distance,
+    required this.depth,
+    required this.bottomType,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'distance': distance,
+        'depth': depth,
+        'bottomType': bottomType,
+      };
+
+  factory MarkerPoint.fromJson(Map<String, dynamic> json) => MarkerPoint(
+        name: json['name'] ?? '',
+        distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
+        depth: (json['depth'] as num?)?.toDouble() ?? 0.0,
+        bottomType: json['bottomType'] ?? '',
+      );
+}
+
+class MarkerMapScreen extends StatefulWidget {
+  const MarkerMapScreen({Key? key}) : super(key: key);
+
+  @override
+  _MarkerMapScreenState createState() => _MarkerMapScreenState();
+}
+
+class _MarkerMapScreenState extends State<MarkerMapScreen> {
+  List<MarkerPoint> _points = [];
+
+  final _nameController = TextEditingController();
+  final _distanceController = TextEditingController();
+  final _depthController = TextEditingController();
+  final _bottomController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMarkerPoints();
+  }
+
+  Future<void> _loadMarkerPoints() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? pointsJson = prefs.getString('markerPoints');
+    if (pointsJson != null) {
+      final List<dynamic> decoded = jsonDecode(pointsJson);
+      setState(() {
+        _points = decoded.map((item) => MarkerPoint.fromJson(item)).toList();
+      });
+    } else {
+      setState(() {
+        _points = [
+          MarkerPoint(name: 'Дальняя бровка (ракушка)', distance: 94.0, depth: 3.5, bottomType: 'Твердое / Ракушка'),
+          MarkerPoint(name: 'Ближнее плато (ил)', distance: 62.0, depth: 2.1, bottomType: 'Глубокий ил'),
+        ];
+      });
+      _saveMarkerPoints();
+    }
+  }
+
+  Future<void> _saveMarkerPoints() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String encoded = jsonEncode(_points.map((p) => p.toJson()).toList());
+    await prefs.setString('markerPoints', encoded);
+  }
+
+  void _addNewPointDialog() {
+    _nameController.clear();
+    _distanceController.clear();
+    _depthController.clear();
+    _bottomController.clear();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Новая маркерная точка', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: _nameController, decoration: const InputDecoration(labelText: 'Название / Ориентир')),
+              TextField(controller: _distanceController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Дистанция (метры)')),
+              TextField(controller: _depthController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Глубина (метры)')),
+              TextField(controller: _bottomController, decoration: const InputDecoration(labelText: 'Структура дна (ракушка, ил...)')),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.grey))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E3B1E)),
+            onPressed: () {
+              if (_nameController.text.isNotEmpty && _distanceController.text.isNotEmpty) {
+                setState(() {
+                  _points.add(MarkerPoint(
+                    name: _nameController.text,
+                    distance: double.tryParse(_distanceController.text) ?? 0.0,
+                    depth: double.tryParse(_depthController.text) ?? 0.0,
+                    bottomType: _bottomController.text.isEmpty ? 'Не указано' : _bottomController.text,
+                  ));
+                });
+                _saveMarkerPoints();
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('Добавить', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditPointDialog(MarkerPoint point, int index) {
+    final editNameController = TextEditingController(text: point.name);
+    final editDistanceController = TextEditingController(text: point.distance.toString());
+    final editDepthController = TextEditingController(text: point.depth.toString());
+    final editBottomController = TextEditingController(text: point.bottomType);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Редактировать точку', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: editNameController, decoration: const InputDecoration(labelText: 'Название / Ориентир')),
+              TextField(controller: editDistanceController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Дистанция (метры)')),
+              TextField(controller: editDepthController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Глубина (метры)')),
+              TextField(controller: editBottomController, decoration: const InputDecoration(labelText: 'Структура дна')),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _points.removeAt(index);
+              });
+              _saveMarkerPoints();
+              Navigator.pop(context);
+            },
+            child: const Text('Удалить', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.grey))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E3B1E)),
+            onPressed: () {
+              setState(() {
+                point.name = editNameController.text;
+                point.distance = double.tryParse(editDistanceController.text) ?? point.distance;
+                point.depth = double.tryParse(editDepthController.text) ?? point.depth;
+                point.bottomType = editBottomController.text;
+              });
+              _saveMarkerPoints();
+              Navigator.pop(context);
+            },
+            child: const Text('Сохранить', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSectorMapDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog.fullscreen(
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text('Автономная сетка CarpOut', style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
+            backgroundColor: const Color(0xFF2E3B1E),
+            leading: IconButton(
+              icon: const Icon(Icons.close, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+          backgroundColor: Colors.grey.shade50,
+          body: InteractiveViewer(
+            panEnabled: true,
+            boundaryMargin: const EdgeInsets.all(50),
+            minScale: 0.5,
+            maxScale: 3.0,
+            child: Center(
+              child: Container(
+                width: 400,
+                height: 600,
+                padding: const EdgeInsets.all(16),
+                child: CustomPaint(
+                  painter: CarpOutRadarPainter(),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
