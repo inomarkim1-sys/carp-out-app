@@ -908,7 +908,7 @@ class CarpOutRadarPainter extends CustomPainter {
     }
 
     // 3. НАНЕСЕНИЕ НАШЕЙ НАДПИСИ CARPOUT ПО ЦЕНТРУ РАДАРА
-    const logoPainter = TextPainter(text: TextSpan(text: 'CARPOUT', style: logoPaint), textDirection: TextDirection.ltr)..layout();
+   final logoPainter = TextPainter(text: TextSpan(text: 'CARPOUT', style: logoPaint), textDirection: TextDirection.ltr)..layout();
     logoPainter.paint(canvas, Offset(centerX - logoPainter.width / 2, bottomY - (size.height / 2)));
   }
 
