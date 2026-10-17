@@ -1,0 +1,19 @@
+workflows:
+  default-workflow:
+    name: CarpOut Android Build
+    max_build_duration: 10
+    instance_type: mac_mini_m2
+    environment:
+      flutter: stable
+    triggering:
+      events:
+        - push
+    scripts:
+      - name: Автоматическая генерация структуры Android
+        script: |
+          flutter create . --platforms=android
+      - name: Сборка мобильного приложения APK
+        script: |
+          flutter build apk --release
+    artifacts:
+      - build/app/outputs/flutter-apk/*.apk
