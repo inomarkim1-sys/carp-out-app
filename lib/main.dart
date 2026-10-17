@@ -550,3 +550,391 @@ class CarpOutDashboard extends StatelessWidget {
     );
   }
 }
+
+// ===================================================================
+// ЧАСТЬ 3А: МОДЕЛЬ МАРКЕРНЫХ ТОЧЕК И ИХ ЛОКАЛЬНАЯ ХАКИ-ПАМЯТЬ С ПРИВЯЗКОЙ К ОЗЕРАМ
+// ===================================================================
+class MarkerPoint {
+  String name;
+  double distance;
+  double depth;
+  String bottomType;
+
+  MarkerPoint({
+    required this.name,
+    required this.distance,
+    required this.depth,
+    required this.bottomType,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'distance': distance,
+        'depth': depth,
+        'bottomType': bottomType,
+      };
+
+  factory MarkerPoint.fromJson(Map<String, dynamic> json) => MarkerPoint(
+        name: json['name'] ?? '',
+        distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
+        depth: (json['depth'] as num?)?.toDouble() ?? 0.0,
+        bottomType: json['bottomType'] ?? '',
+      );
+}
+
+class MarkerMapScreen extends StatefulWidget {
+  final String lakeKey;
+  final Function(List<String>) onMarkersChanged;
+  const MarkerMapScreen({Key? key, required this.lakeKey, required this.onMarkersChanged}) : super(key: key);
+
+  @override
+  _MarkerMapScreenState createState() => _MarkerMapScreenState();
+}
+
+class _MarkerMapScreenState extends State<MarkerMapScreen> {
+  List<MarkerPoint> _points = [];
+
+  final _nameController = TextEditingController();
+  final _distanceController = TextEditingController();
+  final _depthController = TextEditingController();
+  final _bottomController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMarkerPoints();
+  }
+
+  @override
+  void didUpdateWidget(covariant MarkerMapScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.lakeKey != widget.lakeKey) {
+      _loadMarkerPoints(); // Перезагружаем точки, если в боковом меню сменили водоем!
+    }
+  }
+
+  Future<void> _loadMarkerPoints() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? pointsJson = prefs.getString('markers_${widget.lakeKey}');
+    if (pointsJson != null) {
+      final List<dynamic> decoded = jsonDecode(pointsJson);
+      setState(() {
+        _points = decoded.map((item) => MarkerPoint.fromJson(item)).toList();
+      });
+      _notifyParent();
+    } else {
+      setState(() {
+        _points = [
+          MarkerPoint(name: 'Дальняя бровка (ракушка)', distance: 94.0, depth: 3.5, bottomType: 'Твердое / Ракушка'),
+          MarkerPoint(name: 'Ближнее плато (ил)', distance: 62.0, depth: 2.1, bottomType: 'Глубокий ил'),
+        ];
+      });
+      _saveMarkerPoints();
+    }
+  }
+
+  Future<void> _saveMarkerPoints() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String encoded = jsonEncode(_points.map((p) => p.toJson()).toList());
+    await prefs.setString('markers_${widget.lakeKey}', encoded);
+    _notifyParent();
+  }
+
+  void _notifyParent() {
+    List<String> names = _points.map((p) => p.name).toList();
+    widget.onMarkersChanged(names);
+  }
+
+  void _addNewPointDialog() {
+    _nameController.clear();
+    _distanceController.clear();
+    _depthController.clear();
+    _bottomController.clear();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Новая маркерная точка', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: _nameController, decoration: const InputDecoration(labelText: 'Название / Ориентир')),
+              TextField(controller: _distanceController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Дистанция (метры)')),
+              TextField(controller: _depthController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Глубина (метры)')),
+              TextField(controller: _bottomController, decoration: const InputDecoration(labelText: 'Структура дна (ракушка, ил...)')),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E3B1E)),
+            onPressed: () {
+              if (_nameController.text.isNotEmpty && _distanceController.text.isNotEmpty) {
+                setState(() {
+                  _points.add(MarkerPoint(
+                    name: _nameController.text,
+                    distance: double.tryParse(_distanceController.text) ?? 0.0,
+                    depth: double.tryParse(_depthController.text) ?? 0.0,
+                    bottomType: _bottomController.text.isEmpty ? 'Не указано' : _bottomController.text,
+                  ));
+                });
+                _saveMarkerPoints();
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('Добавить', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditPointDialog(MarkerPoint point, int index) {
+    final editNameController = TextEditingController(text: point.name);
+    final editDistanceController = TextEditingController(text: point.distance.toString());
+    final editDepthController = TextEditingController(text: point.depth.toString());
+    final editBottomController = TextEditingController(text: point.bottomType);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Редактировать точку', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: editNameController, decoration: const InputDecoration(labelText: 'Название / Ориентир')),
+              TextField(controller: editDistanceController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Дистанция (метры)')),
+              TextField(controller: editDepthController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Глубина (метры)')),
+              TextField(controller: editBottomController, decoration: const InputDecoration(labelText: 'Структура дна')),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _points.removeAt(index);
+              });
+              _saveMarkerPoints();
+              Navigator.pop(context);
+            },
+            child: const Text('Удалить', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E3B1E)),
+            onPressed: () {
+              setState(() {
+                point.name = editNameController.text;
+                point.distance = double.tryParse(editDistanceController.text) ?? point.distance;
+                point.depth = double.tryParse(editDepthController.text) ?? point.depth;
+                point.bottomType = editBottomController.text;
+              });
+              _saveMarkerPoints();
+              Navigator.pop(context);
+            },
+            child: const Text('Сохранить', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+    void _showSectorMapDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog.fullscreen(
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text('Карта сектора CarpOut', style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
+            backgroundColor: const Color(0xFF2E3B1E),
+            leading: IconButton(
+              icon: const Icon(Icons.close, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+          backgroundColor: const Color(0xFFF4F6F0), // Фон хаки внутри карты
+          body: InteractiveViewer(
+            panEnabled: true,
+            boundaryMargin: const EdgeInsets.all(50),
+            minScale: 0.5,
+            maxScale: 4.0,
+            child: Center(
+              child: Container(
+                width: 380,
+                height: 580,
+                padding: const EdgeInsets.all(16),
+                child: CustomPaint(
+                  painter: CarpOutRadarPainter(),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _points.sort((a, b) => b.distance.compareTo(a.distance));
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F6F0), // Общий нежный фон Хаки
+      body: Padding(
+        padding: const EdgeInsets.only(top: 50.0, left: 16.0, right: 16.0, bottom: 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Журнал промеров', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))),
+                    TextButton.icon(
+                      style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                      onPressed: _showSectorMapDialog,
+                      icon: const Icon(Icons.grid_on, size: 14, color: Colors.blue),
+                      label: const Text('Карта сектора', style: TextStyle(color: Colors.blue, fontSize: 13, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2E3B1E), 
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
+                  ),
+                  onPressed: _addNewPointDialog,
+                  icon: const Icon(Icons.add, color: Colors.white, size: 18),
+                  label: const Text('Точка', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: _points.isEmpty
+                  ? const Center(child: Text('Нет сохраненных точек. Нажмите "+ Точка", чтобы добавить.', style: TextStyle(color: Colors.grey)))
+                  : ListView.builder(
+                      itemCount: _points.length,
+                      itemBuilder: (context, index) {
+                        final point = _points[index];
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          elevation: 2,
+                          color: Colors.white, // Контрастные белые карточки точек
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: Colors.grey)),
+                          child: ListTile(
+                            onTap: () => _showEditPointDialog(point, index),
+                            leading: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: const BoxDecoration(color: Color(0xFFE8F5E9), shape: BoxShape.circle),
+                              child: const Icon(Icons.location_on, color: Color(0xFF2E3B1E)),
+                            ),
+                            title: Row(
+                              children: [
+                                Expanded(child: Text(point.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF2E3B1E)))),
+                                const Icon(Icons.edit, size: 14, color: Colors.grey),
+                              ],
+                            ),
+                            subtitle: Padding(
+                              padding: const EdgeInsets.only(top: 4.0),
+                              child: Text('Дно: ${point.bottomType}', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                            ),
+                            trailing: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text('${point.distance} м', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))),
+                                Text('Гл: ${point.depth} м', style: const TextStyle(fontSize: 12, color: Colors.blueGrey)),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// КРАСИВЫЙ БРЕНДИРОВАННЫЙ ОТРИСОВЩИК ЛУЧЕВОЙ СЕТКИ СЕКТОРА
+class CarpOutRadarPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final mainPaint = Paint()
+      ..color = const Color(0xFF2E3B1E) // Фирменные линии тёмного хаки
+      ..strokeWidth = 1.2
+      ..style = PaintingStyle.stroke;
+
+    final dashPaint = Paint()
+      ..color = const Color(0xFF4A5D32).withOpacity(0.4) // Мягкие вспомогательные лучи
+      ..strokeWidth = 0.8
+      ..style = PaintingStyle.stroke;
+
+    final textPaint = TextStyle(color: const Color(0xFF2E3B1E).withOpacity(0.8), fontSize: 9, fontWeight: FontWeight.bold);
+    
+    // Стиль для нашего логотипа на карте
+    const logoPaint = TextStyle(color: Color(0xFF2E3B1E), fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2);
+
+    double centerX = size.width / 2;
+    double bottomY = size.height - 30;
+
+    // 1. Отрисовка лучей (каждые 10 градусов основные, каждые 5 - пунктир)
+    for (int angle = -50; angle <= 50; angle += 5) {
+      double rad = (angle - 90) * 3.141592653589793 / 180;
+      double radiusLength = size.height - 80;
+      double endX = centerX + radiusLength * _cos(rad);
+      double endY = bottomY + radiusLength * _sin(rad);
+      canvas.drawLine(Offset(centerX, bottomY), Offset(endX, endY), (angle % 10 == 0) ? mainPaint : dashPaint);
+    }
+
+    // 2. Отрисовка дуг дистанций (от 55м до 160м)
+    for (int d = 55; d <= 160; d += 15) {
+      double radius = (d - 50) * (size.height - 100) / 110;
+      Rect rect = Rect.fromCircle(center: Offset(centerX, bottomY), radius: radius);
+      canvas.drawArc(rect, 3.14159 + 0.6, 3.14159 - 1.2, false, (d % 30 == 0) ? mainPaint : dashPaint);
+
+      // Цифры дальности над каждой дугой
+      final textPainter = TextPainter(text: TextSpan(text: '$d', style: textPaint), textDirection: TextDirection.ltr)..layout();
+      textPainter.paint(canvas, Offset(centerX - textPainter.width / 2, bottomY - radius - 12));
+    }
+
+    // 3. НАНЕСЕНИЕ НАШЕЙ НАДПИСИ CARPOUT ПО ЦЕНТРУ РАДАРА
+    const logoPainter = TextPainter(text: TextSpan(text: 'CARPOUT', style: logoPaint), textDirection: TextDirection.ltr)..layout();
+    logoPainter.paint(canvas, Offset(centerX - logoPainter.width / 2, bottomY - (size.height / 2)));
+  }
+
+  // Вспомогательные тригонометрические симуляции для CustomPainter во Flutter
+  double _sin(double rad) {
+    double x = rad;
+    double t = x;
+    double sum = x;
+    for (int i = 1; i <= 5; i++) {
+      t = -t * x * x / ((2 * i) * (2 * i + 1));
+      sum += t;
+    }
+    return sum;
+  }
+
+  double _cos(double rad) {
+    double x = rad;
+    double t = 1.0;
+    double sum = 1.0;
+    for (int i = 1; i <= 5; i++) {
+      t = -t * x * x / ((2 * i - 1) * (2 * i));
+      sum += t;
+    }
+    return sum;
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
