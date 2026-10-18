@@ -17,10 +17,10 @@ class CarpOutApp extends StatelessWidget {
       theme: ThemeData(
         primaryColor: const Color(0xFF2E3B1E), // Тёмно-зелёный лесной
         scaffoldBackgroundColor: const Color(0xFFA2B574), // Оливковый фон камуфляжа
-        dialogTheme: const DialogTheme(
-          backgroundColor: Color(0xFF2E3B1E),
-          titleTextStyle: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-          contentTextStyle: TextStyle(color: Colors.white80),
+       dialogTheme: DialogThemeData(
+          backgroundColor: const Color(0xFF2E3B1E),
+          titleTextStyle: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          contentTextStyle: TextStyle(color: Colors.white.withOpacity(0.8)),
         ),
         colorScheme: ColorScheme.fromSwatch().copyWith(
           primary: const Color(0xFF2E3B1E),
@@ -850,7 +850,10 @@ class CarpOutRadarPainterNew extends CustomPainter {
     }
 
     // ПОЛНЫЙ ТЕКСТОВЫЙ СПИСОК ВСЕХ ДУГ ДАЛЬНОСТИ ПО ВАШЕМУ ЗАПРОСУ
-    final List<int> distances =;
+        final List<int> distances = [
+      60, 75, 90, 105, 120, 135, 150
+    ];
+
     
     for (int d in distances) {
       double radius = (d - 55) * maxRadiusPixels / 105;
