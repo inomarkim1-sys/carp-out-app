@@ -1,4 +1,4 @@
-class MarkerMapScreenNew extends StatefulWidget {import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,11 +15,17 @@ class CarpOutApp extends StatelessWidget {
       title: 'CarpOut',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primaryColor: const Color(0xFF2E3B1E),
-        scaffoldBackgroundColor: const Color(0xFFF4F6F0), 
+        primaryColor: const Color(0xFF2E3B1E), // Тёмно-зелёный лесной
+        scaffoldBackgroundColor: const Color(0xFFA2B574), // Оливковый фон камуфляжа
+        dialogTheme: const DialogTheme(
+          backgroundColor: Color(0xFF2E3B1E),
+          titleTextStyle: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          contentTextStyle: TextStyle(color: Colors.white80),
+        ),
         colorScheme: ColorScheme.fromSwatch().copyWith(
           primary: const Color(0xFF2E3B1E),
           secondary: const Color(0xFF4A5D32),
+          surface: const Color(0xFFD4D9A1), // Светло-песочные карточки
         ),
       ),
       home: const MainNavigationScreen(),
@@ -226,7 +232,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                       ),
                       children: [
                         Container(
-                                                margin: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
+                          margin: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(color: const Color(0xFF4A5D32), borderRadius: BorderRadius.circular(12)),
                           child: Column(
@@ -292,9 +298,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 }
-
 // ===================================================================
-// ЧАСТЬ 2А: РЕАЛИЗАЦИЯ ДАШБОРДА (ЛОГИКА И УМНАЯ ФОРМА УЛОВА "В ПОДСАКЕ!")
+// ЧАСТЬ 2А: ДАШБОРД В ЦВЕТАХ КАМУФЛЯЖА (ЛОГИКА И ДИАЛОГИ УЛОВА)
 // ===================================================================
 class CarpOutDashboard extends StatelessWidget {
   final String lake;
@@ -338,26 +343,31 @@ class CarpOutDashboard extends StatelessWidget {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Рыба в подсаке! 🎣', style: TextStyle(fontWeight: FontWeight.bold)),
+          backgroundColor: const Color(0xFF2E3B1E),
+          title: const Text('Рыба в подсаке! 🎣', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Выберите вид рыбы:', style: TextStyle(fontSize: 13, color: Colors.grey)),
+                const Text('Выберите вид рыбы:', style: TextStyle(fontSize: 13, color: Colors.white70)),
                 DropdownButton<String>(
+                  dropdownColor: const Color(0xFF2E3B1E),
                   value: selectedFish,
                   isExpanded: true,
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                   items: <String>['Карп', 'Амур', 'Толстолобик'].map((String value) {
                     return DropdownMenuItem<String>(value: value, child: Text(value));
                   }).toList(),
                   onChanged: (newValue) { setDialogState(() { selectedFish = newValue!; }); },
                 ),
                 const SizedBox(height: 12),
-                const Text('Точка поимки:', style: TextStyle(fontSize: 13, color: Colors.grey)),
+                const Text('Точка поимки:', style: TextStyle(fontSize: 13, color: Colors.white70)),
                 DropdownButton<String>(
+                  dropdownColor: const Color(0xFF2E3B1E),
                   value: selectedPoint,
                   isExpanded: true,
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                   items: (availableMarkers.isNotEmpty ? availableMarkers : ['Не указана']).map((String value) {
                     return DropdownMenuItem<String>(value: value, child: Text(value));
                   }).toList(),
@@ -366,19 +376,22 @@ class CarpOutDashboard extends StatelessWidget {
                 const SizedBox(height: 12),
                 TextField(
                   controller: weightController,
+                  style: const TextStyle(color: Colors.white),
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Вес рыбы (кг)',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    labelStyle: TextStyle(color: Colors.white60),
+                    enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white30)),
+                    focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Color(0xFFC5E1A5))),
                   ),
                 ),
               ],
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена')),
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E3B1E)),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
               onPressed: () {
                 double inputWeight = double.tryParse(weightController.text) ?? 0.0;
                 if (inputWeight > 0) {
@@ -407,19 +420,20 @@ class CarpOutDashboard extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Обновить аналитику улова', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: const Color(0xFF2E3B1E),
+        title: const Text('Обновить аналитику улова', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: catchesController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Всего хвостов (шт)')),
-            TextField(controller: weightController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Общий вес улова (кг)')),
-            TextField(controller: bigController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Вес BIG FISH (кг)')),
+            TextField(controller: catchesController, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Всего хвостов (шт)', labelStyle: TextStyle(color: Colors.white60))),
+            TextField(controller: weightController, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Общий вес улова (кг)', labelStyle: TextStyle(color: Colors.white60))),
+            TextField(controller: bigController, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Вес BIG FISH (кг)', labelStyle: TextStyle(color: Colors.white60))),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена')),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E3B1E)),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
             onPressed: () {
               int c = int.tryParse(catchesController.text) ?? catches;
               double w = double.tryParse(weightController.text) ?? weight;
@@ -436,7 +450,7 @@ class CarpOutDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     double averageWeight = catches > 0 ? weight / catches : 0.0;
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F0),
+      backgroundColor: const Color(0xFFA2B574), // Основной оливковый фон
       body: SingleChildScrollView(
         padding: const EdgeInsets.only(top: 40.0, left: 16.0, right: 16.0, bottom: 16.0),
         child: Column(
@@ -444,8 +458,8 @@ class CarpOutDashboard extends StatelessWidget {
           children: [
             Row(
               children: [
-                IconButton(icon: const Icon(Icons.menu, color: Color(0xFF2E3B1E)), onPressed: () => Scaffold.of(context).openDrawer()),
-                const Text('CarpOut App', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))),
+                IconButton(icon: const Icon(Icons.menu, color: Color(0xFF1B2611)), onPressed: () => Scaffold.of(context).openDrawer()),
+                const Text('CarpOut App', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1B2611))),
               ],
             ),
             const SizedBox(height: 10),
@@ -453,7 +467,7 @@ class CarpOutDashboard extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [Color(0xFF2E3B1E), Color(0xFF4A5D32)]),
+                gradient: const LinearGradient(colors: [Color(0xFF2E3B1E), Color(0xFF1B2611)]),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
@@ -469,6 +483,18 @@ class CarpOutDashboard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Аналитика улова:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1B2611))),
+                TextButton.icon(
+                  onPressed: () => _showEditStatsDialog(context),
+                  icon: const Icon(Icons.tune, size: 16, color: Color(0xFF2E3B1E)),
+                  label: const Text('Изменить', style: TextStyle(color: Color(0xFF2E3B1E), fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
             GridView.count(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -477,10 +503,10 @@ class CarpOutDashboard extends StatelessWidget {
               mainAxisSpacing: 12,
               childAspectRatio: 1.3,
               children: [
-                _buildStatCard('Всего хвостов', '$catches шт.', Icons.phishing, Colors.blue),
-                _buildStatCard('Общий вес', '${weight.toStringAsFixed(3)} кг', Icons.scale, Colors.orange),
-                _buildStatCard('Средний вес', '${averageWeight.toStringAsFixed(3)} кг', Icons.analytics, Colors.purple),
-                _buildStatCard('BIG FISH 🔥', '$bigFish кг', Icons.emoji_events, Colors.red),
+                _buildStatCard('Всего хвостов', '$catches шт.', Icons.phishing, Colors.blue.shade900),
+                _buildStatCard('Общий вес', '${weight.toStringAsFixed(3)} кг', Icons.scale, Colors.orange.shade900),
+                _buildStatCard('Средний вес', '${averageWeight.toStringAsFixed(3)} кг', Icons.analytics, Colors.purple.shade900),
+                _buildStatCard('BIG FISH 🔥', '$bigFish кг', Icons.emoji_events, Colors.red.shade900),
               ],
             ),
             const SizedBox(height: 24),
@@ -504,15 +530,15 @@ class CarpOutDashboard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white, 
+        color: const Color(0xFFD4D9A1), // Песочно-оливковый контрастный цвет карточки
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF2E3B1E).withOpacity(0.15)),
+        border: Border.all(color: const Color(0xFF2E3B1E).withOpacity(0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Row(children: [Icon(icon, color: color, size: 18), const SizedBox(width: 6), Text(title, style: const TextStyle(color: Colors.grey, fontSize: 11))]),
+          Row(children: [Icon(icon, color: color, size: 18), const SizedBox(width: 6), Text(title, style: const TextStyle(color: Color(0xFF1B2611), fontSize: 11, fontWeight: FontWeight.bold))]),
           const SizedBox(height: 8),
           Text(value, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))),
         ],
@@ -521,497 +547,14 @@ class CarpOutDashboard extends StatelessWidget {
   }
 }
 // ===================================================================
-// ЧАСТЬ 3А: ИНТЕРАКТИВНЫЙ СЕКТОРНЫЙ РАДАР С МАРКЕРАМИ ДНА CARPOUT
+// ЧАСТЬ 3А: ЖУРНАЛ И ЛОГИКА СЕКТОРНЫХ МАРКЕРОВ В СТИЛЕ КАМУФЛЯЖ
 // ===================================================================
 class MarkerPoint {
   String name;
   double distance;
   double depth;
   String bottomType;
-
-  MarkerPoint({
-    required this.name,
-    required this.distance,
-    required this.depth,
-    required this.bottomType,
-  });
-
-  Map<String, dynamic> toJson() => {
-        'name': name,
-        'distance': distance,
-        'depth': depth,
-        'bottomType': bottomType,
-      };
-
-  factory MarkerPoint.fromJson(Map<String, dynamic> json) => MarkerPoint(
-        name: json['name'] ?? '',
-        distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
-        depth: (json['depth'] as num?)?.toDouble() ?? 0.0,
-        bottomType: json['bottomType'] ?? '',
-      );
-}
-class MarkerMapScreen extends StatefulWidget {
-  final String lakeKey;
-  final Function(List<String>) onMarkersChanged;
-  const MarkerMapScreen({Key? key, required this.lakeKey, required this.onMarkersChanged}) : super(key: key);
-
-  @override
-  _MarkerMapScreenState createState() => _MarkerMapScreenState();
-}
-
-class _MarkerMapScreenState extends State<MarkerMapScreen> {
-  List<MarkerPoint> _points = [];
-
-  final _nameController = TextEditingController();
-  final _distanceController = TextEditingController();
-  final _depthController = TextEditingController();
-  String _selectedBottomType = '🐚 Ракушка';
-
-  @override
-  void initState() {
-    super.initState();
-    _loadMarkerPoints();
-  }
-
-  @override
-  void didUpdateWidget(covariant MarkerMapScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.lakeKey != widget.lakeKey) {
-      _loadMarkerPoints();
-    }
-  }
-
-  Future<void> _loadMarkerPoints() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? pointsJson = prefs.getString('markers_${widget.lakeKey}');
-    if (pointsJson != null) {
-      final List<dynamic> decoded = jsonDecode(pointsJson);
-      setState(() {
-        _points = decoded.map((item) => MarkerPoint.fromJson(item)).toList();
-      });
-      _notifyParent();
-    } else {
-      setState(() {
-        _points = [
-          MarkerPoint(name: 'Дальняя бровка', distance: 91.2, depth: 8.0, bottomType: '🐚 Ракушка'),
-        ];
-      });
-      _saveMarkerPoints();
-    }
-  }
-
-  Future<void> _saveMarkerPoints() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String encoded = jsonEncode(_points.map((p) => p.toJson()).toList());
-    await prefs.setString('markers_${widget.lakeKey}', encoded);
-    _notifyParent();
-  }
-
-  void _notifyParent() {
-    List<String> names = _points.map((p) => p.name).toList();
-    widget.onMarkersChanged(names);
-  }
-
-  void _addPointFromRadar(double tappedDistance) {
-    _nameController.clear();
-    _distanceController.text = tappedDistance.toStringAsFixed(1);
-    _depthController.clear();
-
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: const Color(0xFF2E3B1E),
-          title: const Text('Засечь точку на карте 🎯', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16)),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: _nameController,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(labelText: 'Ориентир / Название', labelStyle: TextStyle(color: Colors.white60)),
-                ),
-                TextField(
-                  controller: _distanceController,
-                  keyboardType: TextInputType.number,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(labelText: 'Дистанция (метры)', labelStyle: TextStyle(color: Colors.white60)),
-                ),
-                TextField(
-                  controller: _depthController,
-                  keyboardType: TextInputType.number,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(labelText: 'Глубина (метры)', labelStyle: TextStyle(color: Colors.white60)),
-                ),
-                const SizedBox(height: 16),
-                const Align(alignment: Alignment.centerLeft, child: Text('Маркер структуры дна:', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold))),
-                DropdownButton<String>(
-                  dropdownColor: const Color(0xFF2E3B1E),
-                  value: _selectedBottomType,
-                  isExpanded: true,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                  items: <String>['🐚 Ракушка', '🍃 Ил', '🪨 Камни', '🪵 Коряга', '🏖️ Песок'].map((String value) {
-                    return DropdownMenuItem<String>(value: value, child: Text(value));
-                  }).toList(),
-                  onChanged: (newValue) {
-                    setDialogState(() { _selectedBottomType = newValue!; });
-                  },
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
-              onPressed: () {
-                if (_nameController.text.isNotEmpty && _distanceController.text.isNotEmpty) {
-                  setState(() {
-                    _points.add(MarkerPoint(
-                      name: _nameController.text,
-                      distance: double.tryParse(_distanceController.text) ?? tappedDistance,
-                      depth: double.tryParse(_depthController.text) ?? 0.0,
-                      bottomType: _selectedBottomType,
-                    ));
-                  });
-                  _saveMarkerPoints();
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text('Вшить в сектор', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showPointsJournalBottomSheet() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF2E3B1E),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) => StatefulBuilder(
-        builder: (context, setSheetState) => Column(
-          children: [
-            const SizedBox(height: 12),
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white30, borderRadius: BorderRadius.circular(2))),
-            const SizedBox(height: 16),
-            const Text('ЖУРНАЛ МАРКЕРНЫХ ТОЧЕК', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 1)),
-            const SizedBox(height: 12),
-            Expanded(
-              child: _points.isEmpty
-                  ? const Center(child: Text('Нет сохраненных точек', style: TextStyle(color: Colors.white60)))
-                  : ListView.builder(
-                      itemCount: _points.length,
-                      itemBuilder: (context, index) {
-                        final point = _points[index];
-                        return Card(
-                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                          color: const Color(0xFF4A5D32),
-                          child: ListTile(
-                            leading: const Icon(Icons.location_on, color: Color(0xFFC5E1A5)),
-                            title: Text(point.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                            subtitle: Text('Дно: ${point.bottomType} | Гл: ${point.depth}м', style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text('${point.distance.toStringAsFixed(1)} м', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20),
-                                  onPressed: () {
-                                    setState(() { _points.removeAt(index); });
-                                    setSheetState(() {});
-                                    _saveMarkerPoints();
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F0),
-      body: Stack(
-        children: [
-          // 1. КАРТА-РАДАР РАСКРЫВАЕТСЯ НА ВЕСЬ ЭКРАН С ПОДДЕРЖКОЙ МАСШТАБИРОВАНИЯ
-          Positioned.fill(
-            child: InteractiveViewer(
-              panEnabled: true,
-              boundaryMargin: const EdgeInsets.all(100),
-              minScale: 0.5,
-              maxScale: 4.0,
-              child: GestureDetector(
-                onTapUp: (details) {
-                  // Высчитываем дистанцию тапа от центральной нижней точки радара
-                  double boxWidth = 380.0;
-                  double boxHeight = 540.0;
-                  double centerX = boxWidth / 2;
-                  double bottomY = boxHeight - 30;
-
-                  double clickX = details.localPosition.dx;
-                  double clickY = details.localPosition.dy;
-
-                  // Расстояние по теореме Пифагора
-                  double dx = clickX - centerX;
-                  double dy = bottomY - clickY;
-                  double distancePixels = Math.sqrt(dx * dx + dy * dy);
-
-                  // Переводим пиксели в метры сектора (диапазон 55м - 160м)
-                  double maxRadiusPixels = boxHeight - 80;
-                  double calculatedDist = 55.0 + (distancePixels / maxRadiusPixels) * 105.0;
-
-                  if (calculatedDist >= 55 && calculatedDist <= 160) {
-                    _addPointFromRadar(calculatedDist);
-                  }
-                },
-                child: Container(
-                  width: 380,
-                  height: 540,
-                  padding: const EdgeInsets.all(16),
-                  color: Colors.transparent,
-                  child: CustomPaint(
-                    painter: CarpOutRadarPainter(savedPoints: _points),
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // 2. ПЛАВАЮЩАЯ КНОПКА ВЫЗОВА ЖУРНАЛА ТОЧЕК
-          Positioned(
-            bottom: 20,
-            right: 20,
-            child: FloatingActionButton.extended(
-              backgroundColor: const Color(0xFF2E3B1E),
-              onPressed: _showPointsJournalBottomSheet,
-              icon: const Icon(Icons.analytics, color: Colors.white),
-              label: const Text('Журнал точек', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ОБНОВЛЕННЫЙ ХАКИ-ОТРИСОВЩИК ЛУЧЕЙ И МАРКЕРНЫХ МИШЕНЕЙ НА КАРТЕ
-class CarpOutRadarPainter extends CustomPainter {
-  final List<MarkerPoint> savedPoints;
-  CarpOutRadarPainter({required this.savedPoints});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final mainPaint = Paint()
-      ..color = const Color(0xFF2E3B1E)
-      ..strokeWidth = 1.2
-      ..style = PaintingStyle.stroke;
-
-    final dashPaint = Paint()
-      ..color = const Color(0xFF4A5D32).withOpacity(0.3)
-      ..strokeWidth = 0.8
-      ..style = PaintingStyle.stroke;
-
-    final pointPaint = Paint()
-      ..color = const Color(0xFFD32F2F) // Красный цвет для засечек
-      ..style = PaintingStyle.fill;
-
-    final textPaint = TextStyle(color: const Color(0xFF2E3B1E).withOpacity(0.8), fontSize: 9, fontWeight: FontWeight.bold);
-    const logoPaint = TextStyle(color: Color(0xFF2E3B1E), fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2);
-    final markerLabelPaint = TextStyle(color: const Color(0xFF1B2611), fontSize: 10, fontWeight: FontWeight.bold, backgroundColor: Colors.white.withOpacity(0.8));
-
-    double centerX = size.width / 2;
-    double bottomY = size.height - 30;
-    double maxRadiusPixels = size.height - 80;
-
-    // Сетка лучей веера
-    for (int angle = -40; angle <= 40; angle += 10) {
-      double rad = (angle - 90) * 3.141592653589793 / 180;
-      double endX = centerX + maxRadiusPixels * Math.cos(rad);
-      double endY = bottomY + maxRadiusPixels * Math.sin(rad);
-      canvas.drawLine(Offset(centerX, bottomY), Offset(endX, endY), (angle % 20 == 0) ? mainPaint : dashPaint);
-    }
-
-    // Сетка дуг дальности
-    for (int d = 60; d <= 150; d += 30) {
-      double radius = (d - 50) * maxRadiusPixels / 110;
-      Rect rect = Rect.fromCircle(center: Offset(centerX, bottomY), radius: radius);
-      canvas.drawArc(rect, 3.14159 + 0.5, 3.14159 - 1.0, false, mainPaint);
-
-      final textPainter = TextPainter(text: TextSpan(text: '$dм', style: textPaint), textDirection: TextDirection.ltr)..layout();
-      textPainter.paint(canvas, Offset(centerX - textPainter.width / 2, bottomY - radius - 12));
-    }
-
-    // АВТОМАТИЧЕСКАЯ ОТРИСОВКА ВСЕХ МАРКЕРНЫХ ТОЧЕК НА СЕТКЕ РАДАРА
-    for (var point in savedPoints) {
-      if (point.distance >= 55 && point.distance <= 160) {
-        // Вычисляем радиус в пикселях на основе метров
-        double pointRadiusPixels = (point.distance - 55) * maxRadiusPixels / 105;
-        
-        // Распределяем точки веером по разным лучам для наглядности (симулируем небольшой угол)
-        double fakeAngle = (point.name.hashCode % 40) - 20; 
-        double rad = (fakeAngle - 90) * 3.141592653589793 / 180;
-
-        double pX = centerX + pointRadiusPixels * Math.cos(rad);
-        double pY = bottomY + pointRadiusPixels * Math.sin(rad);
-
-        // Рисуем контрастную красную мишень
-        canvas.drawCircle(Offset(pX, pY), 5, pointPaint);
-        canvas.drawCircle(Offset(pX, pY), 9, mainPaint..strokeWidth = 1.0);
-
-        // Подписываем дистанцию и флаг дна прямо рядом с мишенью
-        String shortName = point.name.length > 10 ? '${point.name.substring(0, 10)}...' : point.name;
-        String labelText = '$shortName\n${point.distance.toStringAsFixed(1)}м ${point.bottomType}';
-        
-        final labelPainter = TextPainter(text: TextSpan(text: labelText, style: markerLabelPaint), textDirection: TextDirection.ltr)..layout();
-        labelPainter.paint(canvas, Offset(pX + 12, pY - 10));
-      }
-    }
-
-    // Бренд-логотип по центру
-    final logoPainter = TextPainter(text: const TextSpan(text: 'CARPOUT', style: logoPaint), textDirection: TextDirection.ltr)..layout();
-    logoPainter.paint(canvas, Offset(centerX - logoPainter.width / 2, bottomY - (size.height / 2)));
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
-}
-
-class Math {
-  static double sqrt(double value) {
-    if (value < 0) return 0;
-    double x = value;
-    double y = 1.0;
-    for (int i = 0; i < 10; i++) {
-      x = (x + y) / 2;
-      y = value / x;
-    }
-    return x;
-  }
-  static double sin(double rad) {
-    double x = rad; double t = x; double sum = x;
-    for (int i = 1; i <= 5; i++) { t = -t * x * x / ((2 * i) * (2 * i + 1)); sum += t; }
-    return sum;
-  }
-  static double _abs(double v) => v < 0 ? -v : v;
-  static double cos(double rad) {
-    double x = rad; double t = 1.0; double sum = 1.0;
-    for (int i = 1; i <= 5; i++) { t = -t * x * x / ((2 * i - 1) * (2 * i)); sum += t; }
-    return sum;
-  }
-}
-
-class CarpClipsCalculator extends StatefulWidget {
-  const CarpClipsCalculator({Key? key}) : super(key: key);
-  @override
-  _CarpClipsCalculatorState createState() => _CarpClipsCalculatorState();
-}
-
-class _CarpClipsCalculatorState extends State<CarpClipsCalculator> {
-  final TextEditingController _distanceController = TextEditingController();
-  final TextEditingController _turnsController = TextEditingController();
-  double _distanceBetweenSticks = 4.0;
-  double _turnsResult = 0.0; double _metersResult = 0.0;
-
-  void _calculateFromMeters() {
-    double distance = double.tryParse(_distanceController.text) ?? 0.0;
-    if (distance > 0 && _distanceBetweenSticks > 0) { setState(() { _turnsResult = distance / _distanceBetweenSticks; }); }
-    else { setState(() { _turnsResult = 0.0; }); }
-  }
-
-  void _calculateFromTurns() {
-    double turns = double.tryParse(_turnsController.text) ?? 0.0;
-    if (turns > 0 && _distanceBetweenSticks > 0) { setState(() { _metersResult = turns * _distanceBetweenSticks; }); }
-    else { setState(() { _metersResult = 0.0; }); }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F0),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.only(top: 50.0, left: 20.0, right: 20.0, bottom: 20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Калькулятор дистанции', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))),
-            const SizedBox(height: 16),
-            const Text('База между колышками:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
-            const SizedBox(height: 8),
-            Row(children: [_buildDistanceChip(3.0, '3 м'), const SizedBox(width: 8), _buildDistanceChip(4.0, '4 м (Стандарт)'), const SizedBox(width: 8), _buildDistanceChip(5.0, '5 м')]),
-            const SizedBox(height: 24),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF2E3B1E).withOpacity(0.15))),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('1. Из метров в обороты', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _distanceController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(labelText: 'Дистанция ловли (метры)', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), prefixIcon: const Icon(Icons.straighten, color: Color(0xFF2E3B1E))),
-                    onChanged: (_) { _turnsController.clear(); _metersResult = 0.0; _calculateFromMeters(); },
-                  ),
-                  if (_turnsResult > 0) ...[const SizedBox(height: 16), Center(child: Column(children: [Text(_turnsResult.toStringAsFixed(2), style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))), const Text('оборотов на колышках', style: TextStyle(color: Colors.grey, fontSize: 12))]))]
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF2E3B1E).withOpacity(0.15))),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('2. Из оборотов в метров (Обратный счет)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _turnsController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(labelText: 'Количество оборотов на колышках', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), prefixIcon: const Icon(Icons.refresh, color: Color(0xFF2E3B1E))),
-                    onChanged: (_) { _distanceController.clear(); _turnsResult = 0.0; _calculateFromTurns(); },
-                  ),
-                  if (_metersResult > 0) ...[const SizedBox(height: 16), Center(child: Column(children: [Text('${_metersResult.toStringAsFixed(1)} м', style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))), const Text('дистанция до точки ловли', style: TextStyle(color: Colors.grey, fontSize: 12))]))]
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDistanceChip(double value, String label) {
-    bool isSelected = _distanceBetweenSticks == value;
-    return ChoiceChip(
-      label: Text(label, style: TextStyle(color: isSelected ? Colors.white : Colors.black87, fontWeight: FontWeight.bold)),
-      selected: isSelected, selectedColor: const Color(0xFF2E3B1E), backgroundColor: Colors.white,
-      onSelected: (bool selected) { if (selected) { setState(() { _distanceBetweenSticks = value; if (_distanceController.text.isNotEmpty) _calculateFromMeters(); if (_turnsController.text.isNotEmpty) _calculateFromTurns(); }); } },
-    );
-  }
-}
-
-// ===================================================================
-// ОБНОВЛЕННЫЙ ЭКРАН ИНТЕРАКТИВНОГО РАДАРА С ТОЧНОЙ КАЛИБРОВКОЙ ТАПА
-// ===================================================================
-class MarkerPoint {
-  String name;
-  double distance;
-  double depth;
-  String bottomType;
-  double angle; // Теперь намертво сохраняем угол тапа в память!
+  double angle;
 
   MarkerPoint({
     required this.name,
@@ -1060,6 +603,14 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
     _loadMarkerPoints();
   }
 
+  @override
+  void didUpdateWidget(covariant MarkerMapScreenNew oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.lakeKey != widget.lakeKey) {
+      _loadMarkerPoints();
+    }
+  }
+
   Future<void> _loadMarkerPoints() async {
     final prefs = await SharedPreferences.getInstance();
     final String? pointsJson = prefs.getString('markers_${widget.lakeKey}');
@@ -1068,6 +619,14 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
       setState(() {
         _points = decoded.map((item) => MarkerPoint.fromJson(item)).toList();
       });
+      _notifyParent();
+    } else {
+      setState(() {
+        _points = [
+          MarkerPoint(name: 'Дальняя бровка', distance: 91.2, depth: 3.2, bottomType: '🐚 Ракушка', angle: 0.2),
+        ];
+      });
+      _saveMarkerPoints();
     }
   }
 
@@ -1075,9 +634,14 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
     final prefs = await SharedPreferences.getInstance();
     final String encoded = jsonEncode(_points.map((p) => p.toJson()).toList());
     await prefs.setString('markers_${widget.lakeKey}', encoded);
+    _notifyParent();
   }
 
-  // ВЫСПЛЫВАЮЩЕЕ ОКНО: ВОЗВРАЩАЕМ ВЫБОР СТРУКТУРЫ ДНА ПЕРЕКЛЮЧАТЕЛЕМ
+  void _notifyParent() {
+    List<String> names = _points.map((p) => p.name).toList();
+    widget.onMarkersChanged(names);
+  }
+
   void _addPointFromRadar(double tappedDistance, double tappedAngle) {
     _nameController.clear();
     _distanceController.text = tappedDistance.toStringAsFixed(1);
@@ -1125,7 +689,7 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
                       distance: double.tryParse(_distanceController.text) ?? tappedDistance,
                       depth: double.tryParse(_depthController.text) ?? 0.0,
                       bottomType: _selectedBottomType,
-                      angle: tappedAngle, // Сохраняем точный угол вашего пальца!
+                      angle: tappedAngle,
                     ));
                   });
                   _saveMarkerPoints();
@@ -1142,10 +706,9 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F0),
+      backgroundColor: const Color(0xFFA2B574), // Оливковый фон камуфляжа
       body: Stack(
         children: [
-          // КАРТА-РАДАР РАСКРЫВАЕТСЯ НА ВЕСЬ ЭКРАН С ПОДДЕРЖКОЙ МАСШТАБИРОВАНИЯ
           Positioned.fill(
             child: InteractiveViewer(
               panEnabled: true,
@@ -1184,7 +747,6 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
               ),
             ),
           ),
-          // ПЛАВАЮЩАЯ КНОПКА ВЫЗОВА ЖУРНАЛА ТОЧЕК
           Positioned(
             bottom: 20,
             right: 20,
@@ -1250,9 +812,7 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
     );
   }
 }
-// ===================================================================
-// ШАГ 2Б: ОТРИСОВЩИК ЧЕСТНЫХ КООРДИНАТ, ПЛОТНОЙ СЕТКИ И ЛОГОТИПА
-// ===================================================================
+
 class CarpOutRadarPainterNew extends CustomPainter {
   final List<MarkerPoint> savedPoints;
   CarpOutRadarPainterNew({required this.savedPoints});
@@ -1289,7 +849,7 @@ class CarpOutRadarPainterNew extends CustomPainter {
       canvas.drawLine(Offset(centerX, bottomY), Offset(endX, endY), (angle % 20 == 0) ? mainPaint : dashPaint);
     }
 
-    // НАМЕРТВО ПРОПИСАННЫЙ СПИСОК ВСЕХ КОЛЕЦ ДАЛЬНОСТИ
+    // ПОЛНЫЙ ТЕКСТОВЫЙ СПИСОК ВСЕХ ДУГ ДАЛЬНОСТИ ПО ВАШЕМУ ЗАПРОСУ
     final List<int> distances =;
     
     for (int d in distances) {
@@ -1332,7 +892,7 @@ class CarpOutRadarPainterNew extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 // ===================================================================
-// ШАГ 2В: МАТЕМАТИЧЕСКИЙ МОДУЛЬ И ДВУХСТОРОННИЙ КАЛЬКУЛЯТОР КЛИПСЫ
+// ЧАСТЬ 3В: МАТЕМАТИЧЕСКИЙ МОДУЛЬ И ДВУХСТОРОННИЙ КАЛЬКУЛЯТОР КЛИПСЫ
 // ===================================================================
 class Math {
   static double sqrt(double value) {
@@ -1390,21 +950,21 @@ class _CarpClipsCalculatorState extends State<CarpClipsCalculator> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F0),
+      backgroundColor: const Color(0xFFA2B574), // Оливковый фон камуфляжа
       body: SingleChildScrollView(
         padding: const EdgeInsets.only(top: 50.0, left: 20.0, right: 20.0, bottom: 20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Калькулятор дистанции', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))),
+            const Text('Калькулятор дистанции', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1B2611))),
             const SizedBox(height: 16),
-            const Text('База между колышками:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
+            const Text('База между колышками:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1B2611))),
             const SizedBox(height: 8),
             Row(children: [_buildDistanceChip(3.0, '3 м'), const SizedBox(width: 8), _buildDistanceChip(4.0, '4 м (Стандарт)'), const SizedBox(width: 8), _buildDistanceChip(5.0, '5 м')]),
             const SizedBox(height: 24),
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF2E3B1E).withOpacity(0.15))),
+              decoration: BoxDecoration(color: const Color(0xFFD4D9A1), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF2E3B1E).withOpacity(0.15))),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1413,17 +973,17 @@ class _CarpClipsCalculatorState extends State<CarpClipsCalculator> {
                   TextField(
                     controller: _distanceController,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(labelText: 'Дистанция ловли (метры)', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), prefixIcon: const Icon(Icons.straighten, color: Color(0xFF2E3B1E))),
+                    decoration: InputDecoration(labelText: 'Дистанция ловли (метры)', labelStyle: const TextStyle(color: Color(0xFF2E3B1E)), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), prefixIcon: const Icon(Icons.straighten, color: Color(0xFF2E3B1E))),
                     onChanged: (_) { _turnsController.clear(); _metersResult = 0.0; _calculateFromMeters(); },
                   ),
-                  if (_turnsResult > 0) ...[const SizedBox(height: 16), Center(child: Column(children: [Text(_turnsResult.toStringAsFixed(2), style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))), const Text('оборотов на колышках', style: TextStyle(color: Colors.grey, fontSize: 12))]))]
+                  if (_turnsResult > 0) ...[const SizedBox(height: 16), Center(child: Column(children: [Text(_turnsResult.toStringAsFixed(2), style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))), const Text('оборотов на колышках', style: TextStyle(color: Color(0xFF1B2611), fontSize: 12))]))]
                 ],
               ),
             ),
             const SizedBox(height: 20),
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF2E3B1E).withOpacity(0.15))),
+              decoration: BoxDecoration(color: const Color(0xFFD4D9A1), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF2E3B1E).withOpacity(0.15))),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1432,10 +992,10 @@ class _CarpClipsCalculatorState extends State<CarpClipsCalculator> {
                   TextField(
                     controller: _turnsController,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(labelText: 'Количество оборотов на колышках', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), prefixIcon: const Icon(Icons.refresh, color: Color(0xFF2E3B1E))),
+                    decoration: InputDecoration(labelText: 'Количество оборотов на колышках', labelStyle: const TextStyle(color: Color(0xFF2E3B1E)), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), prefixIcon: const Icon(Icons.refresh, color: Color(0xFF2E3B1E))),
                     onChanged: (_) { _distanceController.clear(); _turnsResult = 0.0; _calculateFromTurns(); },
                   ),
-                  if (_metersResult > 0) ...[const SizedBox(height: 16), Center(child: Column(children: [Text('${_metersResult.toStringAsFixed(1)} м', style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))), const Text('дистанция до точки ловли', style: TextStyle(color: Colors.grey, fontSize: 12))]))]
+                  if (_metersResult > 0) ...[const SizedBox(height: 16), Center(child: Column(children: [Text('${_metersResult.toStringAsFixed(1)} м', style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))), const Text('дистанция до точки ловли', style: TextStyle(color: Color(0xFF1B2611), fontSize: 12))]))]
                 ],
               ),
             ),
