@@ -15,9 +15,9 @@ class CarpOutApp extends StatelessWidget {
       title: 'CarpOut',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // Настраиваем брутальные карповые оттенки Хаки для элементов
         primaryColor: const Color(0xFF2E3B1E),
-        scaffoldBackgroundColor: const Color(0xFFF4F6F0), // Общий фон приложения теперь цвета Хаки/Оливы!
+        // Общий фон приложения (задний план) теперь принудительно Хаки/Олива!
+        scaffoldBackgroundColor: const Color(0xFFF4F6F0), 
         colorScheme: ColorScheme.fromSwatch().copyWith(
           primary: const Color(0xFF2E3B1E),
           secondary: const Color(0xFF4A5D32),
@@ -38,31 +38,30 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
 
-  // Список водоемов для бокового меню менеджера сессий
+  // Управляем базой водоемов и динамических сессий
   List<String> _lakesList = ['Озеро Trophy', 'Медвежка', 'Дикое озеро'];
   String _selectedLake = 'Озеро Trophy';
   String _sectorName = 'Сектор №4';
+  String _sessionDuration = '48';
   
-  // Статистика уловов
   int _catchesCount = 8;
   double _totalWeight = 78.400;
   String _bigFishWeight = '16.800';
 
-  // Список маркерных точек для выпадающих списков
   List<String> _markerNames = ['Дальняя бровка (ракушка)', 'Ближнее плато (ил)'];
 
   @override
   void initState() {
     super.initState();
-    _loadAllAppData(); // Полная надежная загрузка из памяти при старте
+    _loadAllAppData();
   }
 
-  // МЕТОД ЖЕСТКОГО И НАДЕЖНОГО СОХРАНЕНИЯ ВСЕЙ СЕССИИ
   Future<void> _loadAllAppData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _selectedLake = prefs.getString('currentLake') ?? 'Озеро Trophy';
       _sectorName = prefs.getString('sector_$_selectedLake') ?? 'Сектор №4';
+      _sessionDuration = prefs.getString('duration_$_selectedLake') ?? '48';
       _catchesCount = prefs.getInt('catches_$_selectedLake') ?? 8;
       _totalWeight = prefs.getDouble('weight_$_selectedLake') ?? 78.400;
       _bigFishWeight = prefs.getString('big_$_selectedLake') ?? '16.800';
@@ -85,6 +84,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     await prefs.setString('currentLake', _selectedLake);
     await prefs.setString('lakesList', jsonEncode(_lakesList));
     await prefs.setString('sector_$_selectedLake', _sectorName);
+    await prefs.setString('duration_$_selectedLake', _sessionDuration);
     await prefs.setInt('catches_$_selectedLake', _catchesCount);
     await prefs.setDouble('weight_$_selectedLake', _totalWeight);
     await prefs.setString('big_$_selectedLake', _bigFishWeight);
@@ -95,26 +95,33 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       _markerNames = newMarkers;
     });
   }
-
-  // Добавление нового водоема через боковое меню шторки
   void _addNewLakeDialog() {
     final controller = TextEditingController();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Добавить новый водоем', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: TextField(controller: controller, decoration: const InputDecoration(labelText: 'Название озера/реки')),
+        backgroundColor: const Color(0xFF2E3B1E),
+        title: const Text('Добавить новый водоем', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        content: TextField(
+          controller: controller,
+          style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(
+            labelText: 'Название озера/реки',
+            labelStyle: TextStyle(color: Colors.white60),
+            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white30)),
+          ),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена')),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E3B1E)),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
             onPressed: () {
               if (controller.text.isNotEmpty && !_lakesList.contains(controller.text)) {
                 setState(() {
                   _lakesList.add(controller.text);
                   _selectedLake = controller.text;
-                  // Сбрасываем под новый водоем
                   _sectorName = 'Сектор №1';
+                  _sessionDuration = '24';
                   _catchesCount = 0;
                   _totalWeight = 0.0;
                   _bigFishWeight = '0.000';
@@ -138,12 +145,16 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       CarpOutDashboard(
         lake: _selectedLake,
         sector: _sectorName,
+        duration: _sessionDuration,
         catches: _catchesCount,
         weight: _totalWeight,
         bigFish: _bigFishWeight,
         availableMarkers: _markerNames,
-        onUpdateSession: (newLake, newSector) {
-          setState(() { _sectorName = newSector; });
+        onUpdateSession: (newLake, newSector, newDuration) {
+          setState(() {
+            _sectorName = newSector;
+            _sessionDuration = newDuration;
+          });
           _saveAllAppData();
         },
         onUpdateStats: (newCatches, newWeight, newBig) {
@@ -154,33 +165,30 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           });
           _saveAllAppData();
         },
-      ), 
-      MarkerMapScreen(lakeKey: _selectedLake, onMarkersChanged: _updateMarkersList), 
-      const CarpClipsCalculator(), 
-      const Center(child: Text('Экран: Журнал прикормки (В разработке)', style: TextStyle(fontSize: 18, color: Color(0xFF2E3B1E)))), 
+      ),
+      MarkerMapScreen(lakeKey: _selectedLake, onMarkersChanged: _updateMarkersList),
+      const CarpClipsCalculator(),
+      const Center(child: Text('Экран: Журнал прикормки (В разработке)', style: TextStyle(fontSize: 18, color: Color(0xFF2E3B1E)))),
     ];
 
     return Scaffold(
-      // НАШЕ БОКОВОЕ МЕНЮ (МЕНЕДЖЕР ВОДОЕМОВ)
       drawer: Drawer(
-        backgroundColor: const Color(0xFFF4F6F0),
+        backgroundColor: const Color(0xFF2E3B1E),
         child: Column(
           children: [
             UserAccountsDrawerHeader(
-              decoration: const BoxDecoration(color: Color(0xFF2E3B1E)),
-              accountName: const Text('CarpOut Менеджер', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              decoration: const BoxDecoration(color: Color(0xFF1B2611)),
+              accountName: const Text('CarpOut Менеджер', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
               accountEmail: const Text('Локальные сессии рыбалки', style: TextStyle(color: Colors.white60)),
               currentAccountPicture: CircleAvatar(backgroundColor: const Color(0xFF4A5D32), child: const Icon(Icons.phishing, color: Colors.white, size: 36)),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('СПИСОК ВОДОЕМОВ:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
-                  IconButton(icon: const Icon(Icons.add_circle, color: Color(0xFF4A5D32)), onPressed: _addNewLakeDialog),
-                ],
-              ),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('СПИСОК ВОДОЕМОВ:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFFC5E1A5))),
+                IconButton(icon: const Icon(Icons.add_circle, color: Color(0xFFC5E1A5)), onPressed: _addNewLakeDialog),
+              ],
             ),
             Expanded(
               child: ListView.builder(
@@ -189,15 +197,72 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 itemBuilder: (context, index) {
                   final lakeItem = _lakesList[index];
                   bool isCurrent = lakeItem == _selectedLake;
-                  return ListTile(
-                    leading: Icon(Icons.water, color: isCurrent ? const Color(0xFF2E3B1E) : Colors.grey),
-                    title: Text(lakeItem, style: TextStyle(fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal, color: isCurrent ? const Color(0xFF2E3B1E) : Colors.black87)),
-                    trailing: isCurrent ? const Icon(Icons.check_circle, color: Colors.green) : null,
-                    onTap: () {
-                      setState(() { _selectedLake = lakeItem; });
-                      _loadAllAppData();
-                      Navigator.pop(context); // закрыть шторку меню
-                    },
+                  final sectorCtrl = TextEditingController(text: isCurrent ? _sectorName : 'Сектор №1');
+                  final durationCtrl = TextEditingController(text: isCurrent ? _sessionDuration : '24');
+
+                  return Theme(
+                    data: ThemeData(unselectedWidgetColor: Colors.white70, hintColor: const Color(0xFFC5E1A5)),
+                    child: ExpansionTile(
+                      leading: Icon(Icons.water, color: isCurrent ? const Color(0xFFC5E1A5) : Colors.white70),
+                      title: Text(lakeItem, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (isCurrent) const Icon(Icons.check_circle, color: Color(0xFFC5E1A5), size: 20),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20),
+                            onPressed: () {
+                              if (_lakesList.length > 1) {
+                                setState(() {
+                                  _lakesList.remove(lakeItem);
+                                  if (isCurrent) _selectedLake = _lakesList.first;
+                                });
+                                _saveAllAppData();
+                                _loadAllAppData();
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                      children: [
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 16, bottom: 8),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(color: const Color(0xFF4A5D32), borderRadius: BorderRadius.circular(12)),
+                          child: Column(
+                            children: [
+                              TextField(
+                                controller: sectorCtrl,
+                                style: const TextStyle(color: Colors.white, fontSize: 14),
+                                decoration: const InputDecoration(labelText: 'Сектор ловли', labelStyle: TextStyle(color: Colors.white70), enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white30))),
+                              ),
+                              TextField(
+                                controller: durationCtrl,
+                                keyboardType: TextInputType.number,
+                                style: const TextStyle(color: Colors.white, fontSize: 14),
+                                decoration: const InputDecoration(labelText: 'Длительность сессии (ч)', labelStyle: TextStyle(color: Colors.white70), enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white30))),
+                              ),
+                              const SizedBox(height: 8),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E3B1E)),
+                                onPressed: () {
+                                  setState(() {
+                                    _selectedLake = lakeItem;
+                                    _sectorName = sectorCtrl.text;
+                                    _sessionDuration = durationCtrl.text;
+                                  });
+                                  _saveAllAppData();
+                                  _loadAllAppData();
+                                  Navigator.pop(context);
+                                },
+                                child: const Text('Выбрать и применить', style: TextStyle(color: Colors.white, fontSize: 12)),
+                              )
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
                   );
                 },
               ),
@@ -230,22 +295,24 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 }
 
 // ===================================================================
-// ЧАСТЬ 2А: ДАШБОРД ХАКИ С МОДУЛЕМ "В ПОДСАКЕ!" И СВЯЗЬЮ С ТОЧКАМИ
+// ЧАСТЬ 4: ДАШБОРД ХАКИ С МОДУЛЕМ "В ПОДСАКЕ!" И СВЯЗЬЮ С ТОЧКАМИ
 // ===================================================================
 class CarpOutDashboard extends StatelessWidget {
   final String lake;
   final String sector;
+  final String duration;
   final int catches;
   final double weight;
   final String bigFish;
   final List<String> availableMarkers;
-  final Function(String, String) onUpdateSession;
+  final Function(String, String, String) onUpdateSession;
   final Function(int, double, String) onUpdateStats;
 
   const CarpOutDashboard({
     Key? key,
     required this.lake,
     required this.sector,
+    required this.duration,
     required this.catches,
     required this.weight,
     required this.bigFish,
@@ -261,34 +328,6 @@ class CarpOutDashboard extends StatelessWidget {
       'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
     ];
     return '${now.day} ${months[now.month - 1]} ${now.year} г.';
-  }
-
-  void _showEditSessionDialog(BuildContext context) {
-    final sectorController = TextEditingController(text: sector);
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Редактировать сессию', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: sectorController, decoration: const InputDecoration(labelText: 'Номер сектора')),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E3B1E)),
-            onPressed: () {
-              onUpdateSession(lake, sectorController.text);
-              Navigator.pop(context);
-            },
-            child: const Text('Сохранить', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
   }
 
   void _showInTheNetDialog(BuildContext context) {
@@ -311,10 +350,8 @@ class CarpOutDashboard extends StatelessWidget {
                 DropdownButton<String>(
                   value: selectedFish,
                   isExpanded: true,
-                  items: <String>['Карп', 'Амур', 'Tolstolobik'].map((String value) {
-                    // Переименовываем отображение во Flutter для красоты интерфейса
-                    String display = value == 'Tolstolobik' ? 'Толстолобик' : value;
-                    return DropdownMenuItem<String>(value: value, child: Text(display));
+                  items: <String>['Карп', 'Амур', 'Толстолобик'].map((String value) {
+                    return DropdownMenuItem<String>(value: value, child: Text(value));
                   }).toList(),
                   onChanged: (newValue) {
                     setDialogState(() { selectedFish = newValue!; });
@@ -366,10 +403,9 @@ class CarpOutDashboard extends StatelessWidget {
                   onUpdateStats(newCatches, newTotalWeight, newBigString);
                   Navigator.pop(context);
                   
-                  String displayFish = selectedFish == 'Tolstolobik' ? 'Толстолобик' : selectedFish;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('$displayFish ($selectedPoint) весом ${inputWeight.toStringAsFixed(3)} кг добавлен!'),
+                      content: Text('$selectedFish ($selectedPoint) весом ${inputWeight.toStringAsFixed(3)} кг добавлен!'),
                       backgroundColor: const Color(0xFF4A5D32),
                     ),
                   );
@@ -421,7 +457,7 @@ class CarpOutDashboard extends StatelessWidget {
     double averageWeight = catches > 0 ? weight / catches : 0.0;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F0), // Принудительный мягкий фон Хаки
+      backgroundColor: const Color(0xFFF4F6F0), // Мягкий фон Хаки
       body: SingleChildScrollView(
         padding: const EdgeInsets.only(top: 40.0, left: 16.0, right: 16.0, bottom: 16.0),
         child: Column(
@@ -453,24 +489,16 @@ class CarpOutDashboard extends StatelessWidget {
                 children: [
                   Text(_getCurrentDate(), style: const TextStyle(color: Color(0xFFC5E1A5), fontSize: 13, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('ТЕКУЩАЯ СЕССИЯ', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.white70, size: 20),
-                        onPressed: () => _showEditSessionDialog(context),
-                      ),
-                    ],
-                  ),
+                  const Text('ТЕКУЩАЯ СЕССИЯ', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
                   Text(lake, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
                   Text(sector, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500)),
                   const SizedBox(height: 8),
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.timer, color: Colors.white70, size: 16),
-                      SizedBox(width: 6),
-                      Text('Длительность: 48 часов', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                      const Icon(Icons.timer, color: Colors.white70, size: 16),
+                      const SizedBox(width: 6),
+                      Text('Длительность: $duration часов', style: const TextStyle(color: Colors.white70, fontSize: 14)),
                     ],
                   ),
                 ],
@@ -528,7 +556,7 @@ class CarpOutDashboard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white, // Контрастные карточки
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFF2E3B1E).withOpacity(0.15)),
       ),
@@ -552,36 +580,8 @@ class CarpOutDashboard extends StatelessWidget {
 }
 
 // ===================================================================
-// ЧАСТЬ 3А: МОДЕЛЬ МАРКЕРНЫХ ТОЧЕК И ИХ ЛОКАЛЬНАЯ ХАКИ-ПАМЯТЬ С ПРИВЯЗКОЙ К ОЗЕРАМ
+// ЧАСТЬ 6А: ЛОГИКА МАРКЕРНЫХ ТОЧЕК И ИХ ХРАНЕНИЕ В ПАМЯТИ
 // ===================================================================
-class MarkerPoint {
-  String name;
-  double distance;
-  double depth;
-  String bottomType;
-
-  MarkerPoint({
-    required this.name,
-    required this.distance,
-    required this.depth,
-    required this.bottomType,
-  });
-
-  Map<String, dynamic> toJson() => {
-        'name': name,
-        'distance': distance,
-        'depth': depth,
-        'bottomType': bottomType,
-      };
-
-  factory MarkerPoint.fromJson(Map<String, dynamic> json) => MarkerPoint(
-        name: json['name'] ?? '',
-        distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
-        depth: (json['depth'] as num?)?.toDouble() ?? 0.0,
-        bottomType: json['bottomType'] ?? '',
-      );
-}
-
 class MarkerMapScreen extends StatefulWidget {
   final String lakeKey;
   final Function(List<String>) onMarkersChanged;
@@ -609,7 +609,7 @@ class _MarkerMapScreenState extends State<MarkerMapScreen> {
   void didUpdateWidget(covariant MarkerMapScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.lakeKey != widget.lakeKey) {
-      _loadMarkerPoints(); // Перезагружаем точки, если в боковом меню сменили водоем!
+      _loadMarkerPoints();
     }
   }
 
@@ -742,8 +742,7 @@ class _MarkerMapScreenState extends State<MarkerMapScreen> {
       ),
     );
   }
-
-    void _showSectorMapDialog() {
+  void _showSectorMapDialog() {
     showDialog(
       context: context,
       builder: (context) => Dialog.fullscreen(
@@ -756,7 +755,7 @@ class _MarkerMapScreenState extends State<MarkerMapScreen> {
               onPressed: () => Navigator.pop(context),
             ),
           ),
-          backgroundColor: const Color(0xFFF4F6F0), // Фон хаки внутри карты
+          backgroundColor: const Color(0xFFF4F6F0),
           body: InteractiveViewer(
             panEnabled: true,
             boundaryMargin: const EdgeInsets.all(50),
@@ -783,7 +782,7 @@ class _MarkerMapScreenState extends State<MarkerMapScreen> {
     _points.sort((a, b) => b.distance.compareTo(a.distance));
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F0), // Общий нежный фон Хаки
+      backgroundColor: const Color(0xFFF4F6F0),
       body: Padding(
         padding: const EdgeInsets.only(top: 50.0, left: 16.0, right: 16.0, bottom: 16.0),
         child: Column(
@@ -826,7 +825,7 @@ class _MarkerMapScreenState extends State<MarkerMapScreen> {
                         return Card(
                           margin: const EdgeInsets.only(bottom: 12),
                           elevation: 2,
-                          color: Colors.white, // Контрастные белые карточки точек
+                          color: Colors.white,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: Colors.grey)),
                           child: ListTile(
                             onTap: () => _showEditPointDialog(point, index),
@@ -865,29 +864,25 @@ class _MarkerMapScreenState extends State<MarkerMapScreen> {
   }
 }
 
-// КРАСИВЫЙ БРЕНДИРОВАННЫЙ ОТРИСОВЩИК ЛУЧЕВОЙ СЕТКИ СЕКТОРА
 class CarpOutRadarPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final mainPaint = Paint()
-      ..color = const Color(0xFF2E3B1E) // Фирменные линии тёмного хаки
+      ..color = const Color(0xFF2E3B1E)
       ..strokeWidth = 1.2
       ..style = PaintingStyle.stroke;
 
     final dashPaint = Paint()
-      ..color = const Color(0xFF4A5D32).withOpacity(0.4) // Мягкие вспомогательные лучи
+      ..color = const Color(0xFF4A5D32).withOpacity(0.4)
       ..strokeWidth = 0.8
       ..style = PaintingStyle.stroke;
 
     final textPaint = TextStyle(color: const Color(0xFF2E3B1E).withOpacity(0.8), fontSize: 9, fontWeight: FontWeight.bold);
-    
-    // Стиль для нашего логотипа на карте
     const logoPaint = TextStyle(color: Color(0xFF2E3B1E), fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2);
 
     double centerX = size.width / 2;
     double bottomY = size.height - 30;
 
-    // 1. Отрисовка лучей (каждые 10 градусов основные, каждые 5 - пунктир)
     for (int angle = -50; angle <= 50; angle += 5) {
       double rad = (angle - 90) * 3.141592653589793 / 180;
       double radiusLength = size.height - 80;
@@ -896,42 +891,28 @@ class CarpOutRadarPainter extends CustomPainter {
       canvas.drawLine(Offset(centerX, bottomY), Offset(endX, endY), (angle % 10 == 0) ? mainPaint : dashPaint);
     }
 
-    // 2. Отрисовка дуг дистанций (от 55м до 160м)
     for (int d = 55; d <= 160; d += 15) {
       double radius = (d - 50) * (size.height - 100) / 110;
       Rect rect = Rect.fromCircle(center: Offset(centerX, bottomY), radius: radius);
       canvas.drawArc(rect, 3.14159 + 0.6, 3.14159 - 1.2, false, (d % 30 == 0) ? mainPaint : dashPaint);
 
-      // Цифры дальности над каждой дугой
       final textPainter = TextPainter(text: TextSpan(text: '$d', style: textPaint), textDirection: TextDirection.ltr)..layout();
       textPainter.paint(canvas, Offset(centerX - textPainter.width / 2, bottomY - radius - 12));
     }
 
-    // 3. НАНЕСЕНИЕ НАШЕЙ НАДПИСИ CARPOUT ПО ЦЕНТРУ РАДАРА
-   final logoPainter = TextPainter(text: TextSpan(text: 'CARPOUT', style: logoPaint), textDirection: TextDirection.ltr)..layout();
+    final logoPainter = TextPainter(text: TextSpan(text: 'CARPOUT', style: logoPaint), textDirection: TextDirection.ltr)..layout();
     logoPainter.paint(canvas, Offset(centerX - logoPainter.width / 2, bottomY - (size.height / 2)));
   }
 
-  // Вспомогательные тригонометрические симуляции для CustomPainter во Flutter
   double _sin(double rad) {
-    double x = rad;
-    double t = x;
-    double sum = x;
-    for (int i = 1; i <= 5; i++) {
-      t = -t * x * x / ((2 * i) * (2 * i + 1));
-      sum += t;
-    }
+    double x = rad; double t = x; double sum = x;
+    for (int i = 1; i <= 5; i++) { t = -t * x * x / ((2 * i) * (2 * i + 1)); sum += t; }
     return sum;
   }
 
   double _cos(double rad) {
-    double x = rad;
-    double t = 1.0;
-    double sum = 1.0;
-    for (int i = 1; i <= 5; i++) {
-      t = -t * x * x / ((2 * i - 1) * (2 * i));
-      sum += t;
-    }
+    double x = rad; double t = 1.0; double sum = 1.0;
+    for (int i = 1; i <= 5; i++) { t = -t * x * x / ((2 * i - 1) * (2 * i)); sum += t; }
     return sum;
   }
 
@@ -939,12 +920,20 @@ class CarpOutRadarPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-// ===================================================================
-// ЧАСТЬ 4: ДВУХСТОРОННИЙ ИНТЕРАКТИВНЫЙ КАЛЬКУЛЯТОР КЛИПСЫ (ХАКИ)
-// ===================================================================
+class MarkerPointData {
+  String name; double distance; double depth; String bottomType;
+  MarkerPointData({required this.name, required this.distance, required this.depth, required this.bottomType});
+  Map<String, dynamic> toJson() => {'name': name, 'distance': distance, 'depth': depth, 'bottomType': bottomType};
+  factory MarkerPointData.fromJson(Map<String, dynamic> json) => MarkerPointData(
+    name: json['name'] ?? '',
+    distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
+    depth: (json['depth'] as num?)?.toDouble() ?? 0.0,
+    bottomType: json['bottomType'] ?? '',
+  );
+}
+
 class CarpClipsCalculator extends StatefulWidget {
   const CarpClipsCalculator({Key? key}) : super(key: key);
-
   @override
   _CarpClipsCalculatorState createState() => _CarpClipsCalculatorState();
 }
@@ -952,73 +941,39 @@ class CarpClipsCalculator extends StatefulWidget {
 class _CarpClipsCalculatorState extends State<CarpClipsCalculator> {
   final TextEditingController _distanceController = TextEditingController();
   final TextEditingController _turnsController = TextEditingController();
-  double _distanceBetweenSticks = 4.0; // Базовое расстояние между колышками
-
-  double _turnsResult = 0.0;
-  double _metersResult = 0.0;
+  double _distanceBetweenSticks = 4.0;
+  double _turnsResult = 0.0; double _metersResult = 0.0;
 
   void _calculateFromMeters() {
     double distance = double.tryParse(_distanceController.text) ?? 0.0;
-    if (distance > 0 && _distanceBetweenSticks > 0) {
-      setState(() {
-        _turnsResult = distance / _distanceBetweenSticks;
-      });
-    } else {
-      setState(() { _turnsResult = 0.0; });
-    }
+    if (distance > 0 && _distanceBetweenSticks > 0) { setState(() { _turnsResult = distance / _distanceBetweenSticks; }); }
+    else { setState(() { _turnsResult = 0.0; }); }
   }
 
   void _calculateFromTurns() {
     double turns = double.tryParse(_turnsController.text) ?? 0.0;
-    if (turns > 0 && _distanceBetweenSticks > 0) {
-      setState(() {
-        _metersResult = turns * _distanceBetweenSticks;
-      });
-    } else {
-      setState(() { _metersResult = 0.0; });
-    }
+    if (turns > 0 && _distanceBetweenSticks > 0) { setState(() { _metersResult = turns * _distanceBetweenSticks; }); }
+    else { setState(() { _metersResult = 0.0; }); }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F0), // Мягкий фон Хаки
+      backgroundColor: const Color(0xFFF4F6F0),
       body: SingleChildScrollView(
         padding: const EdgeInsets.only(top: 50.0, left: 20.0, right: 20.0, bottom: 20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Калькулятор дистанции',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E)),
-            ),
+            const Text('Калькулятор дистанции', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))),
             const SizedBox(height: 16),
-            
-            // ВЫБОР БАЗЫ КОЛЫШКОВ
-            const Text(
-              'База между колышками:',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey),
-            ),
+            const Text('База между колышками:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                _buildDistanceChip(3.0, '3 м'),
-                const SizedBox(width: 8),
-                _buildDistanceChip(4.0, '4 м (Стандарт)'),
-                const SizedBox(width: 8),
-                _buildDistanceChip(5.0, '5 м'),
-              ],
-            ),
+            Row(children: [_buildDistanceChip(3.0, '3 м'), const SizedBox(width: 8), _buildDistanceChip(4.0, '4 м (Стандарт)'), const SizedBox(width: 8), _buildDistanceChip(5.0, '5 м')]),
             const SizedBox(height: 24),
-
-            // БЛОК ПРЯМОГО РАСЧЕТА: МЕТРЫ -> ОБОРОТЫ
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFF2E3B1E).withOpacity(0.15)),
-              ),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF2E3B1E).withOpacity(0.15))),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1027,41 +982,17 @@ class _CarpClipsCalculatorState extends State<CarpClipsCalculator> {
                   TextField(
                     controller: _distanceController,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
-                      labelText: 'Дистанция ловли (метры)',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      prefixIcon: const Icon(Icons.straighten, color: Color(0xFF2E3B1E)),
-                    ),
-                    onChanged: (_) {
-                      _turnsController.clear();
-                      _metersResult = 0.0;
-                      _calculateFromMeters();
-                    },
+                    decoration: InputDecoration(labelText: 'Дистанция ловли (метры)', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), prefixIcon: const Icon(Icons.straighten, color: Color(0xFF2E3B1E))),
+                    onChanged: (_) { _turnsController.clear(); _metersResult = 0.0; _calculateFromMeters(); },
                   ),
-                  if (_turnsResult > 0) ...[
-                    const SizedBox(height: 16),
-                    Center(
-                      child: Column(
-                        children: [
-                          Text(_turnsResult.toStringAsFixed(2), style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))),
-                          const Text('оборотов на колышках', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                        ],
-                      ),
-                    ),
-                  ],
+                  if (_turnsResult > 0) ...[const SizedBox(height: 16), Center(child: Column(children: [Text(_turnsResult.toStringAsFixed(2), style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))), const Text('оборотов на колышках', style: TextStyle(color: Colors.grey, fontSize: 12))]))]
                 ],
               ),
             ),
             const SizedBox(height: 20),
-
-            // БЛОК ОБРАТНОГО РАСЧЕТА: ОБОРОТЫ -> МЕТРЫ
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFF2E3B1E).withOpacity(0.15)),
-              ),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF2E3B1E).withOpacity(0.15))),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1070,28 +1001,10 @@ class _CarpClipsCalculatorState extends State<CarpClipsCalculator> {
                   TextField(
                     controller: _turnsController,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
-                      labelText: 'Количество оборотов на колышках',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      prefixIcon: const Icon(Icons.refresh, color: Color(0xFF2E3B1E)),
-                    ),
-                    onChanged: (_) {
-                      _distanceController.clear();
-                      _turnsResult = 0.0;
-                      _calculateFromTurns();
-                    },
+                    decoration: InputDecoration(labelText: 'Количество оборотов на колышках', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), prefixIcon: const Icon(Icons.refresh, color: Color(0xFF2E3B1E))),
+                    onChanged: (_) { _distanceController.clear(); _turnsResult = 0.0; _calculateFromTurns(); },
                   ),
-                  if (_metersResult > 0) ...[
-                    const SizedBox(height: 16),
-                    Center(
-                      child: Column(
-                        children: [
-                          Text('${_metersResult.toStringAsFixed(1)} м', style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))),
-                          const Text('дистанция до точки ловли', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                        ],
-                      ),
-                    ),
-                  ],
+                  if (_metersResult > 0) ...[const SizedBox(height: 16), Center(child: Column(children: [Text('${_metersResult.toStringAsFixed(1)} м', style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))), const Text('дистанция до точки ловли', style: TextStyle(color: Colors.grey, fontSize: 12))]))]
                 ],
               ),
             ),
@@ -1105,18 +1018,8 @@ class _CarpClipsCalculatorState extends State<CarpClipsCalculator> {
     bool isSelected = _distanceBetweenSticks == value;
     return ChoiceChip(
       label: Text(label, style: TextStyle(color: isSelected ? Colors.white : Colors.black87, fontWeight: FontWeight.bold)),
-      selected: isSelected,
-      selectedColor: const Color(0xFF2E3B1E),
-      backgroundColor: Colors.white,
-      onSelected: (bool selected) {
-        if (selected) {
-          setState(() {
-            _distanceBetweenSticks = value;
-            if (_distanceController.text.isNotEmpty) _calculateFromMeters();
-            if (_turnsController.text.isNotEmpty) _calculateFromTurns();
-          });
-        }
-      },
+      selected: isSelected, selectedColor: const Color(0xFF2E3B1E), backgroundColor: Colors.white,
+      onSelected: (bool selected) { if (selected) { setState(() { _distanceBetweenSticks = value; if (_distanceController.text.isNotEmpty) _calculateFromMeters(); if (_turnsController.text.isNotEmpty) _calculateFromTurns(); }); } },
     );
   }
 }
