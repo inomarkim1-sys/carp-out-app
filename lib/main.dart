@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+class MarkerMapScreenNew extends StatefulWidget {import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -1006,6 +1006,38 @@ class _CarpClipsCalculatorState extends State<CarpClipsCalculator> {
 // ===================================================================
 // ОБНОВЛЕННЫЙ ЭКРАН ИНТЕРАКТИВНОГО РАДАРА С ТОЧНОЙ КАЛИБРОВКОЙ ТАПА
 // ===================================================================
+class MarkerPoint {
+  String name;
+  double distance;
+  double depth;
+  String bottomType;
+  double angle; // Теперь намертво сохраняем угол тапа в память!
+
+  MarkerPoint({
+    required this.name,
+    required this.distance,
+    required this.depth,
+    required this.bottomType,
+    required this.angle,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'distance': distance,
+        'depth': depth,
+        'bottomType': bottomType,
+        'angle': angle,
+      };
+
+  factory MarkerPoint.fromJson(Map<String, dynamic> json) => MarkerPoint(
+        name: json['name'] ?? '',
+        distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
+        depth: (json['depth'] as num?)?.toDouble() ?? 0.0,
+        bottomType: json['bottomType'] ?? '',
+        angle: (json['angle'] as num?)?.toDouble() ?? 0.0,
+      );
+}
+
 class MarkerMapScreenNew extends StatefulWidget {
   final String lakeKey;
   final Function(List<String>) onMarkersChanged;
@@ -1039,7 +1071,14 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
     }
   }
 
-  void _addPointFromRadar(double tappedDistance) {
+  Future<void> _saveMarkerPoints() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String encoded = jsonEncode(_points.map((p) => p.toJson()).toList());
+    await prefs.setString('markers_${widget.lakeKey}', encoded);
+  }
+
+  // ВЫСПЛЫВАЮЩЕЕ ОКНО: ВОЗВРАЩАЕМ ВЫБОР СТРУКТУРЫ ДНА ПЕРЕКЛЮЧАТЕЛЕМ
+  void _addPointFromRadar(double tappedDistance, double tappedAngle) {
     _nameController.clear();
     _distanceController.text = tappedDistance.toStringAsFixed(1);
     _depthController.clear();
@@ -1049,14 +1088,30 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           backgroundColor: const Color(0xFF2E3B1E),
-          title: const Text('Засечь точку на карте 🎯', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(controller: _nameController, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Ориентир', labelStyle: TextStyle(color: Colors.white60))),
-              TextField(controller: _distanceController, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Дистанция (м)', labelStyle: TextStyle(color: Colors.white60))),
-              TextField(controller: _depthController, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Глубина (м)', labelStyle: TextStyle(color: Colors.white60))),
-            ],
+          title: const Text('🎯 Засечь точку ловли', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(controller: _nameController, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Название / Ориентир', labelStyle: TextStyle(color: Colors.white60))),
+                TextField(controller: _distanceController, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Дистанция (метры)', labelStyle: TextStyle(color: Colors.white60))),
+                TextField(controller: _depthController, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Глубина (метры)', labelStyle: TextStyle(color: Colors.white60))),
+                const SizedBox(height: 16),
+                const Align(alignment: Alignment.centerLeft, child: Text('Структура дна в точке:', style: TextStyle(color: Colors.white70, fontSize: 12))),
+                DropdownButton<String>(
+                  dropdownColor: const Color(0xFF2E3B1E),
+                  value: _selectedBottomType,
+                  isExpanded: true,
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  items: <String>['🐚 Ракушка', '🍃 Ил', '🪨 Камни', '🪵 Коряга', '🏖️ Песок'].map((String value) {
+                    return DropdownMenuItem<String>(value: value, child: Text(value));
+                  }).toList(),
+                  onChanged: (newValue) {
+                    setDialogState(() { _selectedBottomType = newValue!; });
+                  },
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
@@ -1065,25 +1120,32 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
               onPressed: () {
                 if (_nameController.text.isNotEmpty) {
                   setState(() {
-                    _points.add(MarkerPoint(name: _nameController.text, distance: tappedDistance, depth: 2.0, bottomType: _selectedBottomType));
+                    _points.add(MarkerPoint(
+                      name: _nameController.text,
+                      distance: double.tryParse(_distanceController.text) ?? tappedDistance,
+                      depth: double.tryParse(_depthController.text) ?? 0.0,
+                      bottomType: _selectedBottomType,
+                      angle: tappedAngle, // Сохраняем точный угол вашего пальца!
+                    ));
                   });
+                  _saveMarkerPoints();
                   Navigator.pop(context);
                 }
               },
-              child: const Text('Вшить', style: TextStyle(color: Colors.white)),
+              child: const Text('В журнал', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
       ),
     );
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F0),
       body: Stack(
         children: [
+          // КАРТА-РАДАР РАСКРЫВАЕТСЯ НА ВЕСЬ ЭКРАН С ПОДДЕРЖКОЙ МАСШТАБИРОВАНИЯ
           Positioned.fill(
             child: InteractiveViewer(
               panEnabled: true,
@@ -1092,21 +1154,95 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
               maxScale: 4.0,
               child: GestureDetector(
                 onTapUp: (details) {
-                  double boxWidth = 380.0; double boxHeight = 540.0;
-                  double centerX = boxWidth / 2; double bottomY = boxHeight - 30;
+                  double boxWidth = 380.0;
+                  double boxHeight = 540.0;
+                  double centerX = boxWidth / 2;
+                  double bottomY = boxHeight - 45;
+
                   double dx = details.localPosition.dx - centerX;
                   double dy = bottomY - details.localPosition.dy;
                   double distancePixels = Math.sqrt(dx * dx + dy * dy);
-                  double calculatedDist = 55.0 + (distancePixels / (boxHeight - 80)) * 105.0;
+
+                  double maxRadiusPixels = boxHeight - 95;
+                  double calculatedDist = 55.0 + (distancePixels / maxRadiusPixels) * 105.0;
+
+                  // Вычисляем честный угол тапа пальцем через арктангенс
+                  double angleRad = Math.atan2(dx, dy);
+                  
                   if (calculatedDist >= 55 && calculatedDist <= 160) {
-                    _addPointFromRadar(calculatedDist);
+                    _addPointFromRadar(calculatedDist, angleRad);
                   }
                 },
                 child: Container(
-                  width: 380, height: 540,
-                  child: CustomPaint(painter: CarpOutRadarPainterNew(savedPoints: _points)),
+                  width: 380,
+                  height: 540,
+                  color: Colors.transparent,
+                  child: CustomPaint(
+                    painter: CarpOutRadarPainterNew(savedPoints: _points),
+                  ),
                 ),
               ),
+            ),
+          ),
+          // ПЛАВАЮЩАЯ КНОПКА ВЫЗОВА ЖУРНАЛА ТОЧЕК
+          Positioned(
+            bottom: 20,
+            right: 20,
+            child: FloatingActionButton.extended(
+              backgroundColor: const Color(0xFF2E3B1E),
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  backgroundColor: const Color(0xFF2E3B1E),
+                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+                  builder: (context) => StatefulBuilder(
+                    builder: (context, setSheetState) => Column(
+                      children: [
+                        const SizedBox(height: 12),
+                        Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white30, borderRadius: BorderRadius.circular(2))),
+                        const SizedBox(height: 16),
+                        const Text('ЖУРНАЛ МАРКЕРНЫХ ТОЧЕК', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                        const SizedBox(height: 12),
+                        Expanded(
+                          child: _points.isEmpty
+                              ? const Center(child: Text('Нет сохраненных точек', style: TextStyle(color: Colors.white60)))
+                              : ListView.builder(
+                                  itemCount: _points.length,
+                                  itemBuilder: (context, index) {
+                                    final point = _points[index];
+                                    return Card(
+                                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                                      color: const Color(0xFF4A5D32),
+                                      child: ListTile(
+                                        leading: const Icon(Icons.location_on, color: Color(0xFFC5E1A5)),
+                                        title: Text(point.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                        subtitle: Text('Дно: ${point.bottomType} | Гл: ${point.depth}м', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                                        trailing: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text('${point.distance.toStringAsFixed(1)} м', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                            IconButton(
+                                              icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20),
+                                              onPressed: () {
+                                                setState(() { _points.removeAt(index); });
+                                                setSheetState(() {});
+                                                _saveMarkerPoints();
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.analytics, color: Colors.white),
+              label: const Text('Журнал точек', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ),
         ],
@@ -1115,7 +1251,7 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
   }
 }
 // ===================================================================
-// ОБНОВЛЕННЫЙ ОТРИСОВЩИК: ДОПОЛНИТЕЛЬНЫЕ ДУГИ И СМЕЩЕННЫЙ ЛОГОТИП
+// ШАГ 2Б: ОТРИСОВЩИК ЧЕСТНЫХ КООРДИНАТ, ПЛОТНОЙ СЕТКИ И ЛОГОТИПА
 // ===================================================================
 class CarpOutRadarPainterNew extends CustomPainter {
   final List<MarkerPoint> savedPoints;
@@ -1142,7 +1278,7 @@ class CarpOutRadarPainterNew extends CustomPainter {
     final markerLabelPaint = TextStyle(color: const Color(0xFF1B2611), fontSize: 10, fontWeight: FontWeight.bold, backgroundColor: Colors.white.withOpacity(0.8));
 
     double centerX = size.width / 2;
-    double bottomY = size.height - 45; // Слегка приподняли веер, чтобы освободить место снизу
+    double bottomY = size.height - 45;
     double maxRadiusPixels = size.height - 95;
 
     // Сетка лучей веера
@@ -1153,10 +1289,9 @@ class CarpOutRadarPainterNew extends CustomPainter {
       canvas.drawLine(Offset(centerX, bottomY), Offset(endX, endY), (angle % 20 == 0) ? mainPaint : dashPaint);
     }
 
-    // ДОБАВИЛИ ВСЕ НЕОБХОДИМЫЕ ДУГИ ДАЛЬНОСТИ: 60, 75, 90, 105, 120, 135, 150 метров
-        List<int> distances = [
-      60, 75, 90, 105, 120, 135, 150
-    ];
+    // НАМЕРТВО ПРОПИСАННЫЙ СПИСОК ВСЕХ КОЛЕЦ ДАЛЬНОСТИ
+    final List<int> distances =;
+    
     for (int d in distances) {
       double radius = (d - 55) * maxRadiusPixels / 105;
       Rect rect = Rect.fromCircle(center: Offset(centerX, bottomY), radius: radius);
@@ -1166,19 +1301,14 @@ class CarpOutRadarPainterNew extends CustomPainter {
       textPainter.paint(canvas, Offset(centerX - textPainter.width / 2, bottomY - radius - 12));
     }
 
-    // РИСУЕМ МАРКЕРНЫЕ ТОЧКИ НА СЕТКЕ С УЧЕТОМ КАЛИБРОВКИ
+    // ОТРИСОВКА МИШЕНЕЙ С УЧЕТОМ ЧЕСТНОГО УГЛА ИЗ ПАМЯТИ
     for (var point in savedPoints) {
       if (point.distance >= 55 && point.distance <= 160) {
         double pointRadiusPixels = (point.distance - 55) * maxRadiusPixels / 105;
         
-        // Распределяем точки веером на основе хэша имени (чтобы Лес и Березка были на своих лучах)
-        double fakeAngle = (point.name.hashCode % 30) - 15; 
-        // Если это точка "Лес", принудительно уводим ее на правое крыло веера (+25 градусов)
-        if (point.name.toLowerCase().contains('лес')) {
-          fakeAngle = 25.0;
-        }
+        // Восстанавливаем точные радианы направления пальца
+        double rad = (point.angle - (90 * 3.141592653589793 / 180));
 
-        double rad = (fakeAngle - 90) * 3.141592653589793 / 180;
         double pX = centerX + pointRadiusPixels * Math.cos(rad);
         double pY = bottomY + pointRadiusPixels * Math.sin(rad);
 
@@ -1193,11 +1323,134 @@ class CarpOutRadarPainterNew extends CustomPainter {
       }
     }
 
-    // НАДПИСЬ CARPOUT ПЕРЕМЕЩЕНА В САМЫЙ НИЗ (чуть ниже точки откуда выходят лучи)
+    // ЛОГОТИП CARPOUT СМЕЩЕН В САМЫЙ НИЗ ПОД НАЧАЛО ЛУЧЕЙ
     final logoPainter = TextPainter(text: const TextSpan(text: 'CARPOUT', style: logoPaint), textDirection: TextDirection.ltr)..layout();
     logoPainter.paint(canvas, Offset(centerX - logoPainter.width / 2, bottomY + 15));
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+// ===================================================================
+// ШАГ 2В: МАТЕМАТИЧЕСКИЙ МОДУЛЬ И ДВУХСТОРОННИЙ КАЛЬКУЛЯТОР КЛИПСЫ
+// ===================================================================
+class Math {
+  static double sqrt(double value) {
+    if (value < 0) return 0;
+    double x = value; double y = 1.0;
+    for (int i = 0; i < 10; i++) { x = (x + y) / 2; y = value / x; }
+    return x;
+  }
+  static double sin(double rad) {
+    double x = rad; double t = x; double sum = x;
+    for (int i = 1; i <= 5; i++) { t = -t * x * x / ((2 * i) * (2 * i + 1)); sum += t; }
+    return sum;
+  }
+  static double cos(double rad) {
+    double x = rad; double t = 1.0; double sum = 1.0;
+    for (int i = 1; i <= 5; i++) { t = -t * x * x / ((2 * i - 1) * (2 * i)); sum += t; }
+    return sum;
+  }
+  static double atan2(double x, double y) {
+    if (y == 0) return x > 0 ? 1.57079632679 : -1.57079632679;
+    double z = x / y;
+    double sum = z; double t = z;
+    for (int i = 1; i <= 5; i++) {
+      t = -t * z * z;
+      sum += t / (2 * i + 1);
+    }
+    return y > 0 ? sum : (x >= 0 ? sum + 3.14159265359 : sum - 3.14159265359);
+  }
+}
+
+class CarpClipsCalculator extends StatefulWidget {
+  const CarpClipsCalculator({Key? key}) : super(key: key);
+  @override
+  _CarpClipsCalculatorState createState() => _CarpClipsCalculatorState();
+}
+
+class _CarpClipsCalculatorState extends State<CarpClipsCalculator> {
+  final TextEditingController _distanceController = TextEditingController();
+  final TextEditingController _turnsController = TextEditingController();
+  double _distanceBetweenSticks = 4.0;
+  double _turnsResult = 0.0; double _metersResult = 0.0;
+
+  void _calculateFromMeters() {
+    double distance = double.tryParse(_distanceController.text) ?? 0.0;
+    if (distance > 0 && _distanceBetweenSticks > 0) { setState(() { _turnsResult = distance / _distanceBetweenSticks; }); }
+    else { setState(() { _turnsResult = 0.0; }); }
+  }
+
+  void _calculateFromTurns() {
+    double turns = double.tryParse(_turnsController.text) ?? 0.0;
+    if (turns > 0 && _distanceBetweenSticks > 0) { setState(() { _metersResult = turns * _distanceBetweenSticks; }); }
+    else { setState(() { _metersResult = 0.0; }); }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F6F0),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.only(top: 50.0, left: 20.0, right: 20.0, bottom: 20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Калькулятор дистанции', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))),
+            const SizedBox(height: 16),
+            const Text('База между колышками:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
+            const SizedBox(height: 8),
+            Row(children: [_buildDistanceChip(3.0, '3 м'), const SizedBox(width: 8), _buildDistanceChip(4.0, '4 м (Стандарт)'), const SizedBox(width: 8), _buildDistanceChip(5.0, '5 м')]),
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF2E3B1E).withOpacity(0.15))),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('1. Из метров в обороты', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _distanceController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: InputDecoration(labelText: 'Дистанция ловли (метры)', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), prefixIcon: const Icon(Icons.straighten, color: Color(0xFF2E3B1E))),
+                    onChanged: (_) { _turnsController.clear(); _metersResult = 0.0; _calculateFromMeters(); },
+                  ),
+                  if (_turnsResult > 0) ...[const SizedBox(height: 16), Center(child: Column(children: [Text(_turnsResult.toStringAsFixed(2), style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))), const Text('оборотов на колышках', style: TextStyle(color: Colors.grey, fontSize: 12))]))]
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF2E3B1E).withOpacity(0.15))),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('2. Из оборотов в метры (Обратный счет)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _turnsController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: InputDecoration(labelText: 'Количество оборотов на колышках', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), prefixIcon: const Icon(Icons.refresh, color: Color(0xFF2E3B1E))),
+                    onChanged: (_) { _distanceController.clear(); _turnsResult = 0.0; _calculateFromTurns(); },
+                  ),
+                  if (_metersResult > 0) ...[const SizedBox(height: 16), Center(child: Column(children: [Text('${_metersResult.toStringAsFixed(1)} м', style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Color(0xFF2E3B1E))), const Text('дистанция до точки ловли', style: TextStyle(color: Colors.grey, fontSize: 12))]))]
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDistanceChip(double value, String label) {
+    bool isSelected = _distanceBetweenSticks == value;
+    return ChoiceChip(
+      label: Text(label, style: TextStyle(color: isSelected ? Colors.white : Colors.black87, fontWeight: FontWeight.bold)),
+      selected: isSelected, selectedColor: const Color(0xFF2E3B1E), backgroundColor: Colors.white,
+      onSelected: (bool selected) { if (selected) { setState(() { _distanceBetweenSticks = value; if (_distanceController.text.isNotEmpty) _calculateFromMeters(); if (_turnsController.text.isNotEmpty) _calculateFromTurns(); }); } },
+    );
+  }
 }
