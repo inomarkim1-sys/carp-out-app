@@ -523,6 +523,33 @@ class CarpOutDashboard extends StatelessWidget {
 // ===================================================================
 // ЧАСТЬ 3А: ИНТЕРАКТИВНЫЙ СЕКТОРНЫЙ РАДАР С МАРКЕРАМИ ДНА CARPOUT
 // ===================================================================
+class MarkerPoint {
+  String name;
+  double distance;
+  double depth;
+  String bottomType;
+
+  MarkerPoint({
+    required this.name,
+    required this.distance,
+    required this.depth,
+    required this.bottomType,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'distance': distance,
+        'depth': depth,
+        'bottomType': bottomType,
+      };
+
+  factory MarkerPoint.fromJson(Map<String, dynamic> json) => MarkerPoint(
+        name: json['name'] ?? '',
+        distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
+        depth: (json['depth'] as num?)?.toDouble() ?? 0.0,
+        bottomType: json['bottomType'] ?? '',
+      );
+}
 class MarkerMapScreen extends StatefulWidget {
   final String lakeKey;
   final Function(List<String>) onMarkersChanged;
