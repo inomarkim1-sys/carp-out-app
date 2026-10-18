@@ -1154,7 +1154,9 @@ class CarpOutRadarPainterNew extends CustomPainter {
     }
 
     // ДОБАВИЛИ ВСЕ НЕОБХОДИМЫЕ ДУГИ ДАЛЬНОСТИ: 60, 75, 90, 105, 120, 135, 150 метров
-    List<int> distances =;
+        List<int> distances = [
+      60, 75, 90, 105, 120, 135, 150
+    ];
     for (int d in distances) {
       double radius = (d - 55) * maxRadiusPixels / 105;
       Rect rect = Rect.fromCircle(center: Offset(centerX, bottomY), radius: radius);
