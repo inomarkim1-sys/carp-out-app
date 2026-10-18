@@ -226,7 +226,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                       ),
                       children: [
                         Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 16, bottom: 8),
+                                                margin: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(color: const Color(0xFF4A5D32), borderRadius: BorderRadius.circular(12)),
                           child: Column(
