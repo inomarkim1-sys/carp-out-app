@@ -182,17 +182,20 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               accountEmail: const Text('Локальные сессии рыбалки', style: TextStyle(color: Colors.white60)),
               currentAccountPicture: CircleAvatar(backgroundColor: const Color(0xFF4A5D32), child: const Icon(Icons.phishing, color: Colors.white, size: 36)),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('СПИСОК ВОДОЕМОВ:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFFC5E1A5))),
-                IconButton(icon: const Icon(Icons.add_circle, color: Color(0xFFC5E1A5)), onPressed: _addNewLakeDialog),
-              ],
+                       Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('СПИСОК ВОДОЕМОВ:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFFC5E1A5))),
+                  IconButton(icon: const Icon(Icons.add_circle, color: Color(0xFFC5E1A5)), onPressed: _addNewLakeDialog),
+                ],
+              ),
             ),
+),
             Expanded(
               child: ListView.builder(
-                padding: EdgeInsets.zero,
+                Padding: EdgeInsets.zero,
                 itemCount: _lakesList.length,
                 itemBuilder: (context, index) {
                   final lakeItem = _lakesList[index];
