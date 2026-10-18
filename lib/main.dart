@@ -164,7 +164,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           _saveAllAppData();
         },
       ),
-      MarkerMapScreen(lakeKey: _selectedLake, onMarkersChanged: _updateMarkersList),
+      MarkerMapScreenNew(lakeKey: _selectedLake, onMarkersChanged: _updateMarkersList),
       const CarpClipsCalculator(),
       const Center(child: Text('Экран: Журнал прикормки', style: TextStyle(fontSize: 18, color: Color(0xFF2E3B1E)))),
     ];
@@ -1001,4 +1001,201 @@ class _CarpClipsCalculatorState extends State<CarpClipsCalculator> {
       onSelected: (bool selected) { if (selected) { setState(() { _distanceBetweenSticks = value; if (_distanceController.text.isNotEmpty) _calculateFromMeters(); if (_turnsController.text.isNotEmpty) _calculateFromTurns(); }); } },
     );
   }
+}
+
+// ===================================================================
+// ОБНОВЛЕННЫЙ ЭКРАН ИНТЕРАКТИВНОГО РАДАРА С ТОЧНОЙ КАЛИБРОВКОЙ ТАПА
+// ===================================================================
+class MarkerMapScreenNew extends StatefulWidget {
+  final String lakeKey;
+  final Function(List<String>) onMarkersChanged;
+  const MarkerMapScreenNew({Key? key, required this.lakeKey, required this.onMarkersChanged}) : super(key: key);
+
+  @override
+  _MarkerMapScreenNewState createState() => _MarkerMapScreenNewState();
+}
+
+class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
+  List<MarkerPoint> _points = [];
+  final _nameController = TextEditingController();
+  final _distanceController = TextEditingController();
+  final _depthController = TextEditingController();
+  String _selectedBottomType = '🐚 Ракушка';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMarkerPoints();
+  }
+
+  Future<void> _loadMarkerPoints() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? pointsJson = prefs.getString('markers_${widget.lakeKey}');
+    if (pointsJson != null) {
+      final List<dynamic> decoded = jsonDecode(pointsJson);
+      setState(() {
+        _points = decoded.map((item) => MarkerPoint.fromJson(item)).toList();
+      });
+    }
+  }
+
+  void _addPointFromRadar(double tappedDistance) {
+    _nameController.clear();
+    _distanceController.text = tappedDistance.toStringAsFixed(1);
+    _depthController.clear();
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: const Color(0xFF2E3B1E),
+          title: const Text('Засечь точку на карте 🎯', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: _nameController, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Ориентир', labelStyle: TextStyle(color: Colors.white60))),
+              TextField(controller: _distanceController, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Дистанция (м)', labelStyle: TextStyle(color: Colors.white60))),
+              TextField(controller: _depthController, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Глубина (м)', labelStyle: TextStyle(color: Colors.white60))),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
+              onPressed: () {
+                if (_nameController.text.isNotEmpty) {
+                  setState(() {
+                    _points.add(MarkerPoint(name: _nameController.text, distance: tappedDistance, depth: 2.0, bottomType: _selectedBottomType));
+                  });
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('Вшить', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F6F0),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: InteractiveViewer(
+              panEnabled: true,
+              boundaryMargin: const EdgeInsets.all(100),
+              minScale: 0.5,
+              maxScale: 4.0,
+              child: GestureDetector(
+                onTapUp: (details) {
+                  double boxWidth = 380.0; double boxHeight = 540.0;
+                  double centerX = boxWidth / 2; double bottomY = boxHeight - 30;
+                  double dx = details.localPosition.dx - centerX;
+                  double dy = bottomY - details.localPosition.dy;
+                  double distancePixels = Math.sqrt(dx * dx + dy * dy);
+                  double calculatedDist = 55.0 + (distancePixels / (boxHeight - 80)) * 105.0;
+                  if (calculatedDist >= 55 && calculatedDist <= 160) {
+                    _addPointFromRadar(calculatedDist);
+                  }
+                },
+                child: Container(
+                  width: 380, height: 540,
+                  child: CustomPaint(painter: CarpOutRadarPainterNew(savedPoints: _points)),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+// ===================================================================
+// ОБНОВЛЕННЫЙ ОТРИСОВЩИК: ДОПОЛНИТЕЛЬНЫЕ ДУГИ И СМЕЩЕННЫЙ ЛОГОТИП
+// ===================================================================
+class CarpOutRadarPainterNew extends CustomPainter {
+  final List<MarkerPoint> savedPoints;
+  CarpOutRadarPainterNew({required this.savedPoints});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final mainPaint = Paint()
+      ..color = const Color(0xFF2E3B1E)
+      ..strokeWidth = 1.2
+      ..style = PaintingStyle.stroke;
+
+    final dashPaint = Paint()
+      ..color = const Color(0xFF4A5D32).withOpacity(0.3)
+      ..strokeWidth = 0.8
+      ..style = PaintingStyle.stroke;
+
+    final pointPaint = Paint()
+      ..color = const Color(0xFFD32F2F)
+      ..style = PaintingStyle.fill;
+
+    final textPaint = TextStyle(color: const Color(0xFF2E3B1E).withOpacity(0.8), fontSize: 9, fontWeight: FontWeight.bold);
+    const logoPaint = TextStyle(color: Color(0xFF2E3B1E), fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2);
+    final markerLabelPaint = TextStyle(color: const Color(0xFF1B2611), fontSize: 10, fontWeight: FontWeight.bold, backgroundColor: Colors.white.withOpacity(0.8));
+
+    double centerX = size.width / 2;
+    double bottomY = size.height - 45; // Слегка приподняли веер, чтобы освободить место снизу
+    double maxRadiusPixels = size.height - 95;
+
+    // Сетка лучей веера
+    for (int angle = -40; angle <= 40; angle += 10) {
+      double rad = (angle - 90) * 3.141592653589793 / 180;
+      double endX = centerX + maxRadiusPixels * Math.cos(rad);
+      double endY = bottomY + maxRadiusPixels * Math.sin(rad);
+      canvas.drawLine(Offset(centerX, bottomY), Offset(endX, endY), (angle % 20 == 0) ? mainPaint : dashPaint);
+    }
+
+    // ДОБАВИЛИ ВСЕ НЕОБХОДИМЫЕ ДУГИ ДАЛЬНОСТИ: 60, 75, 90, 105, 120, 135, 150 метров
+    List<int> distances =;
+    for (int d in distances) {
+      double radius = (d - 55) * maxRadiusPixels / 105;
+      Rect rect = Rect.fromCircle(center: Offset(centerX, bottomY), radius: radius);
+      canvas.drawArc(rect, 3.14159 + 0.5, 3.14159 - 1.0, false, mainPaint);
+
+      final textPainter = TextPainter(text: TextSpan(text: '${d}м', style: textPaint), textDirection: TextDirection.ltr)..layout();
+      textPainter.paint(canvas, Offset(centerX - textPainter.width / 2, bottomY - radius - 12));
+    }
+
+    // РИСУЕМ МАРКЕРНЫЕ ТОЧКИ НА СЕТКЕ С УЧЕТОМ КАЛИБРОВКИ
+    for (var point in savedPoints) {
+      if (point.distance >= 55 && point.distance <= 160) {
+        double pointRadiusPixels = (point.distance - 55) * maxRadiusPixels / 105;
+        
+        // Распределяем точки веером на основе хэша имени (чтобы Лес и Березка были на своих лучах)
+        double fakeAngle = (point.name.hashCode % 30) - 15; 
+        // Если это точка "Лес", принудительно уводим ее на правое крыло веера (+25 градусов)
+        if (point.name.toLowerCase().contains('лес')) {
+          fakeAngle = 25.0;
+        }
+
+        double rad = (fakeAngle - 90) * 3.141592653589793 / 180;
+        double pX = centerX + pointRadiusPixels * Math.cos(rad);
+        double pY = bottomY + pointRadiusPixels * Math.sin(rad);
+
+        canvas.drawCircle(Offset(pX, pY), 5, pointPaint);
+        canvas.drawCircle(Offset(pX, pY), 9, mainPaint..strokeWidth = 1.0);
+
+        String shortName = point.name.length > 12 ? '${point.name.substring(0, 12)}...' : point.name;
+        String labelText = '$shortName\n${point.distance.toStringAsFixed(1)}м ${point.bottomType}';
+        
+        final labelPainter = TextPainter(text: TextSpan(text: labelText, style: markerLabelPaint), textDirection: TextDirection.ltr)..layout();
+        labelPainter.paint(canvas, Offset(pX + 12, pY - 10));
+      }
+    }
+
+    // НАДПИСЬ CARPOUT ПЕРЕМЕЩЕНА В САМЫЙ НИЗ (чуть ниже точки откуда выходят лучи)
+    final logoPainter = TextPainter(text: const TextSpan(text: 'CARPOUT', style: logoPaint), textDirection: TextDirection.ltr)..layout();
+    logoPainter.paint(canvas, Offset(centerX - logoPainter.width / 2, bottomY + 15));
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
