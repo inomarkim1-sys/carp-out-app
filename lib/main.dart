@@ -920,11 +920,11 @@ class CarpOutRadarPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-class MarkerPointData {
+class MarkerPoint {
   String name; double distance; double depth; String bottomType;
   MarkerPointData({required this.name, required this.distance, required this.depth, required this.bottomType});
   Map<String, dynamic> toJson() => {'name': name, 'distance': distance, 'depth': depth, 'bottomType': bottomType};
-  factory MarkerPointData.fromJson(Map<String, dynamic> json) => MarkerPointData(
+  factory MarkerPoint.fromJson(Map<String, dynamic> json) => MarkerPoint(
     name: json['name'] ?? '',
     distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
     depth: (json['depth'] as num?)?.toDouble() ?? 0.0,
