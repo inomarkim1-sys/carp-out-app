@@ -165,7 +165,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     });
   }
 
-  void _addNewLakeDialog() {
+   void _addNewLakeDialog() {
     final controller = TextEditingController();
     showDialog(
       context: context,
@@ -185,7 +185,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
-            onPressed: () {
+            onPressed: () async { // Сделали обработчик асинхронным
               if (controller.text.isNotEmpty && !_lakesList.contains(controller.text)) {
                 setState(() {
                   _lakesList.add(controller.text);
@@ -197,8 +197,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   _bigFishWeight = '0.000';
                   _markerNames = [];
                 });
-                _saveAllAppData();
-                _loadAllAppData();
+                await _saveAllAppData(); // Ждём, пока запишется в память!
+                await _loadAllAppData(); // Только потом обновляем экран!
                 Navigator.pop(context);
               }
             },
@@ -208,6 +208,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     final List<Widget> _screens = [
@@ -219,28 +220,27 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         weight: _totalWeight,
         bigFish: _bigFishWeight,
         availableMarkers: _markerNames,
-        onUpdateSession: (newLake, newSector, newDuration) {
+        onUpdateSession: (newLake, newSector, newDuration) async {
           setState(() {
             _sectorName = newSector;
             _sessionDuration = newDuration;
           });
-          _saveAllAppData();
+          await _saveAllAppData();
         },
-        onUpdateStats: (newCatches, newWeight, newBig) {
+        onUpdateStats: (newCatches, newWeight, newBig) async {
           setState(() {
             _catchesCount = newCatches;
             _totalWeight = newWeight;
             _bigFishWeight = newBig;
           });
-          _saveAllAppData();
+          await _saveAllAppData();
         },
       ),
       MarkerMapScreenNew(lakeKey: _selectedLake, onMarkersChanged: _updateMarkersList),
       const CarpClipsCalculator(),
-      FishSocialScreen(lakeKey: _selectedLake), // Новая соцсеть трофеев
+      FishSocialScreen(lakeKey: _selectedLake),
     ];
 
-    return Scaffold(
       drawer: Drawer(
         backgroundColor: const Color(0xFF2E3B1E),
         child: Column(
@@ -268,7 +268,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 ],
               ),
             ),
-            Expanded(
+                       Expanded(
               child: ListView.builder(
                 padding: EdgeInsets.zero,
                 itemCount: _lakesList.length,
@@ -290,14 +290,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                           const SizedBox(width: 8),
                           IconButton(
                             icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20),
-                            onPressed: () {
+                            onPressed: () async { // Сделали удаление асинхронным
                               if (_lakesList.length > 1) {
                                 setState(() {
                                   _lakesList.remove(lakeItem);
                                   if (isCurrent) _selectedLake = _lakesList.first;
                                 });
-                                _saveAllAppData();
-                                _loadAllAppData();
+                                await _saveAllAppData(); // Ждём запись на диск!
+                                await _loadAllAppData(); // Только потом обновляем стейт!
                               }
                             },
                           ),
@@ -324,14 +324,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                               const SizedBox(height: 8),
                               ElevatedButton(
                                 style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E3B1E)),
-                                onPressed: () {
+                                onPressed: () async { // Сделали применение асинхронным
                                   setState(() {
                                     _selectedLake = lakeItem;
                                     _sectorName = sectorCtrl.text;
                                     _sessionDuration = durationCtrl.text;
                                   });
-                                  _saveAllAppData();
-                                  _loadAllAppData();
+                                  await _saveAllAppData(); // Железобетонная запись!
+                                  await _loadAllAppData(); // Чтение свежего стейта!
                                   Navigator.pop(context);
                                 },
                                 child: const Text('Выбрать и применить', style: TextStyle(color: Colors.white, fontSize: 12)),
@@ -348,8 +348,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ],
         ),
       ),
-      body: IndexedStack(index: _currentIndex, children: _screens),
-      bottomNavigationBar: BottomNavigationBar(
+
         currentIndex: _currentIndex,
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.grey.shade900,
