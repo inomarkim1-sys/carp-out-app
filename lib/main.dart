@@ -36,7 +36,7 @@ class CarpOutApp extends StatelessWidget {
   }
 }
 
-// НОВАЯ ИКОНКА-ШЕВРОН: ТЕКСТ ПОМЕЩАЕТСЯ ИДЕАЛЬНО, ПЛЮС ИНТЕГРАЦИЯ ФОТО ЗАКАТА
+// КОРРЕКТНАЯ АВАТАРКА ДЛЯ БОКОВОГО МЕНЮ — БУКВЫ ПОМЕЩАЮТСЯ ИДЕАЛЬНО
 class CarpOutAppIconPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -63,7 +63,6 @@ class CarpOutAppIconPainter extends CustomPainter {
     double w = size.width;
     double h = size.height;
 
-    // Векторный карп
     final path = Path();
     path.moveTo(w * 0.28, h * 0.58);
     path.quadraticBezierTo(w * 0.38, h * 0.43, w * 0.55, h * 0.46);
@@ -76,10 +75,9 @@ class CarpOutAppIconPainter extends CustomPainter {
     path.quadraticBezierTo(w * 0.33, h * 0.64, w * 0.28, h * 0.58);
     canvas.drawPath(path, fishPaint);
 
-    // УМЕНЬШИЛИ ШРИФТ И ДОБАВИЛИ ОТСТУПЫ, ЧТОБЫ БУКВЫ НЕ ВЫЛЕЗАЛИ ИЗ КВАДРАТА
     const textStyle = TextStyle(
       color: Color(0xFFD4D9A1),
-      fontSize: 9.5, // Идеально масштабируемый размер под аватарку
+      fontSize: 9.5, // Буквы больше не зажимаются границами круга!
       fontWeight: FontWeight.bold,
       letterSpacing: 1.5,
     );
@@ -101,7 +99,6 @@ class MainNavigationScreen extends StatefulWidget {
   _MainNavigationScreenState createState() => _MainNavigationScreenState();
 }
 
-
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
 
@@ -121,6 +118,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     super.initState();
     _loadAllAppData();
   }
+
   Future<void> _loadAllAppData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -160,8 +158,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       _markerNames = newMarkers;
     });
   }
-
-   void _addNewLakeDialog() {
+  void _addNewLakeDialog() {
     final controller = TextEditingController();
     showDialog(
       context: context,
@@ -181,7 +178,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
-            onPressed: () async { // Сделали обработчик асинхронным
+            onPressed: () async {
               if (controller.text.isNotEmpty && !_lakesList.contains(controller.text)) {
                 setState(() {
                   _lakesList.add(controller.text);
@@ -193,8 +190,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   _bigFishWeight = '0.000';
                   _markerNames = [];
                 });
-                await _saveAllAppData(); // Ждём, пока запишется в память!
-                await _loadAllAppData(); // Только потом обновляем экран!
+                await _saveAllAppData();
+                await _loadAllAppData();
                 Navigator.pop(context);
               }
             },
@@ -237,23 +234,20 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       FishSocialScreen(lakeKey: _selectedLake),
     ];
 
+    return Scaffold(
       drawer: Drawer(
         backgroundColor: const Color(0xFF2E3B1E),
         child: Column(
           children: [
-                        UserAccountsDrawerHeader(
+            UserAccountsDrawerHeader(
               decoration: const BoxDecoration(color: Color(0xFF1B2611)),
-              accountName: const Text('CarpOut Менеджер', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+              accountName: const Text('CarpOut', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
               accountEmail: const Text('Локальные сессии рыбалки', style: TextStyle(color: Colors.white60)),
               currentAccountPicture: Container(
-                width: 70,
-                height: 70,
-                child: CustomPaint(
-                  painter: CarpOutAppIconPainter(),
-                ),
+                width: 70, height: 70,
+                child: CustomPaint(painter: CarpOutAppIconPainter()),
               ),
             ),
-
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Row(
@@ -264,7 +258,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 ],
               ),
             ),
-                       Expanded(
+            Expanded(
               child: ListView.builder(
                 padding: EdgeInsets.zero,
                 itemCount: _lakesList.length,
@@ -286,14 +280,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                           const SizedBox(width: 8),
                           IconButton(
                             icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20),
-                            onPressed: () async { // Сделали удаление асинхронным
+                            onPressed: () async {
                               if (_lakesList.length > 1) {
                                 setState(() {
                                   _lakesList.remove(lakeItem);
                                   if (isCurrent) _selectedLake = _lakesList.first;
                                 });
-                                await _saveAllAppData(); // Ждём запись на диск!
-                                await _loadAllAppData(); // Только потом обновляем стейт!
+                                await _saveAllAppData();
+                                await _loadAllAppData();
                               }
                             },
                           ),
@@ -320,14 +314,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                               const SizedBox(height: 8),
                               ElevatedButton(
                                 style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E3B1E)),
-                                onPressed: () async { // Сделали применение асинхронным
+                                onPressed: () async {
                                   setState(() {
                                     _selectedLake = lakeItem;
                                     _sectorName = sectorCtrl.text;
                                     _sessionDuration = durationCtrl.text;
                                   });
-                                  await _saveAllAppData(); // Железобетонная запись!
-                                  await _loadAllAppData(); // Чтение свежего стейта!
+                                  await _saveAllAppData();
+                                  await _loadAllAppData();
                                   Navigator.pop(context);
                                 },
                                 child: const Text('Выбрать и применить', style: TextStyle(color: Colors.white, fontSize: 12)),
@@ -344,7 +338,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ],
         ),
       ),
-
+      body: IndexedStack(index: _currentIndex, children: _screens),
+      bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.grey.shade900,
@@ -366,6 +361,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 }
+
 // ===================================================================
 // ЧАСТЬ 1Б: ДИАЛОГОВЫЕ ОКНА ФИКСАЦИИ СТАТИСТИКИ И УЛОВА CARPOUT
 // ===================================================================
