@@ -19,16 +19,17 @@ class CarpOutApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primaryColor: const Color(0xFF2E3B1E),
-        scaffoldBackgroundColor: const Color(0xFFA2B574), // Оливковый фон камуфляжа
-        dialogTheme: DialogThemeData(
-          backgroundColor: const Color(0xFF2E3B1E),
-          titleTextStyle: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-          contentTextStyle: TextStyle(color: Colors.white.withOpacity(0.8)),
+        // Вся подложка приложения теперь строго в суровом матовом хаки!
+        scaffoldBackgroundColor: const Color(0xFF2E3B1E), 
+        dialogTheme: const DialogThemeData(
+          backgroundColor: Color(0xFF1B2611),
+          titleTextStyle: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          contentTextStyle: TextStyle(color: Colors.white70),
         ),
         colorScheme: ColorScheme.fromSwatch().copyWith(
           primary: const Color(0xFF2E3B1E),
           secondary: const Color(0xFF4A5D32),
-          surface: const Color(0xFFD4D9A1),
+          surface: const Color(0xFF1B2611), // Тёмные блоки
         ),
       ),
       home: const MainNavigationScreen(),
@@ -36,12 +37,11 @@ class CarpOutApp extends StatelessWidget {
   }
 }
 
-// КОРРЕКТНАЯ АВАТАРКА ДЛЯ БОКОВОГО МЕНЮ — БУКВЫ ПОМЕЩАЮТСЯ ИДЕАЛЬНО
 class CarpOutAppIconPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final bgPaint = Paint()
-      ..color = const Color(0xFF2E3B1E)
+      ..color = const Color(0xFF1B2611)
       ..style = PaintingStyle.fill;
       
     final borderPaint = Paint()
@@ -77,7 +77,7 @@ class CarpOutAppIconPainter extends CustomPainter {
 
     const textStyle = TextStyle(
       color: Color(0xFFD4D9A1),
-      fontSize: 9.5, // Буквы больше не зажимаются границами круга!
+      fontSize: 9.5,
       fontWeight: FontWeight.bold,
       letterSpacing: 1.5,
     );
@@ -163,7 +163,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF2E3B1E),
+        backgroundColor: const Color(0xFF1B2611),
         title: const Text('Добавить новый водоем', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
         content: TextField(
           controller: controller,
@@ -236,11 +236,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
     return Scaffold(
       drawer: Drawer(
-        backgroundColor: const Color(0xFF2E3B1E),
+        backgroundColor: const Color(0xFF2E3B1E), // Матовый защитный фон шторки
         child: Column(
           children: [
             UserAccountsDrawerHeader(
-              decoration: const BoxDecoration(color: Color(0xFF1B2611)),
+              decoration: const BoxDecoration(color: Color(0xFF1B2611)), // Глубокий лесной верх
               accountName: const Text('CarpOut', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
               accountEmail: const Text('Локальные сессии рыбалки', style: TextStyle(color: Colors.white60)),
               currentAccountPicture: Container(
@@ -253,8 +253,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('СПИСОК ВОДОЕМОВ:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFFC5E1A5))),
-                  IconButton(icon: const Icon(Icons.add_circle, color: Color(0xFFC5E1A5)), onPressed: _addNewLakeDialog),
+                  const Text('СПИСОК ВОДОЕМОВ:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFFD4D9A1))),
+                  IconButton(icon: const Icon(Icons.add_circle, color: Color(0xFFD4D9A1)), onPressed: _addNewLakeDialog),
                 ],
               ),
             ),
@@ -269,14 +269,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   final durationCtrl = TextEditingController(text: isCurrent ? _sessionDuration : '24');
 
                   return Theme(
-                    data: ThemeData(unselectedWidgetColor: Colors.white70, hintColor: const Color(0xFFC5E1A5)),
+                    data: ThemeData(unselectedWidgetColor: Colors.white70, hintColor: const Color(0xFFD4D9A1)),
                     child: ExpansionTile(
-                      leading: Icon(Icons.water, color: isCurrent ? const Color(0xFFC5E1A5) : Colors.white70),
+                      leading: Icon(Icons.water, color: isCurrent ? const Color(0xFFD4D9A1) : Colors.white70),
                       title: Text(lakeItem, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (isCurrent) const Icon(Icons.check_circle, color: Color(0xFFC5E1A5), size: 20),
+                          if (isCurrent) const Icon(Icons.check_circle, color: Color(0xFFD4D9A1), size: 20),
                           const SizedBox(width: 8),
                           IconButton(
                             icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20),
@@ -297,7 +297,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                         Container(
                           margin: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
                           padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(color: const Color(0xFF4A5D32), borderRadius: BorderRadius.circular(12)),
+                          decoration: BoxDecoration(color: const Color(0xFF1B2611), borderRadius: BorderRadius.circular(12)),
                           child: Column(
                             children: [
                               TextField(
@@ -313,7 +313,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                               ),
                               const SizedBox(height: 8),
                               ElevatedButton(
-                                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E3B1E)),
+                                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
                                 onPressed: () async {
                                   setState(() {
                                     _selectedLake = lakeItem;
@@ -342,9 +342,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.grey.shade900,
-        selectedItemColor: const Color(0xFFC5E1A5),
-        unselectedItemColor: Colors.white60,
+        backgroundColor: const Color(0xFF1B2611), // Тёмное лесное нижнее меню
+        selectedItemColor: const Color(0xFFD4D9A1), // Защитный песочный цвет активной вкладки
+        unselectedItemColor: Colors.white54,
         selectedFontSize: 11,
         unselectedFontSize: 11,
         onTap: (index) {
@@ -361,6 +361,279 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 }
+// ===================================================================
+// ЧАСТЬ 2А: ДАШБОРД ХАКИ С ИЗОЛИРОВАННЫМИ ФОРМАМИ И ПРЯМОЙ ЗАПИСЬЮ
+// ===================================================================
+class CarpOutDashboard extends StatelessWidget {
+  final String lake;
+  final String sector;
+  final String duration;
+  final int catches;
+  final double weight;
+  final String bigFish;
+  final List<String> availableMarkers;
+  final Function(String, String, String) onUpdateSession;
+  final Function(int, double, String) onUpdateStats;
+
+  const CarpOutDashboard({
+    Key? key,
+    required this.lake,
+    required this.sector,
+    required this.duration,
+    required this.catches,
+    required this.weight,
+    required this.bigFish,
+    required this.availableMarkers,
+    required this.onUpdateSession,
+    required this.onUpdateStats,
+  }) : super(key: key);
+
+  String _getCurrentDate() {
+    final now = DateTime.now();
+    final months = [
+      'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+      'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+    ];
+    return '${now.day} ${months[now.month - 1]} ${now.year} г.';
+  }
+
+  void _showCatchesDialog(BuildContext context) {
+    final controller = TextEditingController(text: catches.toString());
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1B2611),
+        title: const Text('Изменить количество хвостов', style: TextStyle(color: Colors.white)),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(labelText: 'Всего поймано (шт)', labelStyle: TextStyle(color: Colors.white60)),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
+            onPressed: () {
+              int? val = int.tryParse(controller.text);
+              if (val != null) {
+                onUpdateStats(val, weight, bigFish);
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('Сохранить', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showWeightDialog(BuildContext context) {
+    final controller = TextEditingController(text: weight.toString());
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1B2611),
+        title: const Text('Изменить общий вес улова', style: TextStyle(color: Colors.white)),
+        content: TextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(labelText: 'Общий вес (кг)', labelStyle: TextStyle(color: Colors.white60)),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
+            onPressed: () {
+              double? val = double.tryParse(controller.text);
+              if (val != null) {
+                onUpdateStats(catches, val, bigFish);
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('Сохранить', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showBigFishDialog(BuildContext context) {
+    final controller = TextEditingController(text: bigFish);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1B2611),
+        title: const Text('Обновить трофей BIG FISH', style: TextStyle(color: Colors.white)),
+        content: TextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(labelText: 'Вес трофея (кг)', labelStyle: TextStyle(color: Colors.white60)),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
+            onPressed: () {
+              if (controller.text.isNotEmpty) {
+                onUpdateStats(catches, weight, controller.text);
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('Сохранить', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showInTheNetDialog(BuildContext context) {
+    final weightController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1B2611),
+        title: const Text('Рыба в подсаке! 🎣', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        content: TextField(
+          controller: weightController,
+          style: const TextStyle(color: Colors.white),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: const InputDecoration(labelText: 'Вес рыбы (кг)', labelStyle: TextStyle(color: Colors.white60)),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
+            onPressed: () {
+              double inputWeight = double.tryParse(weightController.text) ?? 0.0;
+              if (inputWeight > 0) {
+                int newCatches = catches + 1;
+                double newTotalWeight = weight + inputWeight;
+                double currentBig = double.tryParse(bigFish) ?? 0.0;
+                String newBigString = bigFish;
+                if (inputWeight > currentBig) { newBigString = inputWeight.toStringAsFixed(3); }
+                onUpdateStats(newCatches, newTotalWeight, newBigString);
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('В журнал!', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+  @override
+  Widget build(BuildContext context) {
+    double averageWeight = catches > 0 ? weight / catches : 0.0;
+    return Scaffold(
+      backgroundColor: const Color(0xFF2E3B1E), // Суровый матовый тёмно-зелёный фон хаки
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.only(top: 40.0, left: 16.0, right: 16.0, bottom: 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                IconButton(icon: const Icon(Icons.menu, color: Color(0xFFD4D9A1)), onPressed: () => Scaffold.of(context).openDrawer()),
+                const Text('CarpOut', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFFD4D9A1))), // Очищенное имя хаки
+              ],
+            ),
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [Color(0xFF1B2611), Color(0xFF111A0B)]),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFD4D9A1).withOpacity(0.2), width: 1),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(_getCurrentDate(), style: const TextStyle(color: Color(0xFFD4D9A1), fontSize: 13, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  Text('ТЕКУЩАЯ СЕССИЯ - ДЛИТЕЛЬНОСТЬ $duration Ч.', style: const TextStyle(color: Colors.white60, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(lake, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                  Text(sector, style: const TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.w500)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text('Аналитика улова (нажмите на квадрат для изменения):', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFFD4D9A1))),
+            const SizedBox(height: 12),
+            
+            // КАЖДЫЙ КВАДРАТ СТАЛ НЕЗАВИСИМОЙ АКТИВНОЙ КНОПКОЙ
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 1.3,
+              children: [
+                GestureDetector(
+                  onTap: () => _showCatchesDialog(context), 
+                  child: _buildStatCard('Всего хвостов', '$catches шт.', Icons.phishing, const Color(0xFF4A5D32))
+                ),
+                GestureDetector(
+                  onTap: () => _showWeightDialog(context), 
+                  child: _buildStatCard('Общий вес', '${weight.toStringAsFixed(3)} кг', Icons.scale, const Color(0xFF4A5D32))
+                ),
+                GestureDetector(
+                  onTap: () => _showCatchesDialog(context), // Расчетный квадрат, открывает смену хвостов
+                  child: _buildStatCard('Средний вес', '${averageWeight.toStringAsFixed(3)} кг', Icons.analytics, const Color(0xFF4A5D32))
+                ),
+                GestureDetector(
+                  onTap: () => _showBigFishDialog(context), 
+                  child: _buildStatCard('BIG FISH 🔥', '$bigFish кг', Icons.emoji_events, const Color(0xFFFF5252))
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1B2611), 
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  side: const BorderSide(color: Color(0xFFD4D9A1), width: 1.2),
+                ),
+                onPressed: () => _showInTheNetDialog(context),
+                icon: const Icon(Icons.phishing, color: Color(0xFFD4D9A1)),
+                label: const Text('В подсаке! 🎣', style: TextStyle(color: Color(0xFFD4D9A1), fontSize: 18, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String title, String value, IconData icon, Color iconColor) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1B2611), // Глубокий лесной камуфляжный блок
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFD4D9A1).withOpacity(0.3), width: 1.2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(children: [Icon(icon, color: iconColor, size: 18), const SizedBox(width: 6), Text(title, style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold))]),
+          const SizedBox(height: 8),
+          Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFFD4D9A1))),
+        ],
+      ),
+    );
+  }
+}
+
 
 // ===================================================================
 // ЧАСТЬ 2А: ИНТЕРАКТИВНЫЙ ДАШБОРД С ИЗОЛИРОВАННЫМИ ФОРМАМИ УЛОВА
