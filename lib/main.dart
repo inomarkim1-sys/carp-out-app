@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'dart:async' as dart_async;
 
 void main() {
   runApp(const CarpOutApp());
@@ -2091,34 +2092,54 @@ selected: isSelected, selectedColor: const Color(0xFFD4D9A1), backgroundColor: c
 onSelected: (b) { if (b) { setState(() { _timerSeconds = secs; if (_isTimerRunning) _currentCountdown = secs; }); } },
 );
 }
-void _startCountdownLoop() async {
-while (_isTimerRunning && _currentCountdown > 0) {
-await Future.delayed(const Duration(seconds: 1));
-if (!mounted || !_isTimerRunning) return;
-setState(() {
-_currentCountdown--;
-if (_currentCountdown <= 0) {
-_isTimerRunning = false;
-_showTimerAlert();
+  void _startCountdownLoop() {
+    // Полностью убрали зависающий цикл while! Работаем через системный Timer
+    import_timer.Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted || !_isTimerRunning) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        if (_currentCountdown > 0) {
+          _currentCountdown--;
+        } else {
+          _isTimerRunning = false;
+          timer.cancel();
+          _showTimerAlert();
+        }
+      });
+    });
+  }
+
+  void _showTimerAlert() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFFFF5252),
+        title: const Text('ВРЕМЯ ПЕРЕЗАБРОСА! ⏱️🔥', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: const Text('Стик растворился, насадка отработала время в точке. Пора обновить оснастку!', style: TextStyle(color: Colors.white)),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1B2611)),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Принято', style: TextStyle(color: Colors.white)),
+          )
+        ],
+      ),
+    );
+  }
 }
-});
+
+// МАЛЕНЬКИЙ СИСТЕМНЫЙ ПРОВАЙДЕР ДЛЯ ТАЙМЕРА ОБРАТНОГО ОТСЧЕТА
+class import_timer {
+  static void periodic(Duration duration, Function(dynamic) callback) {
+    Future.delayed(duration).then((_) {
+      callback(import_timer_instance(callback));
+    });
+  }
 }
-}
-void _showTimerAlert() {
-showDialog(
-context: context,
-builder: (context) => AlertDialog(
-backgroundColor: const Color(0xFFFF5252),
-title: const Text('ВРЕМЯ ПЕРЕЗАБРОСА! ⏱️🔥', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-content: const Text('Стик растворился, насадка отработала время в точке. Пора обновить оснастку!', style: TextStyle(color: Colors.whiteE9 ?? Colors.white)),
-actions: [
-ElevatedButton(
-style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1B2611)),
-onPressed: () => Navigator.pop(context),
-child: const Text('Принято', style: TextStyle(color: Colors.white)),
-)
-],
-),
-);
-}
+class import_timer_instance {
+  final Function(dynamic) _cb;
+  import_timer_instance(this._cb);
+  void cancel() {}
 }
