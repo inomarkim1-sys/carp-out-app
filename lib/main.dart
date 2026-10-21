@@ -1708,3 +1708,417 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
     );
   }
 }
+ // ===================================================================
+// ТАКТИЧЕСКИЙ ЦЕНТР ПИТАНИЯ CARPOUT: БАЗА ДАННЫХ И ХРАНИЛИЩЕ МИКСОВ
+// ===================================================================
+class BaitMix {
+  String id; String liquid; String boilieType; String boilieSize; String notes;
+  BaitMix({required this.id, required this.liquid, required this.boilieType, required this.boilieSize, required this.notes});
+  Map<String, dynamic> toJson() => {'id': id, 'liquid': liquid, 'boilieType': boilieType, 'boilieSize': boilieSize, 'notes': notes};
+  factory BaitMix.fromJson(Map<String, dynamic> json) => BaitMix(id: json['id'] ?? '', liquid: json['liquid'] ?? '', boilieType: json['boilieType'] ?? '', boilieSize: json['boilieSize'] ?? '', notes: json['notes'] ?? '');
+}
+
+class PvaStickLog {
+  String id; String pvaType; String hookBait; String rodType; String time;
+  PvaStickLog({required this.id, required this.pvaType, required this.hookBait, required this.rodType, required this.time});
+  Map<String, dynamic> toJson() => {'id': id, 'pvaType': pvaType, 'hookBait': hookBait, 'rodType': rodType, 'time': time};
+  factory PvaStickLog.fromJson(Map<String, dynamic> json) => PvaStickLog(id: json['id'] ?? '', pvaType: json['pvaType'] ?? '', hookBait: json['hookBait'] ?? '', rodType: json['rodType'] ?? '', time: json['time'] ?? '');
+}
+
+class CarpFeedScreen extends StatefulWidget {
+  final String lakeKey;
+  const CarpFeedScreen({Key? key, required this.lakeKey}) : super(key: key);
+  @override
+  _CarpFeedScreenState createState() => _CarpFeedScreenState();
+}
+
+class _CarpFeedScreenState extends State<CarpFeedScreen> with TickerProviderStateMixin {
+  List<BaitMix> _mixes = [];
+  List<PvaStickLog> _sticks = [];
+  late TabController _tabController;
+
+  int _timerSeconds = 2400; // 40 минут для поисковых стиков по умолчанию
+  int _currentCountdown = 0;
+  bool _isTimerRunning = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _loadFeedData();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadFeedData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? mixJson = prefs.getString('feed_mixes_${widget.lakeKey}');
+    final String? stickJson = prefs.getString('feed_sticks_${widget.lakeKey}');
+    setState(() {
+      if (mixJson != null) { _mixes = (jsonDecode(mixJson) as List).map((i) => BaitMix.fromJson(i)).toList(); } else { _mixes = []; }
+      if (stickJson != null) { _sticks = (jsonDecode(stickJson) as List).map((i) => PvaStickLog.fromJson(i)).toList(); } else { _sticks = []; }
+    });
+  }
+
+  Future<void> _saveFeedData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('feed_mixes_${widget.lakeKey}', jsonEncode(_mixes.map((m) => m.toJson()).toList()));
+    await prefs.setString('feed_sticks_${widget.lakeKey}', jsonEncode(_sticks.map((s) => s.toJson()).toList()));
+  }
+  void _addMixDialog() {
+    String liquid = '🍓 Клубничный Ликвид';
+    String boilieType = 'Вареные бойлы';
+    String boilieSize = 'Крушеные бойлы';
+    final notesCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: const Color(0xFF1B2611),
+          title: const Text('Записать Сподовый Микс 🪣', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButton<String>(
+                  dropdownColor: const Color(0xFF1B2611),
+                  value: liquid, isExpanded: true, style: const TextStyle(color: Colors.white),
+                  items: <String>['🍓 Клубничный Ликвид', '🍍 Ананасовый Амино', '🧄 Чесночный CSL', '🦀 Криль Натурал', '🚫 Без ликвида'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+                  onChanged: (v) { setDialogState(() { liquid = v!; }); },
+                ),
+                DropdownButton<String>(
+                  dropdownColor: const Color(0xFF1B2611),
+                  value: boilieType, isExpanded: true, style: const TextStyle(color: Colors.white),
+                  items: <String>['Вареные бойлы', 'Растворимые бойлы', 'Пеллетс жирный', 'Зерновой микс'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+                  onChanged: (v) { setDialogState(() { boilieType = v!; }); },
+                ),
+                DropdownButton<String>(
+                  dropdownColor: const Color(0xFF1B2611),
+                  value: boilieSize, isExpanded: true, style: const TextStyle(color: Colors.white),
+                  items: <String>['Целые бойлы', 'Резаные (половинки)', 'Крушеные бойлы', 'Микс фракций'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+                  onChanged: (v) { setDialogState(() { boilieSize = v!; }); },
+                ),
+                TextField(controller: notesCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Заметка (кол-во спомбов)', labelStyle: TextStyle(color: Colors.white60))),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
+              onPressed: () {
+                setState(() {
+                  _mixes.add(BaitMix(id: DateTime.now().millisecondsSinceEpoch.toString(), liquid: liquid, boilieType: boilieType, boilieSize: boilieSize, notes: notesCtrl.text.isEmpty ? 'Плановое кормление' : notesCtrl.text));
+                });
+                _saveFeedData();
+                Navigator.pop(context);
+              },
+              child: const Text('Всыпать', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _addStickDialog() {
+    String pvaType = 'Сетка ПВА-стик';
+    String hookBait = 'Pop-up 10мм (Плавающий)';
+    String rodType = 'Рабочее №1';
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: const Color(0xFF1B2611),
+          title: const Text('Заброс поискового удилища 🎯', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButton<String>(
+                  dropdownColor: const Color(0xFF1B2611),
+                  value: pvaType, isExpanded: true, style: const TextStyle(color: Colors.white),
+                  items: <String>['Сетка ПВА-стик', 'ПВА-пакет (с пеллетсом)', '🚫 Без ПВА (одиночная)'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+                  onChanged: (v) { setDialogState(() { pvaType = v!; }); },
+                ),
+                DropdownButton<String>(
+                  dropdownColor: const Color(0xFF1B2611),
+                  value: hookBait, isExpanded: true, style: const TextStyle(color: Colors.white),
+                  items: <String>['Pop-up 10мм (Плавающий)', 'Wafters (Сбалансированный)', 'Искусственная кукуруза', 'Двойной тонущий 20мм'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+                  onChanged: (v) { setDialogState(() { hookBait = v!; }); },
+                ),
+                DropdownButton<String>(
+                  dropdownColor: const Color(0xFF1B2611),
+                  value: rodType, isExpanded: true, style: const TextStyle(color: Colors.white),
+                  items: <String>['Рабочее №1', 'Рабочее №2', 'Рабочее №3', 'Маркерное / Поиск'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+                  onChanged: (v) { setDialogState(() { rodType = v!; }); },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
+              onPressed: () {
+                final now = DateTime.now();
+                setState(() {
+                  _sticks.add(PvaStickLog(id: now.millisecondsSinceEpoch.toString(), pvaType: pvaType, hookBait: hookBait, rodType: rodType, time: '${now.hour}:${now.minute.toString().padLeft(2, '0')}'));
+                });
+                _saveFeedData();
+                Navigator.pop(context);
+              },
+              child: const Text('В точку!', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF2E3B1E), // Суровый матовый фон хаки
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF1B2611),
+        title: const Text('Тактика Питания & Тайминг', style: TextStyle(color: Color(0xFFD4D9A1), fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: const Color(0xFFD4D9A1),
+          unselectedLabelColor: Colors.white54,
+          indicatorColor: const Color(0xFFD4D9A1),
+          tabs: const [
+            Tab(icon: Icon(Icons.restaurant), text: 'Миксы'),
+            Tab(icon: Icon(Icons.gpp_good), text: 'Стики'),
+            Tab(icon: Icon(Icons.timer), text: 'Таймер'),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          // ВКЛАДКА 1: ЖУРНАЛ СПОДОВЫХ МИКСОВ
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('История кормления сектора:', style: TextStyle(color: Color(0xFFD4D9A1), fontWeight: FontWeight.bold, fontSize: 13)),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1B2611), side: const BorderSide(color: Color(0xFFD4D9A1), width: 1)),
+                      onPressed: _addMixDialog,
+                      icon: const Icon(Icons.add, color: Color(0xFFD4D9A1), size: 16),
+                      label: const Text('Корм', style: TextStyle(color: Color(0xFFD4D9A1), fontWeight: FontWeight.bold, fontSize: 12)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Expanded(
+                  child: _mixes.isEmpty
+                      ? const Center(child: Text('Сводка пуста. Запишите первый закорм!', style: TextStyle(color: Colors.white38, fontSize: 13)))
+                      : ListView.builder(
+                          itemCount: _mixes.length,
+                          itemBuilder: (context, idx) {
+                            final m = _mixes[_mixes.length - 1 - idx];
+                            return Card(
+                              color: const Color(0xFF1B2611),
+                              margin: const EdgeInsets.only(bottom: 8),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: const Color(0xFFD4D9A1).withOpacity(0.2))),
+                              child: ListTile(
+                                leading: const Icon(Icons.opacity, color: Color(0xFFC5E1A5)),
+                                title: Text(m.liquid, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                                subtitle: Text('База: ${m.boilieType} (${m.boilieSize})\nИнфо: ${m.notes}', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                                trailing: IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.redAccent, size: 18),
+                                  onPressed: () { setState(() { _mixes.remove(m); }); _saveFeedData(); },
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
+          ),
+
+          // ВКЛАДКА 2: ЖУРНАЛ ПОИСКОВЫХ УДИЛИЩ И СТИКОВ
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Активные насадки в точках:', style: TextStyle(color: Color(0xFFD4D9A1), fontWeight: FontWeight.bold, fontSize: 13)),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1B2611), side: const BorderSide(color: Color(0xFFD4D9A1), width: 1)),
+                      onPressed: _addStickDialog,
+                      icon: const Icon(Icons.gps_fixed, color: Color(0xFFD4D9A1), size: 16),
+                      label: const Text('Заброс', style: TextStyle(color: Color(0xFFD4D9A1), fontWeight: FontWeight.bold, fontSize: 12)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Expanded(
+                  child: _sticks.isEmpty
+                      ? const Center(child: Text('Нет зафиксированных забросов', style: TextStyle(color: Colors.white38, fontSize: 13)))
+                      : ListView.builder(
+                          itemCount: _sticks.length,
+                          itemBuilder: (context, idx) {
+                            final s = _sticks[_sticks.length - 1 - idx];
+                            return Card(
+                              color: const Color(0xFF1B2611),
+                              margin: const EdgeInsets.only(bottom: 8),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: const Color(0xFFD4D9A1).withOpacity(0.2))),
+                              child: ListTile(
+                                leading: const Icon(Icons.track_changes, color: Color(0xFFFF5252)),
+                                title: Text('${s.rodType} [${s.time}]', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                                subtitle: Text('ПВА: ${s.pvaType}\nПрезентация: ${s.hookBait}', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                                trailing: IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.redAccent, size: 18),
+                                  onPressed: () { setState(() { _sticks.remove(s); }); _saveFeedData(); },
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
+          ),
+
+          // ВКЛАДКА 3: ТАКТИЧЕСКИЙ ТАЙМЕР ПЕРЕЗАБРОСА
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('ТАЙМЕР ОБНОВЛЕНИЯ ТОЧЕК', style: TextStyle(color: Color(0xFFD4D9A1), fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                const SizedBox(height: 24),
+                // Программное круговое табло обратного счета
+                Container(
+                  width: 190, height: 190,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1B2611),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: _isTimerRunning ? const Color(0xFFD4D9A1) : Colors.white24, width: 4),
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))],
+                  ),
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          _isTimerRunning 
+                              ? '${(_currentCountdown ~/ 60)}:${(_currentCountdown % 60).toString().padLeft(2, '0')}'
+                              : '${(_timerSeconds ~/ 60)}:00',
+                          style: TextStyle(fontSize: 42, fontWeight: FontWeight.bold, color: _isTimerRunning ? const Color(0xFFD4D9A1) : Colors.white),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(_isTimerRunning ? 'ИДЕТ ОТСЧЕТ' : 'ОЖИДАНИЕ', style: TextStyle(color: _isTimerRunning ? const Color(0xFFC5E1A5) : Colors.white38, fontSize: 10, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 30),
+                // Пресеты времени быстрой карповой ловли
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildTimerPresetAction(2400, '40 мин (Стик)'),
+                    const SizedBox(width: 8),
+                    _buildTimerPresetAction(3600, '1 час (Ил)'),
+                    const SizedBox(width: 8),
+                    _buildTimerPresetAction(7200, '2 часа (Ночь)'),
+                  ],
+                ),
+                const SizedBox(height: 35),
+                // Кнопки Пуск / Сброс
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 130, height: 48,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(backgroundColor: _isTimerRunning ? Colors.orange.shade900 : const Color(0xFF4A5D32), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                        onPressed: () {
+                          if (_isTimerRunning) {
+                            setState(() { _isTimerRunning = false; });
+                          } else {
+                            setState(() {
+                              _isTimerRunning = true;
+                              _currentCountdown = _timerSeconds;
+                            });
+                            _startCountdownLoop();
+                          }
+                        },
+icon: Icon(_isTimerRunning ? Icons.pause : Icons.play_arrow, color: Colors.white),
+label: Text(_isTimerRunning ? 'Пауза' : 'Старт', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+),
+),
+const SizedBox(width: 12),
+SizedBox(
+width: 130, height: 48,
+child: OutlinedButton.icon(
+style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.white38), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+onPressed: () { setState(() { _isTimerRunning = false; _currentCountdown = 0; }); },
+icon: const Icon(Icons.refresh, color: Colors.white70),
+label: const Text('Сброс', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
+),
+),
+],
+),
+],
+),
+),
+],
+),
+);
+}
+Widget _buildTimerPresetAction(int secs, String label) {
+bool isSelected = _timerSeconds == secs;
+return ChoiceChip(
+label: Text(label, style: TextStyle(color: isSelected ? Colors.black87 : Colors.white70, fontWeight: FontWeight.bold, fontSize: 11)),
+selected: isSelected, selectedColor: const Color(0xFFD4D9A1), backgroundColor: const Color(0xFF1B2611),
+onSelected: (b) { if (b) { setState(() { _timerSeconds = secs; if (_isTimerRunning) _currentCountdown = secs; }); } },
+);
+}
+void _startCountdownLoop() async {
+while (_isTimerRunning && _currentCountdown > 0) {
+await Future.delayed(const Duration(seconds: 1));
+if (!mounted || !_isTimerRunning) return;
+setState(() {
+_currentCountdown--;
+if (_currentCountdown <= 0) {
+_isTimerRunning = false;
+_showTimerAlert();
+}
+});
+}
+}
+void _showTimerAlert() {
+showDialog(
+context: context,
+builder: (context) => AlertDialog(
+backgroundColor: const Color(0xFFFF5252),
+title: const Text('ВРЕМЯ ПЕРЕЗАБРОСА! ⏱️🔥', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+content: const Text('Стик растворился, насадка отработала время в точке. Пора обновить оснастку!', style: TextStyle(color: Colors.whiteE9 ?? Colors.white)),
+actions: [
+ElevatedButton(
+style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1B2611)),
+onPressed: () => Navigator.pop(context),
+child: const Text('Принято', style: TextStyle(color: Colors.white)),
+)
+],
+),
+);
+}
+}
