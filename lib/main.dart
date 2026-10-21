@@ -1227,7 +1227,7 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
                         ? const Icon(Icons.add_a_photo, color: Colors.white, size: 28)
                         : ClipRRect(
                             borderRadius: BorderRadius.circular(45),
-                            child: Image.file(File(imagePath), width: 90, height: 90, fit: BoxShape.cover),
+                            child: Image.file(File(imagePath), width: 90, height: 90, fit: BoxFit.cover),
                           ),
                   ),
                 ),
@@ -1298,7 +1298,7 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
               if (trophy.imagePath.isNotEmpty) ...[
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.file(File(trophy.imagePath), width: 240, height: 160, fit: BoxShape.cover),
+                  child: Image.file(File(trophy.imagePath), width: 240, height: 160, fit: BoxFit.cover),
                 ),
                 const SizedBox(height: 16),
               ],
@@ -1384,7 +1384,7 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
                                   ? const Icon(Icons.phishing, color: Colors.white, size: 24)
                                   : ClipRRect(
                                       borderRadius: BorderRadius.circular(26),
-                                      child: Image.file(File(trophy.imagePath), width: 52, height: 52, fit: BoxShape.cover),
+                                      child: Image.file(File(trophy.imagePath), width: 52, height: 52, fit: BoxFit.cover),
                                     ),
                             ),
                             title: Text('${trophy.fishType} — ${trophy.weight} кг', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1B2611), fontSize: 15)),
