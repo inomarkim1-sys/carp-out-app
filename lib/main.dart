@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
+import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 
 void main() {
   runApp(const CarpOutApp());
@@ -17,7 +20,7 @@ class CarpOutApp extends StatelessWidget {
       theme: ThemeData(
         primaryColor: const Color(0xFF2E3B1E), // Тёмно-зелёный лесной
         scaffoldBackgroundColor: const Color(0xFFA2B574), // Оливковый фон камуфляжа
-       dialogTheme: DialogThemeData(
+        dialogTheme: DialogThemeData(
           backgroundColor: const Color(0xFF2E3B1E),
           titleTextStyle: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           contentTextStyle: TextStyle(color: Colors.white.withOpacity(0.8)),
@@ -59,7 +62,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     super.initState();
     _loadAllAppData();
   }
-
   Future<void> _loadAllAppData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -99,6 +101,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       _markerNames = newMarkers;
     });
   }
+
   void _addNewLakeDialog() {
     final controller = TextEditingController();
     showDialog(
@@ -142,7 +145,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ),
     );
   }
-
   @override
   Widget build(BuildContext context) {
     final List<Widget> _screens = [
@@ -172,8 +174,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ),
       MarkerMapScreenNew(lakeKey: _selectedLake, onMarkersChanged: _updateMarkersList),
       const CarpClipsCalculator(),
-      const Center(child: Text('Экран: Журнал прикормки', style: TextStyle(fontSize: 18, color: Color(0xFF2E3B1E)))),
+      FishSocialScreen(lakeKey: _selectedLake), // Новая соцсеть трофеев
     ];
+
     return Scaffold(
       drawer: Drawer(
         backgroundColor: const Color(0xFF2E3B1E),
@@ -292,7 +295,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Инфо'),
           BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Маркер'),
           BottomNavigationBarItem(icon: Icon(Icons.calculate), label: 'Клипса'),
-          BottomNavigationBarItem(icon: Icon(Icons.restaurant), label: 'Корм'),
+          BottomNavigationBarItem(icon: Icon(Icons.photo_library), label: 'Трофеи'),
         ],
       ),
     );
@@ -642,7 +645,7 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
     widget.onMarkersChanged(names);
   }
 
-   void _addPointFromRadar(double tappedDistance, double tappedAngle) {
+  void _addPointFromRadar(double tappedDistance, double tappedAngle) {
     _nameController.clear();
     _distanceController.text = tappedDistance.toStringAsFixed(1);
     _depthController.clear();
@@ -683,39 +686,6 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
               onPressed: () async {
                 if (_nameController.text.isNotEmpty) {
-                  final newPoint = MarkerPoint(
-                    name: _nameController.text,
-                    distance: double.tryParse(_distanceController.text) ?? tappedDistance,
-                    depth: double.tryParse(_depthController.text) ?? 0.0,
-                    bottomType: _selectedBottomType,
-                    angle: tappedAngle,
-                  );
-                  setState(() {
-                    _points.add(newPoint);
-                  });
-                  await _saveMarkerPoints(); // Жестко пишем в память телефона!
-                  
-                  // Обновляем список маркеров для главного экрана
-                  List<String> names = _points.map((p) => p.name).toList();
-                  widget.onMarkersChanged(names);
-                  
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text('В журнал', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
-              onPressed: () {
-                if (_nameController.text.isNotEmpty) {
                   setState(() {
                     _points.add(MarkerPoint(
                       name: _nameController.text,
@@ -725,7 +695,7 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
                       angle: tappedAngle,
                     ));
                   });
-                  _saveMarkerPoints();
+                  await _saveMarkerPoints();
                   Navigator.pop(context);
                 }
               },
@@ -882,11 +852,10 @@ class CarpOutRadarPainterNew extends CustomPainter {
       canvas.drawLine(Offset(centerX, bottomY), Offset(endX, endY), (angle % 20 == 0) ? mainPaint : dashPaint);
     }
 
-    // ПОЛНЫЙ ТЕКСТОВЫЙ СПИСОК ВСЕХ ДУГ ДАЛЬНОСТИ ПО ВАШЕМУ ЗАПРОСУ
-        final List<int> distances = [
+    // НАМЕРТВО ЗАШИТЫЙ ТЕКСТОВЫЙ СПИСОК ВСЕХ КОЛЕЦ ДАЛЬНОСТИ
+    final List<int> distances = [
       60, 75, 90, 105, 120, 135, 150
     ];
-
     
     for (int d in distances) {
       double radius = (d - 55) * maxRadiusPixels / 105;
@@ -1047,6 +1016,321 @@ class _CarpClipsCalculatorState extends State<CarpClipsCalculator> {
       label: Text(label, style: TextStyle(color: isSelected ? Colors.white : Colors.black87, fontWeight: FontWeight.bold)),
       selected: isSelected, selectedColor: const Color(0xFF2E3B1E), backgroundColor: Colors.white,
       onSelected: (bool selected) { if (selected) { setState(() { _distanceBetweenSticks = value; if (_distanceController.text.isNotEmpty) _calculateFromMeters(); if (_turnsController.text.isNotEmpty) _calculateFromTurns(); }); } },
+    );
+  }
+}
+// ===================================================================
+// ЧАСТЬ 4А: МОДЕЛЬ ДАННЫХ ТРОФЕЕВ И ЛЕНТА "СОЦИАЛЬНОЙ СЕТИ" РЫБ
+// ===================================================================
+class FishTrophy {
+  String id;
+  String fishType;
+  double weight;
+  String dateTime;
+  String bait;
+  String notes;
+  String imagePath; // Путь к локальной фотографии на телефоне
+
+  FishTrophy({
+    required this.id,
+    required this.fishType,
+    required this.weight,
+    required this.dateTime,
+    required this.bait,
+    required this.notes,
+    required this.imagePath,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'fishType': fishType,
+        'weight': weight,
+        'dateTime': dateTime,
+        'bait': bait,
+        'notes': notes,
+        'imagePath': imagePath,
+      };
+
+  factory FishTrophy.fromJson(Map<String, dynamic> json) => FishTrophy(
+        id: json['id'] ?? '',
+        fishType: json['fishType'] ?? 'Карп',
+        weight: (json['weight'] as num?)?.toDouble() ?? 0.0,
+        dateTime: json['dateTime'] ?? '',
+        bait: json['bait'] ?? '',
+        notes: json['notes'] ?? '',
+        imagePath: json['imagePath'] ?? '',
+      );
+}
+
+class FishSocialScreen extends StatefulWidget {
+  final String lakeKey;
+  const FishSocialScreen({Key? key, required this.lakeKey}) : super(key: key);
+
+  @override
+  _FishSocialScreenState createState() => _FishSocialScreenState();
+}
+
+class _FishSocialScreenState extends State<FishSocialScreen> {
+  List<FishTrophy> _trophies = [];
+  final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTrophies();
+  }
+
+  @override
+  void didUpdateWidget(covariant FishSocialScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.lakeKey != widget.lakeKey) {
+      _loadTrophies();
+    }
+  }
+
+  Future<void> _loadTrophies() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? trophiesJson = prefs.getString('trophies_${widget.lakeKey}');
+    if (trophiesJson != null) {
+      final List<dynamic> decoded = jsonDecode(trophiesJson);
+      setState(() {
+        _trophies = decoded.map((item) => FishTrophy.fromJson(item)).toList();
+      });
+    } else {
+      setState(() { _trophies = []; });
+    }
+  }
+
+  Future<void> _saveTrophies() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String encoded = jsonEncode(_trophies.map((t) => t.toJson()).toList());
+    await prefs.setString('trophies_${widget.lakeKey}', encoded);
+  }
+
+  Future<String> _pickAndSaveImage() async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+      if (pickedFile != null) {
+        final directory = await getApplicationDocumentsDirectory();
+        final String fileName = 'fish_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final File localImage = await File(pickedFile.path).copy('${directory.path}/$fileName');
+        return localImage.path;
+      }
+    } catch (e) {
+      debugPrint('Ошибка выбора фото: $e');
+    }
+    return '';
+  }
+  void _addTrophyDialog() {
+    final weightCtrl = TextEditingController();
+    final baitCtrl = TextEditingController();
+    final notesCtrl = TextEditingController();
+    String fishType = 'Карп';
+    String imagePath = '';
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: const Color(0xFF2E3B1E),
+          title: const Text('Записать трофей в соцсеть 🏆', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    String path = await _pickAndSaveImage();
+                    if (path.isNotEmpty) {
+                      setDialogState(() { imagePath = path; });
+                    }
+                  },
+                  child: Container(
+                    width: 90,
+                    height: 90,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF4A5D32),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFFC5E1A5), width: 2),
+                    ),
+                    child: imagePath.isEmpty
+                        ? const Icon(Icons.add_a_photo, color: Colors.white, size: 28)
+                        : ClipRRect(
+                            borderRadius: BorderRadius.circular(45),
+                            child: Image.file(File(imagePath), width: 90, height: 90, fit: BoxShape.cover),
+                          ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text('Нажмите, чтобы загрузить фото', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                const SizedBox(height: 12),
+                DropdownButton<String>(
+                  dropdownColor: const Color(0xFF2E3B1E),
+                  value: fishType,
+                  isExpanded: true,
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  items: <String>['Карп', 'Амур', 'Толстолобик'].map((String value) {
+                    return DropdownMenuItem<String>(value: value, child: Text(value));
+                  }).toList(),
+                  onChanged: (newValue) { setDialogState(() { fishType = newValue!; }); },
+                ),
+                TextField(controller: weightCtrl, keyboardType: const TextInputType.numberWithOptions(decimal: true), style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Сколько кг', labelStyle: TextStyle(color: Colors.white60))),
+                TextField(controller: baitCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'На что поймался (насадка)', labelStyle: TextStyle(color: Colors.white60))),
+                TextField(controller: notesCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Заметка (время, погода)', labelStyle: TextStyle(color: Colors.white60))),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
+              onPressed: () {
+                double w = double.tryParse(weightCtrl.text) ?? 0.0;
+                if (w > 0) {
+                  final now = DateTime.now();
+                  String timeStr = '${now.hour}:${now.minute.toString().padLeft(2, '0')}';
+                  setState(() {
+                    _trophies.add(FishTrophy(
+                      id: now.millisecondsSinceEpoch.toString(),
+                      fishType: fishType,
+                      weight: w,
+                      dateTime: timeStr,
+                      bait: baitCtrl.text.isEmpty ? 'Не указана' : baitCtrl.text,
+                      notes: notesCtrl.text.isEmpty ? 'Без заметок' : notesCtrl.text,
+                      imagePath: imagePath,
+                    ));
+                  });
+                  _saveTrophies();
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('Опубликовать', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _viewAndEditDetails(FishTrophy trophy, int index) {
+    final notesEditCtrl = TextEditingController(text: trophy.notes);
+    final baitEditCtrl = TextEditingController(text: trophy.bait);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF2E3B1E),
+        title: Text('${trophy.fishType} — ${trophy.weight} кг', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (trophy.imagePath.isNotEmpty) ...[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.file(File(trophy.imagePath), width: 240, height: 160, fit: BoxShape.cover),
+                ),
+                const SizedBox(height: 16),
+              ],
+              Text('Время поимки: ${trophy.dateTime}', style: const TextStyle(color: Colors.white70, fontSize: 13)),
+              const SizedBox(height: 12),
+              TextField(controller: baitEditCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Изменить насадку', labelStyle: TextStyle(color: Colors.white60))),
+              TextField(controller: notesEditCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Изменить заметку', labelStyle: TextStyle(color: Colors.white60))),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              setState(() { _trophies.removeAt(index); });
+              _saveTrophies();
+              Navigator.pop(context);
+            },
+            child: const Text('Удалить улов', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
+            onPressed: () {
+              setState(() {
+                trophy.bait = baitEditCtrl.text;
+                trophy.notes = notesEditCtrl.text;
+              });
+              _saveTrophies();
+              Navigator.pop(context);
+            },
+            child: const Text('Сохранить', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+  @override
+  Widget build(BuildContext context) {
+    _trophies.sort((a, b) => b.id.compareTo(a.id)); // Свежие уловы всегда сверху ленты
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFA2B574), // Оливковый фон камуфляжа
+      body: Padding(
+        padding: const EdgeInsets.only(top: 40.0, left: 14.0, right: 12.0, bottom: 12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Рыболовная Лента', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1B2611))),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E3B1E), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                  onPressed: _addTrophyDialog,
+                  icon: const Icon(Icons.add, color: Colors.white, size: 16),
+                  label: const Text('Рыба', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Expanded(
+              child: _trophies.isEmpty
+                  ? const Center(child: Text('Лента пуста. Нажмите "+ Рыба", чтобы выложить первый трофей!', style: TextStyle(color: Color(0xFF1B2611), fontSize: 13), textAlign: TextAlign.center))
+                  : ListView.builder(
+                      padding: EdgeInsets.zero,
+                      itemCount: _trophies.length,
+                      itemBuilder: (context, index) {
+                        final trophy = _trophies[index];
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          color: const Color(0xFFD4D9A1), // Песочно-оливковый контрастный цвет карточки
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: Color(0xFF2E3B1E), width: 0.5)),
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            leading: Container(
+                              width: 52,
+                              height: 52,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF4A5D32),
+                                shape: BoxShape.circle,
+                                border: Border.all(color: const Color(0xFF2E3B1E), width: 1.5),
+                              ),
+                              child: trophy.imagePath.isEmpty
+                                  ? const Icon(Icons.phishing, color: Colors.white, size: 24)
+                                  : ClipRRect(
+                                      borderRadius: BorderRadius.circular(26),
+                                      child: Image.file(File(trophy.imagePath), width: 52, height: 52, fit: BoxShape.cover),
+                                    ),
+                            ),
+                            title: Text('${trophy.fishType} — ${trophy.weight} кг', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1B2611), fontSize: 15)),
+                            subtitle: Text('Насадка: ${trophy.bait}\nЗаметка: ${trophy.notes}', style: const TextStyle(color: Colors.black87, fontSize: 12), maxLines: 2, overflow: TextOverflow.ellipsis),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.edit, color: Color(0xFF2E3B1E), size: 20),
+                              onPressed: () => _viewAndEditDetails(trophy, index),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
