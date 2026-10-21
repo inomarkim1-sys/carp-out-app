@@ -5,6 +5,69 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
+// ===================================================================
+// ЧАСТЬ 5А: ПРОГРАММНЫЙ ЛОГОТИП И ИКОНКА ПРИЛОЖЕНИЯ CARPOUT
+// ===================================================================
+class CarpOutAppIconPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Тёмно-зелёный лесной фон тактического шеврона
+    final bgPaint = Paint()
+      ..color = const Color(0xFF2E3B1E)
+      ..style = PaintingStyle.fill;
+      
+    // Контурная линия цвета выгоревшей травы
+    final borderPaint = Paint()
+      ..color = const Color(0xFFD4D9A1)
+      ..strokeWidth = 3.0
+      ..style = PaintingStyle.stroke;
+
+    final fishPaint = Paint()
+      ..color = const Color(0xFFD4D9A1)
+      ..style = PaintingStyle.fill;
+
+    // Рисуем скругленный тактический щит-шеврон
+    final rrect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      Radius.circular(size.width * 0.22),
+    );
+    canvas.drawRRect(rrect, bgPaint);
+    canvas.drawRRect(rrect, borderPaint);
+
+    double w = size.width;
+    double h = size.height;
+
+    // Векторная отрисовка силуэта мощного карпа по координатам
+    final path = Path();
+    path.moveTo(w * 0.25, h * 0.55);
+    path.quadraticBezierTo(w * 0.35, h * 0.38, w * 0.55, h * 0.42);
+    path.quadraticBezierTo(w * 0.70, h * 0.48, w * 0.75, h * 0.55);
+    path.lineTo(w * 0.85, h * 0.45);
+    path.lineTo(w * 0.82, h * 0.55);
+    path.lineTo(w * 0.85, h * 0.65);
+    path.lineTo(w * 0.75, h * 0.55);
+    path.quadraticBezierTo(w * 0.65, h * 0.68, w * 0.45, h * 0.65);
+    path.quadraticBezierTo(w * 0.30, h * 0.62, w * 0.25, h * 0.55);
+    canvas.drawPath(path, fishPaint);
+
+    // Добавляем армейский трафаретный текст сверху
+    const textStyle = TextStyle(
+      color: Color(0xFFD4D9A1),
+      fontSize: 13,
+      fontWeight: FontWeight.bold,
+      letterSpacing: 3,
+    );
+    final textPainter = TextPainter(
+      text: const TextSpan(text: 'CARPOUT', style: textStyle),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    textPainter.paint(canvas, Offset(w / 2 - textPainter.width / 2, h * 0.18));
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
 void main() {
   runApp(const CarpOutApp());
 }
