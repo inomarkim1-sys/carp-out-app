@@ -1,5 +1,5 @@
 workflows:
-  default-workflow:
+  carp-out-build:
     name: CarpOut Android Build
     max_build_duration: 10
     instance_type: mac_mini_m2
@@ -8,8 +8,10 @@ workflows:
     triggering:
       events:
         - push
-        scripts:
-      - name: Upgrade Android Embedding
+    scripts:
+      - name: Clean and Setup Android Templates
         script: flutter create . --platforms=android
-      - name: Flutter build APK
+      - name: Build Android Release APK
         script: flutter build apk --release
+    artifacts:
+      - build/app/outputs/flutter-apk/app-release.apk
