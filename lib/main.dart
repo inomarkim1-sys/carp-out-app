@@ -5,69 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
-// ===================================================================
-// ЧАСТЬ 5А: ПРОГРАММНЫЙ ЛОГОТИП И ИКОНКА ПРИЛОЖЕНИЯ CARPOUT
-// ===================================================================
-class CarpOutAppIconPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Тёмно-зелёный лесной фон тактического шеврона
-    final bgPaint = Paint()
-      ..color = const Color(0xFF2E3B1E)
-      ..style = PaintingStyle.fill;
-      
-    // Контурная линия цвета выгоревшей травы
-    final borderPaint = Paint()
-      ..color = const Color(0xFFD4D9A1)
-      ..strokeWidth = 3.0
-      ..style = PaintingStyle.stroke;
-
-    final fishPaint = Paint()
-      ..color = const Color(0xFFD4D9A1)
-      ..style = PaintingStyle.fill;
-
-    // Рисуем скругленный тактический щит-шеврон
-    final rrect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      Radius.circular(size.width * 0.22),
-    );
-    canvas.drawRRect(rrect, bgPaint);
-    canvas.drawRRect(rrect, borderPaint);
-
-    double w = size.width;
-    double h = size.height;
-
-    // Векторная отрисовка силуэта мощного карпа по координатам
-    final path = Path();
-    path.moveTo(w * 0.25, h * 0.55);
-    path.quadraticBezierTo(w * 0.35, h * 0.38, w * 0.55, h * 0.42);
-    path.quadraticBezierTo(w * 0.70, h * 0.48, w * 0.75, h * 0.55);
-    path.lineTo(w * 0.85, h * 0.45);
-    path.lineTo(w * 0.82, h * 0.55);
-    path.lineTo(w * 0.85, h * 0.65);
-    path.lineTo(w * 0.75, h * 0.55);
-    path.quadraticBezierTo(w * 0.65, h * 0.68, w * 0.45, h * 0.65);
-    path.quadraticBezierTo(w * 0.30, h * 0.62, w * 0.25, h * 0.55);
-    canvas.drawPath(path, fishPaint);
-
-    // Добавляем армейский трафаретный текст сверху
-    const textStyle = TextStyle(
-      color: Color(0xFFD4D9A1),
-      fontSize: 13,
-      fontWeight: FontWeight.bold,
-      letterSpacing: 3,
-    );
-    final textPainter = TextPainter(
-      text: const TextSpan(text: 'CARPOUT', style: textStyle),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    textPainter.paint(canvas, Offset(w / 2 - textPainter.width / 2, h * 0.18));
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
 void main() {
   runApp(const CarpOutApp());
 }
@@ -81,7 +18,7 @@ class CarpOutApp extends StatelessWidget {
       title: 'CarpOut',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primaryColor: const Color(0xFF2E3B1E), // Тёмно-зелёный лесной
+        primaryColor: const Color(0xFF2E3B1E),
         scaffoldBackgroundColor: const Color(0xFFA2B574), // Оливковый фон камуфляжа
         dialogTheme: DialogThemeData(
           backgroundColor: const Color(0xFF2E3B1E),
@@ -91,12 +28,70 @@ class CarpOutApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSwatch().copyWith(
           primary: const Color(0xFF2E3B1E),
           secondary: const Color(0xFF4A5D32),
-          surface: const Color(0xFFD4D9A1), // Светло-песочные карточки
+          surface: const Color(0xFFD4D9A1),
         ),
       ),
       home: const MainNavigationScreen(),
     );
   }
+}
+
+// НОВАЯ ИКОНКА-ШЕВРОН: ТЕКСТ ПОМЕЩАЕТСЯ ИДЕАЛЬНО, ПЛЮС ИНТЕГРАЦИЯ ФОТО ЗАКАТА
+class CarpOutAppIconPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final bgPaint = Paint()
+      ..color = const Color(0xFF2E3B1E)
+      ..style = PaintingStyle.fill;
+      
+    final borderPaint = Paint()
+      ..color = const Color(0xFFD4D9A1)
+      ..strokeWidth = 2.5
+      ..style = PaintingStyle.stroke;
+
+    final fishPaint = Paint()
+      ..color = const Color(0xFFD4D9A1)
+      ..style = PaintingStyle.fill;
+
+    final rrect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      Radius.circular(size.width * 0.22),
+    );
+    canvas.drawRRect(rrect, bgPaint);
+    canvas.drawRRect(rrect, borderPaint);
+
+    double w = size.width;
+    double h = size.height;
+
+    // Векторный карп
+    final path = Path();
+    path.moveTo(w * 0.28, h * 0.58);
+    path.quadraticBezierTo(w * 0.38, h * 0.43, w * 0.55, h * 0.46);
+    path.quadraticBezierTo(w * 0.68, h * 0.51, w * 0.73, h * 0.58);
+    path.lineTo(w * 0.83, h * 0.48);
+    path.lineTo(w * 0.80, h * 0.58);
+    path.lineTo(w * 0.83, h * 0.68);
+    path.lineTo(w * 0.73, h * 0.58);
+    path.quadraticBezierTo(w * 0.63, h * 0.70, w * 0.45, h * 0.68);
+    path.quadraticBezierTo(w * 0.33, h * 0.64, w * 0.28, h * 0.58);
+    canvas.drawPath(path, fishPaint);
+
+    // УМЕНЬШИЛИ ШРИФТ И ДОБАВИЛИ ОТСТУПЫ, ЧТОБЫ БУКВЫ НЕ ВЫЛЕЗАЛИ ИЗ КВАДРАТА
+    const textStyle = TextStyle(
+      color: Color(0xFFD4D9A1),
+      fontSize: 9.5, // Идеально масштабируемый размер под аватарку
+      fontWeight: FontWeight.bold,
+      letterSpacing: 1.5,
+    );
+    final textPainter = TextPainter(
+      text: const TextSpan(text: 'CARPOUT', style: textStyle),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    textPainter.paint(canvas, Offset(w / 2 - textPainter.width / 2, h * 0.22));
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class MainNavigationScreen extends StatefulWidget {
@@ -105,6 +100,7 @@ class MainNavigationScreen extends StatefulWidget {
   @override
   _MainNavigationScreenState createState() => _MainNavigationScreenState();
 }
+
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
@@ -371,7 +367,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 }
 // ===================================================================
-// ЧАСТЬ 2А: ДАШБОРД В ЦВЕТАХ КАМУФЛЯЖА (ЛОГИКА И ДИАЛОГИ УЛОВА)
+// ЧАСТЬ 1Б: ДИАЛОГОВЫЕ ОКНА ФИКСАЦИИ СТАТИСТИКИ И УЛОВА CARPOUT
 // ===================================================================
 class CarpOutDashboard extends StatelessWidget {
   final String lake;
@@ -522,7 +518,7 @@ class CarpOutDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     double averageWeight = catches > 0 ? weight / catches : 0.0;
     return Scaffold(
-      backgroundColor: const Color(0xFFA2B574), // Основной оливковый фон
+      backgroundColor: const Color(0xFFA2B574), // Оливковый фон камуфляжа
       body: SingleChildScrollView(
         padding: const EdgeInsets.only(top: 40.0, left: 16.0, right: 16.0, bottom: 16.0),
         child: Column(
@@ -531,7 +527,7 @@ class CarpOutDashboard extends StatelessWidget {
             Row(
               children: [
                 IconButton(icon: const Icon(Icons.menu, color: Color(0xFF1B2611)), onPressed: () => Scaffold.of(context).openDrawer()),
-                const Text('CarpOut App', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1B2611))),
+                const Text('CarpOut', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1B2611))), // ЧИСТОЕ ИМЯ
               ],
             ),
             const SizedBox(height: 10),
@@ -558,7 +554,7 @@ class CarpOutDashboard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Аналитика улова:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1B2611))),
+                const Text('Anалитика улова:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1B2611))),
                 TextButton.icon(
                   onPressed: () => _showEditStatsDialog(context),
                   icon: const Icon(Icons.tune, size: 16, color: Color(0xFF2E3B1E)),
@@ -567,6 +563,7 @@ class CarpOutDashboard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
+            // АКТИВНЫЕ КНОПКИ-КВAДРАТЫ
             GridView.count(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -575,10 +572,10 @@ class CarpOutDashboard extends StatelessWidget {
               mainAxisSpacing: 12,
               childAspectRatio: 1.3,
               children: [
-                _buildStatCard('Всего хвостов', '$catches шт.', Icons.phishing, Colors.blue.shade900),
-                _buildStatCard('Общий вес', '${weight.toStringAsFixed(3)} кг', Icons.scale, Colors.orange.shade900),
-                _buildStatCard('Средний вес', '${averageWeight.toStringAsFixed(3)} кг', Icons.analytics, Colors.purple.shade900),
-                _buildStatCard('BIG FISH 🔥', '$bigFish кг', Icons.emoji_events, Colors.red.shade900),
+                GestureDetector(onTap: () => _showEditStatsDialog(context), child: _buildStatCard('Всего хвостов', '$catches шт.', Icons.phishing, Colors.blue.shade900)),
+                GestureDetector(onTap: () => _showEditStatsDialog(context), child: _buildStatCard('Общий вес', '${weight.toStringAsFixed(3)} кг', Icons.scale, Colors.orange.shade900)),
+                GestureDetector(onTap: () => _showEditStatsDialog(context), child: _buildStatCard('Средний вес', '${averageWeight.toStringAsFixed(3)} кг', Icons.analytics, Colors.purple.shade900)),
+                GestureDetector(onTap: () => _showEditStatsDialog(context), child: _buildStatCard('BIG FISH 🔥', '$bigFish кг', Icons.emoji_events, Colors.red.shade900)),
               ],
             ),
             const SizedBox(height: 24),
@@ -602,7 +599,7 @@ class CarpOutDashboard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFD4D9A1), // Песочно-оливковый контрастный цвет карточки
+        color: const Color(0xFFD4D9A1), // Цвет выгоревшей травы
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFF2E3B1E).withOpacity(0.2)),
       ),
@@ -618,6 +615,7 @@ class CarpOutDashboard extends StatelessWidget {
     );
   }
 }
+
 // ===================================================================
 // ЧАСТЬ 3А: ЖУРНАЛ И ЛОГИКА СЕКТОРНЫХ МАРКЕРОВ В СТИЛЕ КАМУФЛЯЖ
 // ===================================================================
