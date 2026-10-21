@@ -8,12 +8,8 @@ workflows:
     triggering:
       events:
         - push
-    scripts:
-      - name: Автоматическая генерация структуры Android
-        script: |
-          flutter create . --platforms=android
-      - name: Сборка мобильного приложения APK
-        script: |
-          flutter build apk --release
-    artifacts:
-      - build/app/outputs/flutter-apk/*.apk
+        scripts:
+      - name: Upgrade Android Embedding
+        script: flutter create . --platforms=android
+      - name: Flutter build APK
+        script: flutter build apk --release
