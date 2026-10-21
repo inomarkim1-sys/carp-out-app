@@ -1,5 +1,5 @@
 name: carp_out
-description: A new Flutter project for carpfishing.
+description: A new Flutter project for carpfishing with photo trophies.
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -11,6 +11,8 @@ dependencies:
     sdk: flutter
   share_plus: any
   shared_preferences: any
+  image_picker: ^1.0.7
+  path_provider: ^2.1.2
 
 dev_dependencies:
   flutter_test:
