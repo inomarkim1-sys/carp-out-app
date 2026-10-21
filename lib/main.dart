@@ -245,12 +245,19 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         backgroundColor: const Color(0xFF2E3B1E),
         child: Column(
           children: [
-            UserAccountsDrawerHeader(
+                        UserAccountsDrawerHeader(
               decoration: const BoxDecoration(color: Color(0xFF1B2611)),
               accountName: const Text('CarpOut Менеджер', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
               accountEmail: const Text('Локальные сессии рыбалки', style: TextStyle(color: Colors.white60)),
-              currentAccountPicture: const CircleAvatar(backgroundColor: Color(0xFF4A5D32), child: Icon(Icons.phishing, color: Colors.white, size: 36)),
+              currentAccountPicture: Container(
+                width: 70,
+                height: 70,
+                child: CustomPaint(
+                  painter: CarpOutAppIconPainter(),
+                ),
+              ),
             ),
+
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Row(
