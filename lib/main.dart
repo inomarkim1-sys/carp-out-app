@@ -642,7 +642,7 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
     widget.onMarkersChanged(names);
   }
 
-  void _addPointFromRadar(double tappedDistance, double tappedAngle) {
+   void _addPointFromRadar(double tappedDistance, double tappedAngle) {
     _nameController.clear();
     _distanceController.text = tappedDistance.toStringAsFixed(1);
     _depthController.clear();
@@ -677,6 +677,39 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
               ],
             ),
           ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
+              onPressed: () async {
+                if (_nameController.text.isNotEmpty) {
+                  final newPoint = MarkerPoint(
+                    name: _nameController.text,
+                    distance: double.tryParse(_distanceController.text) ?? tappedDistance,
+                    depth: double.tryParse(_depthController.text) ?? 0.0,
+                    bottomType: _selectedBottomType,
+                    angle: tappedAngle,
+                  );
+                  setState(() {
+                    _points.add(newPoint);
+                  });
+                  await _saveMarkerPoints(); // Жестко пишем в память телефона!
+                  
+                  // Обновляем список маркеров для главного экрана
+                  List<String> names = _points.map((p) => p.name).toList();
+                  widget.onMarkersChanged(names);
+                  
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('В журнал', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
             ElevatedButton(
