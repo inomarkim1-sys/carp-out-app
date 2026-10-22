@@ -153,12 +153,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     await prefs.setString('big_$_selectedLake', _bigFishWeight);
   }
 
-  void _updateMarkersList(List<String> newMarkers) {
-    setState(() {
-      _markerNames = newMarkers;
-    });
-  }
-
   void _addNewLakeDialog() {
     final controller = TextEditingController();
     showDialog(
@@ -176,11 +170,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
+          TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
             onPressed: () async {
               if (controller.text.isNotEmpty && !_lakesList.contains(controller.text)) {
+                Navigator.pop(context);
                 setState(() {
                   _lakesList.add(controller.text);
                   _selectedLake = controller.text;
@@ -193,7 +188,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 });
                 await _saveAllAppData();
                 await _loadAllAppData();
-                Navigator.pop(context);
               }
             },
             child: const Text('Создать', style: TextStyle(color: Colors.white)),
@@ -202,6 +196,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     final List<Widget> _screens = [
@@ -224,8 +219,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ),
       MarkerMapScreenNew(lakeKey: _selectedLake, onMarkersChanged: _updateMarkersList),
       const CarpClipsCalculator(),
-      CarpFeedScreen(lakeKey: _selectedLake), // Наше Питание и Таймер обратного отсчёта!
-      FishSocialScreen(lakeKey: _selectedLake), // Наша Лента Трофеев
+      CarpFeedScreen(lakeKey: _selectedLake),
+      FishSocialScreen(lakeKey: _selectedLake),
     ];
 
     return Scaffold(
@@ -252,7 +247,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 ],
               ),
             ),
-                       Expanded(
+            Expanded(
               child: ListView.builder(
                 padding: EdgeInsets.zero,
                 itemCount: _lakesList.length,
@@ -276,11 +271,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                             icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20),
                             onPressed: () async {
                               if (_lakesList.length > 1) {
-                                Navigator.pop(context); // СРАЗУ ЗАКРЫВАЕМ ШТОРКУ ПРИ УДАЛЕНИИ
-                                setState(() {
-                                  _lakesList.remove(lakeItem);
-                                  if (isCurrent) _selectedLake = _lakesList.first;
-                                });
+                                Navigator.pop(context);
+                                setState(() { _lakesList.remove(lakeItem); if (isCurrent) _selectedLake = _lakesList.first; });
                                 await _saveAllAppData();
                                 await _loadAllAppData();
                               }
@@ -310,12 +302,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                               ElevatedButton(
                                 style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
                                 onPressed: () async {
-                                  Navigator.pop(context); // МГНОВЕННО ЗАКРЫВАЕМ ШТОРКУ ПРИ НАЖАТИИ
-                                  setState(() {
-                                    _selectedLake = lakeItem;
-                                    _sectorName = sectorCtrl.text;
-                                    _sessionDuration = durationCtrl.text;
-                                  });
+                                  Navigator.pop(context);
+                                  setState(() { _selectedLake = lakeItem; _sectorName = sectorCtrl.text; _sessionDuration = durationCtrl.text; });
                                   await _saveAllAppData();
                                   await _loadAllAppData();
                                 },
@@ -333,6 +321,29 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ],
         ),
       ),
+      body: IndexedStack(index: _currentIndex, children: _screens),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: const Color(0xFF1B2611),
+        selectedItemColor: const Color(0xFFD4D9A1),
+        unselectedItemColor: Colors.white54,
+        selectedFontSize: 11,
+        unselectedFontSize: 11,
+        onTap: (index) {
+          setState(() { _currentIndex = index; });
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Инфо'),
+          BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Маркер'),
+          BottomNavigationBarItem(icon: Icon(Icons.calculate), label: 'Клипса'),
+          BottomNavigationBarItem(icon: Icon(Icons.restaurant), label: 'Корм'),
+          BottomNavigationBarItem(icon: Icon(Icons.photo_library), label: 'Трофеи'),
+        ],
+      ),
+    );
+  }
+}
 
 // ===================================================================
 // ВТОРАЯ ГЛАВА ДИAЛОГОВ: ДAШБОРД С МГНОВЕННЫМ ИСЧЕЗНОВЕНИЕМ ОКOН
