@@ -1465,7 +1465,7 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with TickerProviderStat
   List<PvaStickLog> _sticks = [];
   late TabController _tabController;
 
-  int _timerSeconds = 2400; // 40 минут для поисковых стиков по умолчанию
+  int _timerSeconds = 2400; 
   int _currentCountdown = 0;
   bool _isTimerRunning = false;
 
@@ -1497,6 +1497,7 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with TickerProviderStat
     await prefs.setString('feed_mixes_${widget.lakeKey}', jsonEncode(_mixes.map((m) => m.toJson()).toList()));
     await prefs.setString('feed_sticks_${widget.lakeKey}', jsonEncode(_sticks.map((s) => s.toJson()).toList()));
   }
+
   void _addMixDialog() {
     String liquid = '🍓 Клубничный Ликвид';
     String boilieType = 'Вареные бойлы';
@@ -1612,10 +1613,10 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with TickerProviderStat
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF2E3B1E), // Суровый матовый фон хаки
+      backgroundColor: const Color(0xFF2E3B1E),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1B2611),
-        title: const Text('Тактика Питания & Тайминг', style: TextStyle(color: Color(0xFFD4D9A1), fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+        title: const Text('Тактика Питания & Тайминг', style: TextStyle(color: Color(0xFFD4D9A1), fontSize: 16, fontWeight: FontWeight.bold)),
         bottom: TabBar(
           controller: _tabController,
           labelColor: const Color(0xFFD4D9A1),
@@ -1631,7 +1632,7 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with TickerProviderStat
       body: TabBarView(
         controller: _tabController,
         children: [
-          // ВКЛАДКА 1: ЖУРНАЛ СПОДОВЫХ МИКСОВ
+          // ВКЛАДКА 1: МИКСЫ КОРМЛЕНИЯ ХАКИ
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: Column(
@@ -1677,7 +1678,7 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with TickerProviderStat
             ),
           ),
 
-          // ВКЛАДКА 2: ЖУРНАЛ ПОИСКОВЫХ УДИЛИЩ И СТИКОВ
+          // ВКЛАДКА 2: ЖУРНАЛ АКТИВНЫХ ПВА-СТИКОВ
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: Column(
@@ -1722,8 +1723,7 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with TickerProviderStat
               ],
             ),
           ),
-
-          // ВКЛАДКА 3: ТАКТИЧЕСКИЙ ТАЙМЕР ПЕРЕЗАБРОСА
+          // ВКЛАДКА 3: КРУГЛОЙ ТАЙМЕР ПЕРЕЗАБРОСА ХАКИ
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -1731,14 +1731,12 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with TickerProviderStat
               children: [
                 const Text('ТАЙМЕР ОБНОВЛЕНИЯ ТОЧЕК', style: TextStyle(color: Color(0xFFD4D9A1), fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 1)),
                 const SizedBox(height: 24),
-                // Программное круговое табло обратного счета
                 Container(
                   width: 190, height: 190,
                   decoration: BoxDecoration(
                     color: const Color(0xFF1B2611),
                     shape: BoxShape.circle,
                     border: Border.all(color: _isTimerRunning ? const Color(0xFFD4D9A1) : Colors.white24, width: 4),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))],
                   ),
                   child: Center(
                     child: Column(
@@ -1757,25 +1755,23 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with TickerProviderStat
                   ),
                 ),
                 const SizedBox(height: 30),
-                // Пресеты времени быстрой карповой ловли
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildTimerPresetAction(2400, '40 мин (Стик)'),
+                    _buildTimerPresetAction(2400, '40 мин'),
                     const SizedBox(width: 8),
-                    _buildTimerPresetAction(3600, '1 час (Ил)'),
+                    _buildTimerPresetAction(3600, '1 час'),
                     const SizedBox(width: 8),
-                    _buildTimerPresetAction(7200, '2 часа (Ночь)'),
+                    _buildTimerPresetAction(7200, '2 часа'),
                   ],
                 ),
                 const SizedBox(height: 35),
-                // Кнопки Пуск / Сброс
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     SizedBox(
                       width: 130, height: 48,
-                      child: ElevatedButton.icon(
+                      child: ElevatedButton(
                         style: ElevatedButton.styleFrom(backgroundColor: _isTimerRunning ? Colors.orange.shade900 : const Color(0xFF4A5D32), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                         onPressed: () {
                           if (_isTimerRunning) {
@@ -1785,22 +1781,52 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with TickerProviderStat
                               _isTimerRunning = true;
                               _currentCountdown = _timerSeconds;
                             });
-                             void _startCountdownLoop() {
-    dart_async.Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted || !_isTimerRunning) {
-        timer.cancel();
-        return;
-      }
+                            _startCountdownLoop();
+                          }
+                        },
+                        child: Text(_isTimerRunning ? 'Пауза' : 'Старт', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    SizedBox(
+                      width: 130, height: 48,
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.white38), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                        onPressed: () { setState(() { _isTimerRunning = false; _currentCountdown = 0; }); },
+                        child: const Text('Сброс', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimerPresetAction(int secs, String label) {
+    bool isSelected = _timerSeconds == secs;
+    return ChoiceChip(
+      label: Text(label, style: TextStyle(color: isSelected ? Colors.black87 : Colors.white70, fontWeight: FontWeight.bold, fontSize: 11)),
+      selected: isSelected, selectedColor: const Color(0xFFD4D9A1), backgroundColor: const Color(0xFF1B2611),
+      onSelected: (b) { if (b) { setState(() { _timerSeconds = secs; if (_isTimerRunning) _currentCountdown = secs; }); } },
+    );
+  }
+
+  void _startCountdownLoop() async {
+    while (_isTimerRunning && _currentCountdown > 0) {
+      await Future.delayed(const Duration(seconds: 1));
+      if (!mounted || !_isTimerRunning) return;
       setState(() {
-        if (_currentCountdown > 0) {
-          _currentCountdown--;
-        } else {
+        _currentCountdown--;
+        if (_currentCountdown <= 0) {
           _isTimerRunning = false;
-          timer.cancel();
           _showTimerAlert();
         }
       });
-    });
+    }
   }
 
   void _showTimerAlert() {
