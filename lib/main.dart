@@ -335,7 +335,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ),
 
 // ===================================================================
-// ЧАСТЬ 2А: ДАШБОРД ХАКИ С ИЗОЛИРОВАННЫМИ ФОРМАМИ И АСИНХРОННОЙ ПАМЯТЬЮ
+// ВТОРАЯ ГЛАВА ДИAЛОГОВ: ДAШБОРД С МГНОВЕННЫМ ИСЧЕЗНОВЕНИЕМ ОКOН
 // ===================================================================
 class CarpOutDashboard extends StatelessWidget {
   final String lake;
@@ -390,8 +390,8 @@ class CarpOutDashboard extends StatelessWidget {
             onPressed: () {
               int? val = int.tryParse(controller.text);
               if (val != null) {
+                Navigator.pop(context); // СРАЗУ ИСЧЕЗАЕТ ОКНО
                 onUpdateStats(val, weight, bigFish);
-                Navigator.pop(context);
               }
             },
             child: const Text('Сохранить', style: TextStyle(color: Colors.white)),
@@ -421,8 +421,8 @@ class CarpOutDashboard extends StatelessWidget {
             onPressed: () {
               double? val = double.tryParse(controller.text);
               if (val != null) {
+                Navigator.pop(context); // СРАЗУ ИСЧЕЗАЕТ ОКНО
                 onUpdateStats(catches, val, bigFish);
-                Navigator.pop(context);
               }
             },
             child: const Text('Сохранить', style: TextStyle(color: Colors.white)),
@@ -451,8 +451,8 @@ class CarpOutDashboard extends StatelessWidget {
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
             onPressed: () {
               if (controller.text.isNotEmpty) {
+                Navigator.pop(context); // СРАЗУ ИСЧЕЗАЕТ ОКНО
                 onUpdateStats(catches, weight, controller.text);
-                Navigator.pop(context);
               }
             },
             child: const Text('Сохранить', style: TextStyle(color: Colors.white)),
@@ -482,13 +482,13 @@ class CarpOutDashboard extends StatelessWidget {
             onPressed: () {
               double inputWeight = double.tryParse(weightController.text) ?? 0.0;
               if (inputWeight > 0) {
+                Navigator.pop(context); // СРАЗУ ИСЧЕЗАЕТ ОКНО «В ПОДСАКЕ!»
                 int newCatches = catches + 1;
                 double newTotalWeight = weight + inputWeight;
                 double currentBig = double.tryParse(bigFish) ?? 0.0;
                 String newBigString = bigFish;
                 if (inputWeight > currentBig) { newBigString = inputWeight.toStringAsFixed(3); }
                 onUpdateStats(newCatches, newTotalWeight, newBigString);
-                Navigator.pop(context);
               }
             },
             child: const Text('В журнал!', style: TextStyle(color: Colors.white)),
@@ -497,7 +497,6 @@ class CarpOutDashboard extends StatelessWidget {
       ),
     );
   }
-
 
 // ===================================================================
 // ЧАСТЬ 3А: ЖУРНАЛ И ЛОГИКА СЕКТОРНЫХ МАРКЕРОВ В СТИЛЕ КАМУФЛЯЖ
