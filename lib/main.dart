@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'dart:async' as dart_async;
 
 void main() {
   runApp(const CarpOutApp());
@@ -20,8 +19,7 @@ class CarpOutApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primaryColor: const Color(0xFF2E3B1E),
-        // Вся подложка приложения теперь строго в суровом матовом хаки!
-        scaffoldBackgroundColor: const Color(0xFF2E3B1E), 
+        scaffoldBackgroundColor: const Color(0xFF2E3B1E), // Монолитный тёмно-зелёный фон
         dialogTheme: const DialogThemeData(
           backgroundColor: Color(0xFF1B2611),
           titleTextStyle: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
@@ -30,7 +28,7 @@ class CarpOutApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSwatch().copyWith(
           primary: const Color(0xFF2E3B1E),
           secondary: const Color(0xFF4A5D32),
-          surface: const Color(0xFF1B2611), // Тёмные блоки
+          surface: const Color(0xFF1B2611),
         ),
       ),
       home: const MainNavigationScreen(),
@@ -119,7 +117,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     super.initState();
     _loadAllAppData();
   }
-
   Future<void> _loadAllAppData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -159,6 +156,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       _markerNames = newMarkers;
     });
   }
+
   void _addNewLakeDialog() {
     final controller = TextEditingController();
     showDialog(
@@ -202,7 +200,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ),
     );
   }
-
   @override
   Widget build(BuildContext context) {
     final List<Widget> _screens = [
@@ -215,33 +212,27 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         bigFish: _bigFishWeight,
         availableMarkers: _markerNames,
         onUpdateSession: (newLake, newSector, newDuration) async {
-          setState(() {
-            _sectorName = newSector;
-            _sessionDuration = newDuration;
-          });
+          setState(() { _sectorName = newSector; _sessionDuration = newDuration; });
           await _saveAllAppData();
         },
         onUpdateStats: (newCatches, newWeight, newBig) async {
-          setState(() {
-            _catchesCount = newCatches;
-            _totalWeight = newWeight;
-            _bigFishWeight = newBig;
-          });
+          setState(() { _catchesCount = newCatches; _totalWeight = newWeight; _bigFishWeight = newBig; });
           await _saveAllAppData();
         },
       ),
       MarkerMapScreenNew(lakeKey: _selectedLake, onMarkersChanged: _updateMarkersList),
       const CarpClipsCalculator(),
-      FishSocialScreen(lakeKey: _selectedLake),
+      CarpFeedScreen(lakeKey: _selectedLake), // Наше Питание и Таймер обратного отсчёта!
+      FishSocialScreen(lakeKey: _selectedLake), // Наша Лента Трофеев
     ];
 
     return Scaffold(
       drawer: Drawer(
-        backgroundColor: const Color(0xFF2E3B1E), // Матовый защитный фон шторки
+        backgroundColor: const Color(0xFF2E3B1E),
         child: Column(
           children: [
             UserAccountsDrawerHeader(
-              decoration: const BoxDecoration(color: Color(0xFF1B2611)), // Глубокий лесной верх
+              decoration: const BoxDecoration(color: Color(0xFF1B2611)),
               accountName: const Text('CarpOut', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
               accountEmail: const Text('Локальные сессии рыбалки', style: TextStyle(color: Colors.white60)),
               currentAccountPicture: Container(
@@ -283,12 +274,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                             icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20),
                             onPressed: () async {
                               if (_lakesList.length > 1) {
-                                setState(() {
-                                  _lakesList.remove(lakeItem);
-                                  if (isCurrent) _selectedLake = _lakesList.first;
-                                });
-                                await _saveAllAppData();
-                                await _loadAllAppData();
+                                setState(() { _lakesList.remove(lakeItem); if (isCurrent) _selectedLake = _lakesList.first; });
+                                await _saveAllAppData(); await _loadAllAppData();
                               }
                             },
                           ),
@@ -316,13 +303,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                               ElevatedButton(
                                 style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
                                 onPressed: () async {
-                                  setState(() {
-                                    _selectedLake = lakeItem;
-                                    _sectorName = sectorCtrl.text;
-                                    _sessionDuration = durationCtrl.text;
-                                  });
-                                  await _saveAllAppData();
-                                  await _loadAllAppData();
+                                  setState(() { _selectedLake = lakeItem; _sectorName = sectorCtrl.text; _sessionDuration = durationCtrl.text; });
+                                  await _saveAllAppData(); await _loadAllAppData();
                                   Navigator.pop(context);
                                 },
                                 child: const Text('Выбрать и применить', style: TextStyle(color: Colors.white, fontSize: 12)),
@@ -343,8 +325,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         type: BottomNavigationBarType.fixed,
-        backgroundColor: const Color(0xFF1B2611), // Тёмное лесное нижнее меню
-        selectedItemColor: const Color(0xFFD4D9A1), // Защитный песочный цвет активной вкладки
+        backgroundColor: const Color(0xFF1B2611),
+        selectedItemColor: const Color(0xFFD4D9A1),
         unselectedItemColor: Colors.white54,
         selectedFontSize: 11,
         unselectedFontSize: 11,
@@ -356,6 +338,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Инфо'),
           BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Маркер'),
           BottomNavigationBarItem(icon: Icon(Icons.calculate), label: 'Клипса'),
+          BottomNavigationBarItem(icon: Icon(Icons.restaurant), label: 'Корм'), // Вкладка Кормление официально активирована!
           BottomNavigationBarItem(icon: Icon(Icons.photo_library), label: 'Трофеи'),
         ],
       ),
