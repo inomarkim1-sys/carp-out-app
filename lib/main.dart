@@ -252,7 +252,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 ],
               ),
             ),
-            Expanded(
+                       Expanded(
               child: ListView.builder(
                 padding: EdgeInsets.zero,
                 itemCount: _lakesList.length,
@@ -276,8 +276,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                             icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20),
                             onPressed: () async {
                               if (_lakesList.length > 1) {
-                                setState(() { _lakesList.remove(lakeItem); if (isCurrent) _selectedLake = _lakesList.first; });
-                                await _saveAllAppData(); await _loadAllAppData();
+                                Navigator.pop(context); // СРАЗУ ЗАКРЫВАЕМ ШТОРКУ ПРИ УДАЛЕНИИ
+                                setState(() {
+                                  _lakesList.remove(lakeItem);
+                                  if (isCurrent) _selectedLake = _lakesList.first;
+                                });
+                                await _saveAllAppData();
+                                await _loadAllAppData();
                               }
                             },
                           ),
@@ -305,9 +310,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                               ElevatedButton(
                                 style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
                                 onPressed: () async {
-                                  setState(() { _selectedLake = lakeItem; _sectorName = sectorCtrl.text; _sessionDuration = durationCtrl.text; });
-                                  await _saveAllAppData(); await _loadAllAppData();
-                                  Navigator.pop(context);
+                                  Navigator.pop(context); // МГНОВЕННО ЗАКРЫВАЕМ ШТОРКУ ПРИ НАЖАТИИ
+                                  setState(() {
+                                    _selectedLake = lakeItem;
+                                    _sectorName = sectorCtrl.text;
+                                    _sessionDuration = durationCtrl.text;
+                                  });
+                                  await _saveAllAppData();
+                                  await _loadAllAppData();
                                 },
                                 child: const Text('Выбрать и применить', style: TextStyle(color: Colors.white, fontSize: 12)),
                               )
@@ -323,30 +333,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ],
         ),
       ),
-      body: IndexedStack(index: _currentIndex, children: _screens),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: const Color(0xFF1B2611),
-        selectedItemColor: const Color(0xFFD4D9A1),
-        unselectedItemColor: Colors.white54,
-        selectedFontSize: 11,
-        unselectedFontSize: 11,
-        onTap: (index) {
-          _loadAllAppData();
-          setState(() { _currentIndex = index; });
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Инфо'),
-          BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Маркер'),
-          BottomNavigationBarItem(icon: Icon(Icons.calculate), label: 'Клипса'),
-          BottomNavigationBarItem(icon: Icon(Icons.restaurant), label: 'Корм'), // Вкладка Кормление официально активирована!
-          BottomNavigationBarItem(icon: Icon(Icons.photo_library), label: 'Трофеи'),
-        ],
-      ),
-    );
-  }
-}
 
 // ===================================================================
 // ЧАСТЬ 2А: ДАШБОРД ХАКИ С ИЗОЛИРОВАННЫМИ ФОРМАМИ И АСИНХРОННОЙ ПАМЯТЬЮ
