@@ -1,6 +1,6 @@
 workflows:
-  carp-out-build:
-    name: CarpOut Android Build
+  default-workflow:
+    name: Default Workflow
     max_build_duration: 10
     instance_type: mac_mini_m2
     environment:
