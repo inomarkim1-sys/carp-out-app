@@ -346,7 +346,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 }
 
 // ===================================================================
-// ВТОРАЯ ГЛАВА ДИAЛОГОВ: ДAШБОРД С МГНОВЕННЫМ ИСЧЕЗНОВЕНИЕМ ОКOН
+// ЧАСТЬ 2А: ДАШБОРД С МГНОВЕННЫМ ИСЧЕЗНОВЕНИЕМ ОКOН ИЗОЛИРОВАННОЙ ПАМЯТИ
 // ===================================================================
 class CarpOutDashboard extends StatelessWidget {
   final String lake;
@@ -395,13 +395,13 @@ class CarpOutDashboard extends StatelessWidget {
           decoration: const InputDecoration(labelText: 'Всего поймано (шт)', labelStyle: TextStyle(color: Colors.white60)),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
+          TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
             onPressed: () {
               int? val = int.tryParse(controller.text);
               if (val != null) {
-                Navigator.pop(context); // СРАЗУ ИСЧЕЗАЕТ ОКНО
+                Navigator.pop(context); // ОКНО ЗАКРЫВАЕТСЯ СРАЗУ
                 onUpdateStats(val, weight, bigFish);
               }
             },
@@ -426,13 +426,13 @@ class CarpOutDashboard extends StatelessWidget {
           decoration: const InputDecoration(labelText: 'Общий вес (кг)', labelStyle: TextStyle(color: Colors.white60)),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
+          TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
             onPressed: () {
               double? val = double.tryParse(controller.text);
               if (val != null) {
-                Navigator.pop(context); // СРАЗУ ИСЧЕЗАЕТ ОКНО
+                Navigator.pop(context); // ОКНО ЗАКРЫВАЕТСЯ СРАЗУ
                 onUpdateStats(catches, val, bigFish);
               }
             },
@@ -457,12 +457,12 @@ class CarpOutDashboard extends StatelessWidget {
           decoration: const InputDecoration(labelText: 'Вес трофея (кг)', labelStyle: TextStyle(color: Colors.white60)),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
+          TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
             onPressed: () {
               if (controller.text.isNotEmpty) {
-                Navigator.pop(context); // СРАЗУ ИСЧЕЗАЕТ ОКНО
+                Navigator.pop(context); // ОКНО ЗАКРЫВАЕТСЯ СРАЗУ
                 onUpdateStats(catches, weight, controller.text);
               }
             },
@@ -472,7 +472,6 @@ class CarpOutDashboard extends StatelessWidget {
       ),
     );
   }
-
   void _showInTheNetDialog(BuildContext context) {
     final weightController = TextEditingController();
     showDialog(
@@ -487,7 +486,7 @@ class CarpOutDashboard extends StatelessWidget {
           decoration: const InputDecoration(labelText: 'Вес рыбы (кг)', labelStyle: TextStyle(color: Colors.white60)),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
+          TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
             onPressed: () {
@@ -509,9 +508,102 @@ class CarpOutDashboard extends StatelessWidget {
     );
   }
 
-// ===================================================================
-// ЧАСТЬ 3А: ЖУРНАЛ И ЛОГИКА СЕКТОРНЫХ МАРКЕРОВ В СТИЛЕ КАМУФЛЯЖ
-// ===================================================================
+  @override
+  Widget build(BuildContext context) {
+    double averageWeight = catches > 0 ? weight / catches : 0.0;
+    return Scaffold(
+      backgroundColor: const Color(0xFF2E3B1E), // Суровый матовый глубокий хаки фон
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.only(top: 40.0, left: 16.0, right: 16.0, bottom: 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                IconButton(icon: const Icon(Icons.menu, color: Color(0xFFD4D9A1)), onPressed: () => Scaffold.of(context).openDrawer()),
+                const Text('CarpOut', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFFD4D9A1))),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1B2611),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFD4D9A1).withOpacity(0.2), width: 1),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(_getCurrentDate(), style: const TextStyle(color: Color(0xFFD4D9A1), fontSize: 13, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  Text('ТЕКУЩАЯ СЕССИЯ - ДЛИТЕЛЬНОСТЬ $duration Ч.', style: const TextStyle(color: Colors.white60, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(lake, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                  Text(sector, style: const TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.w500)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text('Аналитика улова (нажмите на квадрат для изменения):', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFFD4D9A1))),
+            const SizedBox(height: 12),
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 1.3,
+              children: [
+                GestureDetector(onTap: () => _showCatchesDialog(context), child: _buildStatCard('Всего хвостов', '$catches шт.', Icons.phishing, const Color(0xFF4A5D32))),
+                GestureDetector(onTap: () => _showWeightDialog(context), child: _buildStatCard('Общий вес', '${weight.toStringAsFixed(3)} кг', Icons.scale, const Color(0xFF4A5D32))),
+                GestureDetector(onTap: () => _showCatchesDialog(context), child: _buildStatCard('Средний вес', '${averageWeight.toStringAsFixed(3)} кг', Icons.analytics, const Color(0xFF4A5D32))),
+                GestureDetector(onTap: () => _showBigFishDialog(context), child: _buildStatCard('BIG FISH 🔥', '$bigFish кг', Icons.emoji_events, const Color(0xFFFF5252))),
+              ],
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1B2611),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  side: const BorderSide(color: Color(0xFFD4D9A1), width: 1.2),
+                ),
+                onPressed: () => _showInTheNetDialog(context),
+                icon: const Icon(Icons.phishing, color: Color(0xFFD4D9A1)),
+                label: const Text('В подсаке! 🎣', style: TextStyle(color: Color(0xFFD4D9A1), fontSize: 18, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String title, String value, IconData icon, Color iconColor) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1B2611),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFD4D9A1).withOpacity(0.3), width: 1.2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(children: [Icon(icon, color: iconColor, size: 18), const SizedBox(width: 6), Text(title, style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold))]),
+          const SizedBox(height: 8),
+          Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFFD4D9A1))),
+        ],
+      ),
+    );
+  }
+} // СКОБКА ЖЕСТКО ЗАПЕЧАТАНА!
+
 // ===================================================================
 // ЧАСТЬ 3Б: МОДЕЛИ ДАННЫХ И ЛОГИКА ОПРЕДЕЛЕНИЯ ДИСТАНЦИИ ТАПА ХАКИ
 // ===================================================================
