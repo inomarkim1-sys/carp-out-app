@@ -544,6 +544,16 @@ class MarkerPoint {
       );
 }
 
+// ===================================================================
+// ЧАСТЬ 3Б: МОДЕЛИ ДАННЫХ И ЛОГИКА ОПРЕДЕЛЕНИЯ ДИСТАНЦИИ ТАПА ХАКИ
+// ===================================================================
+class MarkerPoint {
+  String name; double distance; double depth; String bottomType; double angle;
+  MarkerPoint({required this.name, required this.distance, required this.depth, required this.bottomType, required this.angle});
+  Map<String, dynamic> toJson() => {'name': name, 'distance': distance, 'depth': depth, 'bottomType': bottomType, 'angle': angle};
+  factory MarkerPoint.fromJson(Map<String, dynamic> json) => MarkerPoint(name: json['name'] ?? '', distance: (json['distance'] as num).toDouble(), depth: (json['depth'] as num).toDouble(), bottomType: json['bottomType'] ?? '', angle: (json['angle'] as num).toDouble());
+}
+
 class MarkerMapScreenNew extends StatefulWidget {
   final String lakeKey;
   final Function(List<String>) onMarkersChanged;
@@ -569,9 +579,7 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
   @override
   void didUpdateWidget(covariant MarkerMapScreenNew oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.lakeKey != widget.lakeKey) {
-      _loadMarkerPoints();
-    }
+    if (oldWidget.lakeKey != widget.lakeKey) { _loadMarkerPoints(); }
   }
 
   Future<void> _loadMarkerPoints() async {
@@ -579,17 +587,11 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
     final String? pointsJson = prefs.getString('markers_${widget.lakeKey}');
     if (pointsJson != null) {
       final List<dynamic> decoded = jsonDecode(pointsJson);
-      setState(() {
-        _points = decoded.map((item) => MarkerPoint.fromJson(item)).toList();
-      });
+      setState(() { _points = decoded.map((item) => MarkerPoint.fromJson(item)).toList(); });
       _notifyParent();
     } else {
-      setState(() {
-        _points = [
-          MarkerPoint(name: 'Дальняя бровка', distance: 91.2, depth: 3.2, bottomType: '🐚 Ракушка', angle: 0.2),
-        ];
-      });
-      _saveMarkerPoints();
+      setState(() { _points = []; });
+      _notifyParent();
     }
   }
 
@@ -614,7 +616,7 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: const Color(0xFF2E3B1E),
+          backgroundColor: const Color(0xFF1B2611),
           title: const Text('🎯 Засечь точку ловли', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16)),
           content: SingleChildScrollView(
             child: Column(
@@ -624,28 +626,26 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
                 TextField(controller: _distanceController, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Дистанция (метры)', labelStyle: TextStyle(color: Colors.white60))),
                 TextField(controller: _depthController, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Глубина (метры)', labelStyle: TextStyle(color: Colors.white60))),
                 const SizedBox(height: 16),
-                const Align(alignment: Alignment.centerLeft, child: Text('Структура дна в точке:', style: TextStyle(color: Colors.white70, fontSize: 12))),
                 DropdownButton<String>(
-                  dropdownColor: const Color(0xFF2E3B1E),
+                  dropdownColor: const Color(0xFF1B2611),
                   value: _selectedBottomType,
                   isExpanded: true,
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                   items: <String>['🐚 Ракушка', '🍃 Ил', '🪨 Камни', '🪵 Коряга', '🏖️ Песок'].map((String value) {
                     return DropdownMenuItem<String>(value: value, child: Text(value));
                   }).toList(),
-                  onChanged: (newValue) {
-                    setDialogState(() { _selectedBottomType = newValue!; });
-                  },
+                  onChanged: (newValue) { setDialogState(() { _selectedBottomType = newValue!; }); },
                 ),
               ],
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
+            TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
               onPressed: () async {
                 if (_nameController.text.isNotEmpty) {
+                  Navigator.pop(context);
                   setState(() {
                     _points.add(MarkerPoint(
                       name: _nameController.text,
@@ -656,7 +656,6 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
                     ));
                   });
                   await _saveMarkerPoints();
-                  Navigator.pop(context);
                 }
               },
               child: const Text('В журнал', style: TextStyle(color: Colors.white)),
@@ -669,142 +668,147 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFA2B574), // Оливковый фон камуфляжа
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: InteractiveViewer(
-              panEnabled: true,
-              boundaryMargin: const EdgeInsets.all(100),
-              minScale: 0.5,
-              maxScale: 4.0,
-              child: GestureDetector(
-                onTapUp: (details) {
-                  double boxWidth = 380.0;
-                  double boxHeight = 540.0;
-                  double centerX = boxWidth / 2;
-                  double bottomY = boxHeight - 45;
+      backgroundColor: const Color(0xFF2E3B1E),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          double w = constraints.maxWidth;
+          double h = constraints.maxHeight;
+          return Stack(
+            children: [
+              // НАСТОЯЩИЙ ТАКТИЧЕСКИЙ 3D-НАКЛОН ВЕТВЕЙ В ПЕРСПЕКТИВУ!
+              Center(
+                child: Transform(
+                  transform: Matrix4.identity()
+                    ..setEntry(3, 2, 0.002) // Коэффициент трехмерной глубины
+                    ..rotateX(0.4),       // Наклон плоскости назад к горизонту
+                  alignment: FractionalOffset.center,
+                  child: GestureDetector(
+                    onTapUp: (details) {
+                      double centerX = w / 2;
+                      double bottomY = h - 60;
+                      double dx = details.localPosition.dx - centerX;
+                      double dy = bottomY - details.localPosition.dy;
+                      double distancePixels = Math.sqrt(dx * dx + dy * dy);
+                      double maxRadiusPixels = h - 140;
+                      double calculatedDist = 55.0 + (distancePixels / maxRadiusPixels) * 105.0;
+                      double angleRad = Math.atan2(dx, dy);
 
-                  double dx = details.localPosition.dx - centerX;
-                  double dy = bottomY - details.localPosition.dy;
-                  double distancePixels = Math.sqrt(dx * dx + dy * dy);
-
-                  double maxRadiusPixels = boxHeight - 95;
-                  double calculatedDist = 55.0 + (distancePixels / maxRadiusPixels) * 105.0;
-
-                  // Вычисляем честный угол тапа пальцем через арктангенс
-                  double angleRad = Math.atan2(dx, dy);
-                  
-                  if (calculatedDist >= 55 && calculatedDist <= 160) {
-                    _addPointFromRadar(calculatedDist, angleRad);
-                  }
-                },
-                child: Container(
-                  width: 380,
-                  height: 540,
-                  color: Colors.transparent,
-                  child: CustomPaint(
-                    painter: CarpOutRadarPainterNew(savedPoints: _points),
+                      if (calculatedDist >= 55 && calculatedDist <= 165) {
+                        _addPointFromRadar(calculatedDist, angleRad);
+                      }
+                    },
+                    child: Container(
+                      width: w,
+                      height: h,
+                      color: Colors.transparent,
+                      child: CustomPaint(
+                        painter: CarpOutRadarPainter3D(savedPoints: _points),
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
-          Positioned(
-            bottom: 20,
-            right: 20,
-            child: FloatingActionButton.extended(
-              backgroundColor: const Color(0xFF2E3B1E),
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  backgroundColor: const Color(0xFF2E3B1E),
-                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-                  builder: (context) => StatefulBuilder(
-                    builder: (context, setSheetState) => Column(
-                      children: [
-                        const SizedBox(height: 12),
-                        Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white30, borderRadius: BorderRadius.circular(2))),
-                        const SizedBox(height: 16),
-                        const Text('ЖУРНАЛ МАРКЕРНЫХ ТОЧЕК', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
-                        const SizedBox(height: 12),
-                        Expanded(
-                          child: _points.isEmpty
-                              ? const Center(child: Text('Нет сохраненных точек', style: TextStyle(color: Colors.white60)))
-                              : ListView.builder(
-                                  itemCount: _points.length,
-                                  itemBuilder: (context, index) {
-                                    final point = _points[index];
-                                    return Card(
-                                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                                      color: const Color(0xFF4A5D32),
-                                      child: ListTile(
-                                        leading: const Icon(Icons.location_on, color: Color(0xFFC5E1A5)),
-                                        title: Text(point.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                        subtitle: Text('Дно: ${point.bottomType} | Гл: ${point.depth}м', style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                                        trailing: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text('${point.distance.toStringAsFixed(1)} м', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                            IconButton(
-                                              icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20),
-                                              onPressed: () {
-                                                setState(() { _points.removeAt(index); });
-                                                setSheetState(() {});
-                                                _saveMarkerPoints();
-                                              },
+              Positioned(
+                bottom: 20,
+                right: 20,
+                child: FloatingActionButton.extended(
+                  backgroundColor: const Color(0xFF1B2611),
+                  side: const BorderSide(color: Color(0xFFD4D9A1), width: 1.2),
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      backgroundColor: const Color(0xFF2E3B1E),
+                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+                      builder: (context) => StatefulBuilder(
+                        builder: (context, setSheetState) => Column(
+                          children: [
+                            const SizedBox(height: 12),
+                            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white30, borderRadius: BorderRadius.circular(2))),
+                            const SizedBox(height: 16),
+                            const Text('ЖУРНАЛ МАРКЕРНЫХ ТОЧЕК', style: TextStyle(color: Color(0xFFD4D9A1), fontWeight: FontWeight.bold, fontSize: 13)),
+                            const SizedBox(height: 12),
+                            Expanded(
+                              child: _points.isEmpty
+                                  ? const Center(child: Text('Нет сохраненных точек', style: TextStyle(color: Colors.white38)))
+                                  : ListView.builder(
+                                      itemCount: _points.length,
+                                      builder: (context, index) {
+                                        final point = _points[index];
+                                        return Card(
+                                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                                          color: const Color(0xFF1B2611),
+                                          shape: RoundedRectangleBorder(side: BorderSide(color: const Color(0xFFD4D9A1).withOpacity(0.3))),
+                                          child: ListTile(
+                                            leading: const Icon(Icons.location_on, color: Color(0xFFFF5252)),
+                                            title: Text(point.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                                            subtitle: Text('Дно: ${point.bottomType} | Гл: ${point.depth}м', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                                            trailing: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text('${point.distance.toStringAsFixed(1)} м', style: const TextStyle(color: Color(0xFFD4D9A1), fontWeight: FontWeight.bold)),
+                                                IconButton(
+                                                  icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20),
+                                                  onPressed: () {
+                                                    Navigator.pop(context); // Моментальное закрытие
+                                                    setState(() { _points.removeAt(index); });
+                                                    _saveMarkerPoints();
+                                                  },
+                                                ),
+                                              ],
                                             ),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.analytics, color: Colors.white),
-              label: const Text('Журнал точек', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
-          ),
-        ],
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.analytics, color: Color(0xFFD4D9A1)),
+                  label: const Text('Журнал точек', style: TextStyle(color: Color(0xFFD4D9A1), fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 }
-
-class CarpOutRadarPainterNew extends CustomPainter {
+// ===================================================================
+// ЧАСТЬ 3Г: МАТЕМАТИЧЕСКИЙ ОТРИСОВЩИК ЛУЧЕЙ, ДУГ ДАЛЬНОСТИ И 3D-МИШЕНЕЙ
+// ===================================================================
+class CarpOutRadarPainter3D extends CustomPainter {
   final List<MarkerPoint> savedPoints;
-  CarpOutRadarPainterNew({required this.savedPoints});
+  CarpOutRadarPainter3D({required this.savedPoints});
 
   @override
   void paint(Canvas canvas, Size size) {
     final mainPaint = Paint()
-      ..color = const Color(0xFF2E3B1E)
-      ..strokeWidth = 1.2
+      ..color = const Color(0xFFD4D9A1) // Песочно-оливковые основные лучи
+      ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke;
 
     final dashPaint = Paint()
-      ..color = const Color(0xFF4A5D32).withOpacity(0.3)
-      ..strokeWidth = 0.8
+      ..color = const Color(0xFF4A5D32).withOpacity(0.6) // Защитный зелёный для сеток
+      ..strokeWidth = 1.0
       ..style = PaintingStyle.stroke;
 
     final pointPaint = Paint()
-      ..color = const Color(0xFFD32F2F)
+      ..color = const Color(0xFFFF5252) // Тактическая красная засечка маркера дна
       ..style = PaintingStyle.fill;
 
-    final textPaint = TextStyle(color: const Color(0xFF2E3B1E).withOpacity(0.8), fontSize: 9, fontWeight: FontWeight.bold);
-    const logoPaint = TextStyle(color: Color(0xFF2E3B1E), fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2);
-    final markerLabelPaint = TextStyle(color: const Color(0xFF1B2611), fontSize: 10, fontWeight: FontWeight.bold, backgroundColor: Colors.white.withOpacity(0.8));
+    final textPaint = TextStyle(color: const Color(0xFFD4D9A1).withOpacity(0.9), fontSize: 10, fontWeight: FontWeight.bold);
+    const logoPaint = TextStyle(color: Color(0xFFD4D9A1), fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2);
+    final markerLabelPaint = TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, backgroundColor: const Color(0xFF1B2611).withOpacity(0.85));
 
     double centerX = size.width / 2;
-    double bottomY = size.height - 45;
-    double maxRadiusPixels = size.height - 95;
+    double bottomY = size.height - 60;
+    double maxRadiusPixels = size.height - 140;
 
-    // Сетка лучей веера
+    // 1. Отрисовка веера лучей
     for (int angle = -40; angle <= 40; angle += 10) {
       double rad = (angle - 90) * 3.141592653589793 / 180;
       double endX = centerX + maxRadiusPixels * Math.cos(rad);
@@ -812,50 +816,48 @@ class CarpOutRadarPainterNew extends CustomPainter {
       canvas.drawLine(Offset(centerX, bottomY), Offset(endX, endY), (angle % 20 == 0) ? mainPaint : dashPaint);
     }
 
-    // НАМЕРТВО ЗАШИТЫЙ ТЕКСТОВЫЙ СПИСОК ВСЕХ КОЛЕЦ ДАЛЬНОСТИ
-    final List<int> distances = [
-      60, 75, 90, 105, 120, 135, 150
-    ];
+    // 2. Отрисовка дуг дальности ХАКИ (60м - 150м)
+    final List<int> distances =;
     
     for (int d in distances) {
       double radius = (d - 55) * maxRadiusPixels / 105;
       Rect rect = Rect.fromCircle(center: Offset(centerX, bottomY), radius: radius);
-      canvas.drawArc(rect, 3.14159 + 0.5, 3.14159 - 1.0, false, mainPaint);
+      canvas.drawArc(rect, 3.14159 + 0.4, 3.14159 - 0.8, false, mainPaint);
 
       final textPainter = TextPainter(text: TextSpan(text: '${d}м', style: textPaint), textDirection: TextDirection.ltr)..layout();
-      textPainter.paint(canvas, Offset(centerX - textPainter.width / 2, bottomY - radius - 12));
+      textPainter.paint(canvas, Offset(centerX - textPainter.width / 2, bottomY - radius - 13));
     }
 
-    // ОТРИСОВКА МИШЕНЕЙ С УЧЕТОМ ЧЕСТНОГО УГЛА ИЗ ПАМЯТИ
+    // 3. Высокоточная отрисовка мишеней строго под палец рыболова
     for (var point in savedPoints) {
-      if (point.distance >= 55 && point.distance <= 160) {
+      if (point.distance >= 55 && point.distance <= 165) {
         double pointRadiusPixels = (point.distance - 55) * maxRadiusPixels / 105;
-        
-        // Восстанавливаем точные радианы направления пальца
         double rad = (point.angle - (90 * 3.141592653589793 / 180));
 
         double pX = centerX + pointRadiusPixels * Math.cos(rad);
         double pY = bottomY + pointRadiusPixels * Math.sin(rad);
 
+        // Двойное тактическое кольцо-мишень
         canvas.drawCircle(Offset(pX, pY), 5, pointPaint);
-        canvas.drawCircle(Offset(pX, pY), 9, mainPaint..strokeWidth = 1.0);
+        canvas.drawCircle(Offset(pX, pY), 10, mainPaint..strokeWidth = 1.2);
 
         String shortName = point.name.length > 12 ? '${point.name.substring(0, 12)}...' : point.name;
         String labelText = '$shortName\n${point.distance.toStringAsFixed(1)}м ${point.bottomType}';
         
         final labelPainter = TextPainter(text: TextSpan(text: labelText, style: markerLabelPaint), textDirection: TextDirection.ltr)..layout();
-        labelPainter.paint(canvas, Offset(pX + 12, pY - 10));
+        labelPainter.paint(canvas, Offset(pX + 14, pY - 12));
       }
     }
 
-    // ЛОГОТИП CARPOUT СМЕЩЕН В САМЫЙ НИЗ ПОД НАЧАЛО ЛУЧЕЙ
+    // 4. Фирменный брутальный логотип под основанием лучей веера
     final logoPainter = TextPainter(text: const TextSpan(text: 'CARPOUT', style: logoPaint), textDirection: TextDirection.ltr)..layout();
-    logoPainter.paint(canvas, Offset(centerX - logoPainter.width / 2, bottomY + 15));
+    logoPainter.paint(canvas, Offset(centerX - logoPainter.width / 2, bottomY + 20));
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
+
 // ===================================================================
 // ЧАСТЬ 3В: МАТЕМАТИЧЕСКИЙ МОДУЛЬ И ДВУХСТОРОННИЙ КАЛЬКУЛЯТОР КЛИПСЫ
 // ===================================================================
