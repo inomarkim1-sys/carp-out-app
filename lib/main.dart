@@ -18,30 +18,34 @@ class CarpOutApp extends StatelessWidget {
       title: 'CarpOut',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primaryColor: const Color(0xFF2E3B1E),
-        scaffoldBackgroundColor: const Color(0xFF2E3B1E), // Фирменный тёмный хаки
+        primaryColor: const Color(0xFF556B2F), // Светлая тактическая олива (Warm Olive)
+        scaffoldBackgroundColor: const Color(0xFF556B2F), // Освежённый фоновый тон для всех экранов
         dialogTheme: const DialogThemeData(
-          backgroundColor: Color(0xFF1B2611),
-          titleTextStyle: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-          contentTextStyle: TextStyle(color: Colors.white70),
+          backgroundColor: Color(0xFF3B4A22), // Плотный хаки для всплывающих окон
+          titleTextStyle: TextStyle(color: Color(0xFFE8ECD0), fontSize: 18, fontWeight: FontWeight.bold),
+          contentTextStyle: TextStyle(color: Colors.whiteBF ?? Colors.white70),
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF3B4A22), // Контрастная шапка меню
+          iconTheme: IconThemeData(color: Color(0xFFE8ECD0)),
+          titleTextStyle: TextStyle(color: Color(0xFFE8ECD0), fontSize: 16, fontWeight: FontWeight.bold),
         ),
         colorScheme: ColorScheme.fromSwatch().copyWith(
-          primary: const Color(0xFF2E3B1E),
-          secondary: const Color(0xFF4A5D32),
-          surface: const Color(0xFF1B2611),
+          primary: const Color(0xFF556B2F),
+          secondary: const Color(0xFF6B8E23), // Насыщенный зелёный армейский акцент
+          surface: const Color(0xFF3B4A22),
         ),
       ),
       home: const MainNavigationScreen(),
     );
   }
 }
-
 class CarpOutAppIconPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final bgPaint = Paint()..color = const Color(0xFF1B2611)..style = PaintingStyle.fill;
-    final borderPaint = Paint()..color = const Color(0xFFD4D9A1)..strokeWidth = 2.5..style = PaintingStyle.stroke;
-    final fishPaint = Paint()..color = const Color(0xFFD4D9A1)..style = PaintingStyle.fill;
+    final bgPaint = Paint()..color = const Color(0xFF3B4A22)..style = PaintingStyle.fill;
+    final borderPaint = Paint()..color = const Color(0xFFE8ECD0)..strokeWidth = 2.5..style = PaintingStyle.stroke;
+    final fishPaint = Paint()..color = const Color(0xFFE8ECD0)..style = PaintingStyle.fill;
 
     final rrect = RRect.fromRectAndRadius(Rect.fromLTWH(0, 0, size.width, size.height), Radius.circular(size.width * 0.22));
     canvas.drawRRect(rrect, bgPaint);
@@ -58,7 +62,7 @@ class CarpOutAppIconPainter extends CustomPainter {
     path.quadraticBezierTo(w * 0.33, h * 0.64, w * 0.28, h * 0.58);
     canvas.drawPath(path, fishPaint);
 
-    final textPainter = TextPainter(text: const TextSpan(text: 'CARPOUT', style: TextStyle(color: Color(0xFFD4D9A1), fontSize: 9.5, fontWeight: FontWeight.bold, letterSpacing: 1.5)), textDirection: TextDirection.ltr)..layout();
+     final textPainter = TextPainter(text: const TextSpan(text: 'CARPOUT', style: TextStyle(color: Color(0xFFD4D9A1), fontSize: 9.5, fontWeight: FontWeight.bold, letterSpacing: 1.5)), textDirection: TextDirection.ltr)..layout();
     textPainter.paint(canvas, Offset(w / 2 - textPainter.width / 2, h * 0.22));
   }
   @override
@@ -163,7 +167,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         ]),
       ),
       body: IndexedStack(index: _currentIndex, children: _screens),
-      bottomNavigationBar: BottomNavigationBar(currentIndex: _currentIndex, type: BottomNavigationBarType.fixed, backgroundColor: const Color(0xFF1B2611), selectedItemColor: const Color(0xFFD4D9A1), unselectedItemColor: Colors.white54, onTap: (idx) { setState(() { _currentIndex = idx; }); }, items: const [BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Инфо'), BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Маркер'), BottomNavigationBarItem(icon: Icon(Icons.calculate), label: 'Клипса'), BottomNavigationBarItem(icon: Icon(Icons.restaurant), label: 'Корм'), BottomNavigationBarItem(icon: Icon(Icons.photo_library), label: 'Трофеи')]),
+      bottomNavigationBar: BottomNavigationBar(currentIndex: _currentIndex, type: BottomNavigationBarType.fixed, backgroundColor: const Color(0xFF3B4A22), selectedItemColor: const Color(0xFFE8ECD0), unselectedItemColor: Colors.white54, onTap: (idx) { setState(() { _currentIndex = idx; }); }, items: const [BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Инфо'), BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Маркер'), BottomNavigationBarItem(icon: Icon(Icons.calculate), label: 'Клипса'), BottomNavigationBarItem(icon: Icon(Icons.restaurant), label: 'Корм'), BottomNavigationBarItem(icon: Icon(Icons.photo_library), label: 'Трофеи')]),
     );
   }
 }
