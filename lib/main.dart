@@ -147,7 +147,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       CarpOutDashboard(lake: _selectedLake, sector: _sectorName, duration: _sessionDuration, catches: _catchesCount, weight: _totalWeight, bigFish: _bigFishWeight, availableMarkers: _markerNames, onUpdateSession: (l, s, d) async { setState(() { _sectorName = s; _sessionDuration = d; }); await _saveAllAppData(); }, onUpdateStats: (c, w, b) async { setState(() { _catchesCount = c; _totalWeight = w; _bigFishWeight = b; }); await _saveAllAppData(); }),
       MarkerMapScreenNew(lakeKey: _selectedLake, onMarkersChanged: _updateMarkersList),
       const CarpClipsCalculator(),
-      CarpFeedScreen(lakeKey: _selectedLake),
+      CarpFeedScreen(lakeKey: _selectedLake, availableMarkers: _markerNames),
       FishSocialScreen(lakeKey: _selectedLake),
     ];
     return Scaffold(
@@ -457,7 +457,7 @@ class CarpOutRadarPainter3D extends CustomPainter {
     }
 
     // МАССИВ ДУГ ДАЛЬНОСТИ ПОЛНОСТЬЮ ИСПРАВЛЕН И ЗАФИКСИРОВАН
-    final List<int> distances =;
+    final List<int> distances = [60, 75, 90, 105, 120, 135, 150];
     for (int d in distances) {
       double radius = (d - 55) * maxRadius / 105;
       double startX = centerX - (radius * 0.65); double endX = centerX + (radius * 0.65); double targetY = bottomY - radius;
