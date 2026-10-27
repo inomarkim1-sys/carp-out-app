@@ -149,7 +149,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       drawer: Drawer(
         backgroundColor: const Color(0xFF2E3B1E),
         child: Column(children: [
-          UserAccountsDrawerHeader(decoration: const BoxDecoration(color: Color(0xFF1B2611)), accountName: const Text('CarpOut', style: TextStyle(fontWeight: FontWeight.bold)), accountEmail: const Text('Локальные сессии рыбалки'), currentAccountPicture: CustomPaint(painter: CarpOutAppIconPainter())),
+          UserAccountsDrawerHeader(decoration: const BoxDecoration(color: Color(0xFF1B2611)), accountName: const Text('CarpOut Тактический Центр', style: TextStyle(fontWeight: FontWeight.bold)), accountEmail: const Text('Локальные сессии рыбалки'), currentAccountPicture: CustomPaint(painter: CarpOutAppIconPainter())),
           Padding(padding: const EdgeInsets.symmetric(horizontal: 16.0), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('СПИСОК ВОДОЕМОВ:', style: TextStyle(color: Color(0xFFD4D9A1), fontWeight: FontWeight.bold)), IconButton(icon: const Icon(Icons.add_circle, color: Color(0xFFD4D9A1)), onPressed: _addNewLakeDialog)])),
           Expanded(child: ListView.builder(itemCount: _lakesList.length, itemBuilder: (context, index) {
             final lakeItem = _lakesList[index]; bool isCurrent = lakeItem == _selectedLake;
@@ -606,14 +606,14 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with TickerProviderStat
   }
 
   void _addMixDialog() {
-    String liquid = '🍓 Клубничный Ликвид'; String boilieType = 'Вареные бойлы'; String boilieSize = 'Крушеные бойлы'; final notesCtrl = TextEditingController();
+    String liquid = '🍓 Клубничный Ликвид'; String boilieType = 'Тигровый орех'; String boilieSize = 'Крушеные бойлы'; final notesCtrl = TextEditingController();
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(builder: (context, setDialogState) => AlertDialog(
         backgroundColor: const Color(0xFF1B2611), title: const Text('Записать Сподовый Микс 🪣'),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
           DropdownButton<String>(dropdownColor: const Color(0xFF1B2611), value: liquid, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['🍓 Клубничный Ликвид', '🍍 Ананасовый Амино', '🧄 Чесночный CSL', '🦀 Криль Натурал', '🚫 Без ликвида'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { liquid = v!; }); }),
-          DropdownButton<String>(dropdownColor: const Color(0xFF1B2611), value: boilieType, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['Вареные бойлы', 'Растворимые бойлы', 'Пеллетс жирный', 'Зерновой микс'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { boilieType = v!; }); }),
+          DropdownButton<String>(dropdownColor: const Color(0xFF1B2611), value: boilieType, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['Тигровый орех', 'Растворимые бойлы', 'Пеллетс жирный', 'Зерновой микс'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { boilieType = v!; }); }),
           DropdownButton<String>(dropdownColor: const Color(0xFF1B2611), value: boilieSize, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['Целые бойлы', 'Резаные (половинки)', 'Крушеные бойлы', 'Микс фракций'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { boilieSize = v!; }); }),
           TextField(controller: notesCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Заметка (кол-во спомбов)', labelStyle: TextStyle(color: Colors.white60))),
         ]),
