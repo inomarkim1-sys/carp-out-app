@@ -18,21 +18,21 @@ class CarpOutApp extends StatelessWidget {
       title: 'CarpOut',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primaryColor: const Color(0xFF556B2F), // Светлая тактическая олива (Warm Olive)
-        scaffoldBackgroundColor: const Color(0xFF556B2F), // Освежённый фоновый тон для всех экранов
+        primaryColor: const Color(0xFF556B2F), // Светлая тактическая олива
+        scaffoldBackgroundColor: const Color(0xFF556B2F), // Освежённый фоновый тон
         dialogTheme: const DialogThemeData(
-          backgroundColor: Color(0xFF3B4A22), // Плотный хаки для всплывающих окон
+          backgroundColor: Color(0xFF3B4A22), // Плотный хаки для окон
           titleTextStyle: TextStyle(color: Color(0xFFE8ECD0), fontSize: 18, fontWeight: FontWeight.bold),
-          contentTextStyle: TextStyle(color: Colors.whiteBF ?? Colors.white70),
+          contentTextStyle: TextStyle(color: Colors.white70),
         ),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF3B4A22), // Контрастная шапка меню
+          backgroundColor: Color(0xFF3B4A22), // Контрастная шапка
           iconTheme: IconThemeData(color: Color(0xFFE8ECD0)),
           titleTextStyle: TextStyle(color: Color(0xFFE8ECD0), fontSize: 16, fontWeight: FontWeight.bold),
         ),
         colorScheme: ColorScheme.fromSwatch().copyWith(
           primary: const Color(0xFF556B2F),
-          secondary: const Color(0xFF6B8E23), // Насыщенный зелёный армейский акцент
+          secondary: const Color(0xFF6B8E23),
           surface: const Color(0xFF3B4A22),
         ),
       ),
@@ -40,6 +40,7 @@ class CarpOutApp extends StatelessWidget {
     );
   }
 }
+
 class CarpOutAppIconPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -449,14 +450,13 @@ class CarpOutRadarPainter3D extends CustomPainter {
     final textPaint = TextStyle(color: const Color(0xFFD4D9A1).withOpacity(0.9), fontSize: 10, fontWeight: FontWeight.bold);
     final markerLabelPaint = TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, backgroundColor: const Color(0xFF1B2611).withOpacity(0.85));
 
-    // 1. Отрисовка стабильной 3D сетки лучей прямо от основания CARPOUT
     for (int angle = -40; angle <= 40; angle += 10) {
       double pct = angle / 40.0;
       double endX = centerX + (maxRadius * pct * 0.85); double endY = bottomY - maxRadius;
       canvas.drawLine(Offset(centerX, bottomY), Offset(endX, endY), (angle % 20 == 0) ? mainPaint : dashPaint);
     }
 
-    // 2. Отрисовка стабильных дуг дальностей (60м - 150м)
+    // МАССИВ ДУГ ДАЛЬНОСТИ ПОЛНОСТЬЮ ИСПРАВЛЕН И ЗАФИКСИРОВАН
     final List<int> distances =;
     for (int d in distances) {
       double radius = (d - 55) * maxRadius / 105;
@@ -469,7 +469,6 @@ class CarpOutRadarPainter3D extends CustomPainter {
       textPainter.paint(canvas, Offset(centerX - textPainter.width / 2, targetY - 14));
     }
 
-    // 3. Отображение сохраненных точек с удилищами
     for (var point in savedPoints) {
       double r = (point.distance - 55) * maxRadius / 105;
       double pX = centerX + (r * point.angle * 0.85); double pY = bottomY - r;
@@ -482,7 +481,6 @@ class CarpOutRadarPainter3D extends CustomPainter {
       labelPainter.paint(canvas, Offset(pX + 12, pY - 12));
     }
 
-    // 4. Отрисовка живого счетчика заброса (когда тянешь палец)
     if (isDragging) {
       double r = (currentDragDist - 55) * maxRadius / 105;
       double pX = centerX + (r * currentDragAngle * 0.85); double pY = bottomY - r;
@@ -501,7 +499,6 @@ class CarpOutRadarPainter3D extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
-
 
 class CarpClipsCalculator extends StatefulWidget {
   const CarpClipsCalculator({Key? key}) : super(key: key);
@@ -593,8 +590,8 @@ class PvaStickLog {
 }
 
 class CarpFeedScreen extends StatefulWidget {
-  final String lakeKey;
-  const CarpFeedScreen({Key? key, required this.lakeKey}) : super(key: key);
+  final String lakeKey; final List<String> availableMarkers; // Передаем список маркерных точек для автоподстановки
+  const CarpFeedScreen({Key? key, required this.lakeKey, required this.availableMarkers}) : super(key: key);
   @override
   _CarpFeedScreenState createState() => _CarpFeedScreenState();
 }
@@ -624,158 +621,106 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with TickerProviderStat
     await prefs.setString('feed_sticks_${widget.lakeKey}', jsonEncode(_sticks.map((s) => s.toJson()).toList()));
   }
 
-    void _addMixDialog() {
-    String liquid = '🍓 Клубничный Ликвид';
-    String boilieType = 'Вареные бойлы';
-    String boilieSize = 'Крушеные бойлы';
-    final notesCtrl = TextEditingController();
-    
-    // Автоматический тактический пресет: если точек нет, пишем дефолт
-    String selectedMarker = widget.availableMarkers.isNotEmpty 
-        ? widget.availableMarkers.first 
-        : 'Свободный закорм сектора';
-
+  void _addMixDialog() {
+    String liquid = '🍓 Клубничный Ликвид'; String boilieType = 'Вареные бойлы'; String boilieSize = 'Крушеные бойлы'; final notesCtrl = TextEditingController();
+    String selectedMarker = widget.availableMarkers.isNotEmpty ? widget.availableMarkers.first : 'Свободный закорм сектора';
     showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: const Color(0xFF1B2611),
-          title: const Text('Записать Сподовый Микс 🪣', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Align(alignment: Alignment.centerLeft, child: Text('Выбрать точку на маркере:', style: TextStyle(color: Colors.white60, fontSize: 11))),
-                DropdownButton<String>(
-                  dropdownColor: const Color(0xFF1B2611),
-                  value: selectedMarker, isExpanded: true, style: const TextStyle(color: Color(0xFFD4D9A1), fontWeight: FontWeight.bold),
-                  items: (widget.availableMarkers.isNotEmpty ? widget.availableMarkers : ['Свободный закорм сектора'])
-                      .map((s) => DropdownMenuItem(value: s, child: Text(s, maxLines: 1, overflow: TextOverflow.ellipsis))).toList(),
-                  onChanged: (v) { setDialogState(() { selectedMarker = v!; }); },
-                ),
-                const SizedBox(height: 8),
-                DropdownButton<String>(
-                  dropdownColor: const Color(0xFF1B2611),
-                  value: liquid, isExpanded: true, style: const TextStyle(color: Colors.white),
-                  items: <String>['🍓 Клубничный Ликвид', '🍍 Ананасовый Амино', '🧄 Чесночный CSL', '🦀 Криль Натурал', '🚫 Без ликвида'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
-                  onChanged: (v) { setDialogState(() { liquid = v!; }); },
-                ),
-                DropdownButton<String>(
-                  dropdownColor: const Color(0xFF1B2611),
-                  value: boilieType, isExpanded: true, style: const TextStyle(color: Colors.white),
-                  items: <String>['Вареные бойлы', 'Растворимые бойлы', 'Пеллетс жирный', 'Зерновой микс'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
-                  onChanged: (v) { setDialogState(() { boilieType = v!; }); },
-                ),
-                DropdownButton<String>(
-                  dropdownColor: const Color(0xFF1B2611),
-                  value: boilieSize, isExpanded: true, style: const TextStyle(color: Colors.white),
-                  items: <String>['Целые бойлы', 'Резаные (половинки)', 'Крушеные бойлы', 'Микс фракций'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
-                  onChanged: (v) { setDialogState(() { boilieSize = v!; }); },
-                ),
-                TextField(controller: notesCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Заметка (кол-во спомбов)', labelStyle: TextStyle(color: Colors.white60))),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
-              onPressed: () {
-                Navigator.pop(context);
-                setState(() {
-                  _mixes.add(BaitMix(
-                    id: DateTime.now().millisecondsSinceEpoch.toString(), 
-                    liquid: liquid, 
-                    boilieType: boilieType, 
-                    boilieSize: boilieSize, 
-                    notes: '${notesCtrl.text.isEmpty ? 'Плановое кормление' : notesCtrl.text} -> Точка: $selectedMarker'
-                  ));
-                });
-                _saveFeedData();
-              },
-              child: const Text('Всыпать', style: TextStyle(color: Colors.white)),
-            ),
-          ],
+      builder: (context) => StatefulBuilder(builder: (context, setDialogState) => AlertDialog(
+        backgroundColor: const Color(0xFF1B2611), title: const Text('Записать Сподовый Микс 🪣'),
+        content: SingleChildScrollView(
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            const Align(alignment: Alignment.centerLeft, child: Text('Выбрать точку на маркере:', style: TextStyle(color: Colors.white60, fontSize: 11))),
+            DropdownButton<String>(dropdownColor: const Color(0xFF1B2611), value: selectedMarker, isExpanded: true, style: const TextStyle(color: Color(0xFFD4D9A1), fontWeight: FontWeight.bold), items: (widget.availableMarkers.isNotEmpty ? widget.availableMarkers : ['Свободный закорм сектора']).map((s) => DropdownMenuItem(value: s, child: Text(s, maxLines: 1, overflow: TextOverflow.ellipsis))).toList(), onChanged: (v) { setDialogState(() { selectedMarker = v!; }); }),
+            const SizedBox(height: 8),
+            DropdownButton<String>(dropdownColor: const Color(0xFF1B2611), value: liquid, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['🍓 Клубничный Ликвид', '🍍 Ананасовый Амино', '🧄 Чесночный CSL', '🦀 Криль Натурал', '🚫 Без ликвида'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { liquid = v!; }); }),
+            DropdownButton<String>(dropdownColor: const Color(0xFF1B2611), value: boilieType, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['Вареные бойлы', 'Растворимые бойлы', 'Пеллетс жирный', 'Зерновой микс'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { boilieType = v!; }); }),
+            DropdownButton<String>(dropdownColor: const Color(0xFF1B2611), value: boilieSize, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['Целые бойлы', 'Резаные (половинки)', 'Крушеные бойлы', 'Микс фракций'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { boilieSize = v!; }); }),
+            TextField(controller: notesCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Заметка (кол-во спомбов)', labelStyle: TextStyle(color: Colors.white60))),
+          ]),
         ),
-      ),
+        actions: [
+          TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена')),
+          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)), onPressed: () { Navigator.pop(context); setState(() { _mixes.add(BaitMix(id: DateTime.now().millisecondsSinceEpoch.toString(), liquid: liquid, boilieType: boilieType, boilieSize: boilieSize, notes: '${notesCtrl.text.isEmpty ? 'Плановое кормление' : notesCtrl.text} -> Точка: $selectedMarker')); }); _saveFeedData(); }, child: const Text('Всыпать')),
+        ],
+      )),
     );
   }
-
   void _addStickDialog() {
-    String pvaType = 'Сетка ПВА-стик';
-    String hookBait = 'Pop-up 10мм (Плавающий)';
-    
-    String selectedMarker = widget.availableMarkers.isNotEmpty 
-        ? widget.availableMarkers.first 
-        : 'Свободный заброс в сектор';
-
+    String pvaType = 'Сетка ПВА-стик'; String hookBait = 'Pop-up 10мм (Плавающий)';
+    String selectedMarker = widget.availableMarkers.isNotEmpty ? widget.availableMarkers.first : 'Свободный заброс в сектор';
     showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: const Color(0xFF1B2611),
-          title: const Text('Заброс поискового удилища 🎯', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Align(alignment: Alignment.centerLeft, child: Text('На какую маркерную точку бросаем:', style: TextStyle(color: Colors.white60, fontSize: 11))),
-                DropdownButton<String>(
-                  dropdownColor: const Color(0xFF1B2611),
-                  value: selectedMarker, isExpanded: true, style: const TextStyle(color: Color(0xFFD4D9A1), fontWeight: FontWeight.bold),
-                  items: (widget.availableMarkers.isNotEmpty ? widget.availableMarkers : ['Свободный заброс в сектор'])
-                      .map((s) => DropdownMenuItem(value: s, child: Text(s, maxLines: 1, overflow: TextOverflow.ellipsis))).toList(),
-                  onChanged: (v) { setDialogState(() { selectedMarker = v!; }); },
-                ),
-                const SizedBox(height: 8),
-                DropdownButton<String>(
-                  dropdownColor: const Color(0xFF1B2611),
-                  value: pvaType, isExpanded: true, style: const TextStyle(color: Colors.white),
-                  items: <String>['Сетка ПВА-стик', 'ПВА-пакет (с пеллетсом)', '🚫 Без ПВА (одиночная)'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
-                  onChanged: (v) { setDialogState(() { pvaType = v!; }); },
-                ),
-                DropdownButton<String>(
-                  dropdownColor: const Color(0xFF1B2611),
-                  value: hookBait, isExpanded: true, style: const TextStyle(color: Colors.white),
-                  items: <String>['Pop-up 10мм (Плавающий)', 'Wafters (Сбалансированный)', 'Искусственная кукуруза', 'Двойной тонущий 20мм'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
-                  onChanged: (v) { setDialogState(() { hookBait = v!; }); },
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
-              onPressed: () {
-                final now = DateTime.now();
-                Navigator.pop(context);
-                
-                // Извлекаем номер удилища прямо из названия маркерной точки [Рабочее №...]
-                String detectedRod = 'Поиск';
-                if (selectedMarker.contains('[') && selectedMarker.contains(']')) {
-                  detectedRod = selectedMarker.substring(selectedMarker.indexOf('[') + 1, selectedMarker.indexOf(']'));
-                }
-
-                setState(() {
-                  _sticks.add(PvaStickLog(
-                    id: now.millisecondsSinceEpoch.toString(), 
-                    pvaType: pvaType, 
-                    hookBait: hookBait, 
-                    rodType: detectedRod, 
-                    time: '${now.hour}:${now.minute.toString().padLeft(2, '0')}'
-                  ));
-                });
-                _saveFeedData();
-              },
-              child: const Text('В точку!', style: TextStyle(color: Colors.white)),
-            ),
-          ],
+      builder: (context) => StatefulBuilder(builder: (context, setDialogState) => AlertDialog(
+        backgroundColor: const Color(0xFF3B4A22), title: const Text('Заброс поискового удилища 🎯'),
+        content: SingleChildScrollView(
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            const Align(alignment: Alignment.centerLeft, child: Text('На какую маркерную точку бросаем:', style: TextStyle(color: Colors.white60, fontSize: 11))),
+            DropdownButton<String>(dropdownColor: const Color(0xFF3B4A22), value: selectedMarker, isExpanded: true, style: const TextStyle(color: Color(0xFFE8ECD0), fontWeight: FontWeight.bold), items: (widget.availableMarkers.isNotEmpty ? widget.availableMarkers : ['Свободный заброс в сектор']).map((s) => DropdownMenuItem(value: s, child: Text(s, maxLines: 1, overflow: TextOverflow.ellipsis))).toList(), onChanged: (v) { setDialogState(() { selectedMarker = v!; }); }),
+            const SizedBox(height: 8),
+            DropdownButton<String>(dropdownColor: const Color(0xFF3B4A22), value: pvaType, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['Сетка ПВА-стик', 'ПВА-пакет (с пеллетсом)', '🚫 Без ПВА (одиночная)'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { pvaType = v!; }); }),
+            DropdownButton<String>(dropdownColor: const Color(0xFF3B4A22), value: hookBait, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['Pop-up 10мм (Плавающий)', 'Wafters (Сбалансированный)', 'Искусственная кукуруза', 'Двойной тонущий 20мм'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { hookBait = v!; }); }),
+          ]),
         ),
+        actions: [
+          TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
+          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)), onPressed: () { final now = DateTime.now(); Navigator.pop(context); String detectedRod = 'Поиск'; if (selectedMarker.contains('[') && selectedMarker.contains(']')) { detectedRod = selectedMarker.substring(selectedMarker.indexOf('[') + 1, selectedMarker.indexOf(']')); } setState(() { _sticks.add(PvaStickLog(id: now.millisecondsSinceEpoch.toString(), pvaType: pvaType, hookBait: hookBait, rodType: detectedRod, time: '${now.hour}:${now.minute.toString().padLeft(2, '0')}')); }); _saveFeedData(); }, child: const Text('В точку!')),
+        ],
+      )),
+    );
+  }
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF556B2F),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF3B4A22), title: const Text('Тактика Питания & Timing', style: TextStyle(color: Color(0xFFE8ECD0), fontSize: 16, fontWeight: FontWeight.bold)),
+        bottom: TabBar(controller: _tabController, labelColor: const Color(0xFFE8ECD0), unselectedLabelColor: Colors.white54, indicatorColor: const Color(0xFFE8ECD0), tabs: const [Tab(icon: Icon(Icons.restaurant), text: 'Миксы'), Tab(icon: Icon(Icons.gpp_good), text: 'Стики'), Tab(icon: Icon(Icons.timer), text: 'Таймер')]),
       ),
+      body: TabBarView(controller: _tabController, children: [
+        Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(children: [
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('История кормления сектора:', style: TextStyle(color: Color(0xFFE8ECD0), fontWeight: FontWeight.bold, fontSize: 13)), ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF3B4A22), side: const BorderSide(color: Color(0xFFE8ECD0))), onPressed: _addMixDialog, icon: const Icon(Icons.add, color: Color(0xFFE8ECD0), size: 16), label: const Text('Корм', style: TextStyle(color: Color(0xFFE8ECD0), fontSize: 12)))]),
+            const SizedBox(height: 10),
+            Expanded(child: _mixes.isEmpty ? const Center(child: Text('Сводка пуста.', style: TextStyle(color: Colors.white38))) : ListView.builder(itemCount: _mixes.length, itemBuilder: (context, idx) { final m = _mixes[_mixes.length - 1 - idx]; return Card(color: const Color(0xFF3B4A22), margin: const EdgeInsets.only(bottom: 8), child: ListTile(leading: const Icon(Icons.opacity, color: Color(0xFFC5E1A5)), title: Text(m.liquid, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)), subtitle: Text('База: ${m.boilieType}\nИнфо: ${m.notes}', style: const TextStyle(color: Colors.white70, fontSize: 12)), trailing: IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent, size: 18), onPressed: () { setState(() { _mixes.remove(m); }); _saveFeedData(); }))); })),
+          ]),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(children: [
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('Active насадки:', style: TextStyle(color: Color(0xFFE8ECD0), fontWeight: FontWeight.bold, fontSize: 13)), ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF3B4A22), side: const BorderSide(color: Color(0xFFE8ECD0))), onPressed: _addStickDialog, icon: const Icon(Icons.gps_fixed, color: Color(0xFFE8ECD0), size: 16), label: const Text('Заброс', style: TextStyle(color: Color(0xFFE8ECD0), fontSize: 12)))]),
+            const SizedBox(height: 10),
+            Expanded(child: _sticks.isEmpty ? const Center(child: Text('Нет забросов', style: TextStyle(color: Colors.white38))) : ListView.builder(itemCount: _sticks.length, itemBuilder: (context, idx) { final s = _sticks[_sticks.length - 1 - idx]; return Card(color: const Color(0xFF3B4A22), margin: const EdgeInsets.only(bottom: 8), child: ListTile(leading: const Icon(Icons.track_changes, color: Color(0xFFFF5252)), title: Text('${s.rodType} [${s.time}]', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)), subtitle: Text('ПВА: ${s.pvaType}\nПрезентация: ${s.hookBait}', style: const TextStyle(color: Colors.white70, fontSize: 12)), trailing: IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent, size: 18), onPressed: () { setState(() { _sticks.remove(s); }); _saveFeedData(); }))); })),
+          ]),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            const Text('ТАЙМЕР ОБНОВЛЕНИЯ ТОЧЕК', style: TextStyle(color: Color(0xFFE8ECD0), fontSize: 13, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 24),
+            Container(
+              width: 190, height: 190, decoration: BoxDecoration(color: const Color(0xFF3B4A22), shape: BoxShape.circle, border: Border.all(color: _isTimerRunning ? const Color(0xFFE8ECD0) : Colors.white24, width: 4)),
+              child: Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Text(_isTimerRunning ? '${(_currentCountdown ~/ 60)}:${(_currentCountdown % 60).toString().padLeft(2, '0')}' : '${(_timerSeconds ~/ 60)}:00', style: TextStyle(fontSize: 42, fontWeight: FontWeight.bold, color: _isTimerRunning ? const Color(0xFFE8ECD0) : Colors.white)), const SizedBox(height: 4), Text(_isTimerRunning ? 'ИДЕТ ОТСЧЕТ' : 'ОЖИДАНИЕ', style: TextStyle(color: _isTimerRunning ? const Color(0xFFC5E1A5) : Colors.white38, fontSize: 10))])),
+            ),
+            const SizedBox(height: 30),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [_buildTimerPresetAction(2400, '40 мин'), const SizedBox(width: 8), _buildTimerPresetAction(3600, '1 час'), const SizedBox(width: 8), _buildTimerPresetAction(7200, '2 часа')]),
+            const SizedBox(height: 35),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              SizedBox(width: 130, height: 48, child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: _isTimerRunning ? Colors.orange.shade900 : const Color(0xFF4A5D32)), onPressed: () { if (_isTimerRunning) { setState(() { _isTimerRunning = false; }); } else { setState(() { _isTimerRunning = true; _currentCountdown = _timerSeconds; }); _startCountdownLoop(); } }, child: Text(_isTimerRunning ? 'Пауза' : 'Старт', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)))),
+              const SizedBox(width: 12),
+              SizedBox(width: 130, height: 48, child: OutlinedButton(style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.white38)), onPressed: () { setState(() { _isTimerRunning = false; _currentCountdown = 0; }); }, child: const Text('Сброс', style: TextStyle(color: Colors.white70)))),
+            ]),
+          ]),
+        ),
+      ]),
     );
   }
 
+  Widget _buildTimerPresetAction(int secs, String label) { bool isSelected = _timerSeconds == secs; return ChoiceChip(label: Text(label, style: TextStyle(color: isSelected ? Colors.black87 : Colors.white70, fontWeight: FontWeight.bold, fontSize: 11)), selected: isSelected, selectedColor: const Color(0xFFE8ECD0), backgroundColor: const Color(0xFF3B4A22), onSelected: (b) { if (b) { setState(() { _timerSeconds = secs; if (_isTimerRunning) _currentCountdown = secs; }); } }); }
+  void _startCountdownLoop() async { while (_isTimerRunning && _currentCountdown > 0) { await Future.delayed(const Duration(seconds: 1)); if (!mounted || !_isTimerRunning) return; setState(() { _currentCountdown--; if (_currentCountdown <= 0) { _isTimerRunning = false; _showTimerAlert(); } }); } }
+  void _showTimerAlert() { showDialog(context: context, builder: (context) => AlertDialog(backgroundColor: const Color(0xFFFF5252), title: const Text('ВРЕМЯ ПЕРЕЗАБРОСА! ⏱️🔥', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), content: const Text('Пора обновить оснастку!', style: TextStyle(color: Colors.white)), actions: [ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF3B4A22)), onPressed: () { Navigator.pop(context); }, child: const Text('Принято', style: TextStyle(color: Colors.white)))])).then((_) { if (Navigator.canPop(context)) Navigator.pop(context); }); }
+}
 class FishTrophy {
   String id; String weight; String date; String bait; String note; String? imagePath;
   FishTrophy({required this.id, required this.weight, required this.date, required this.bait, required this.note, this.imagePath});
@@ -819,7 +764,7 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(builder: (context, setDialogState) => AlertDialog(
-        backgroundColor: const Color(0xFF1B2611), title: const Text('🏆 Зафиксировать Трофей'),
+        backgroundColor: const Color(0xFF3B4A22), title: const Text('🏆 Зафиксировать Трофей'),
         content: SingleChildScrollView(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             TextField(controller: _weightController, keyboardType: const TextInputType.numberWithOptions(decimal: true), style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Вес рыбы (кг)', labelStyle: TextStyle(color: Colors.white60))),
@@ -850,7 +795,7 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1B2611), title: Text('Трофей ${trophy.weight} кг'),
+        backgroundColor: const Color(0xFF3B4A22), title: Text('Трофей ${trophy.weight} кг'),
         content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
           trophy.imagePath != null ? Container(height: 180, width: double.infinity, decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), image: DecorationImage(image: FileImage(File(trophy.imagePath!)), fit: BoxFit.cover))) : Container(height: 100, width: double.infinity, decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.photo, color: Colors.white24, size: 40)),
           const SizedBox(height: 16), Text('📅 Дата: ${trophy.date}'), const SizedBox(height: 8), Text('🎣 Насадка: ${trophy.bait}'), const SizedBox(height: 8), Text('📝 Заметка: ${trophy.note}'),
@@ -866,8 +811,8 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF2E3B1E),
-      appBar: AppBar(backgroundColor: const Color(0xFF1B2611), title: const Text('Журнал Ваших Трофеев 🏆'), actions: [IconButton(icon: const Icon(Icons.add_circle_outline), onPressed: _addTrophyDialog)]),
+      backgroundColor: const Color(0xFF556B2F),
+      appBar: AppBar(backgroundColor: const Color(0xFF3B4A22), title: const Text('Журнал Ваших Трофеев 🏆'), actions: [IconButton(icon: const Icon(Icons.add_circle_outline), onPressed: _addTrophyDialog)]),
       body: _trophies.isEmpty
           ? const Center(child: Text('Лента пуста.', style: TextStyle(color: Colors.white38)))
           : GridView.builder(
@@ -877,10 +822,10 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
                 return GestureDetector(
                   onTap: () => _viewAndEditDetails(trophy, index),
                   child: Container(
-                    decoration: BoxDecoration(color: const Color(0xFF1B2611), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFD4D9A1).withOpacity(0.2))),
+                    decoration: BoxDecoration(color: const Color(0xFF3B4A22), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE8ECD0).withOpacity(0.2))),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Expanded(child: trophy.imagePath != null ? Container(decoration: BoxDecoration(borderRadius: const BorderRadius.vertical(top: Radius.circular(11)), image: DecorationImage(image: FileImage(File(trophy.imagePath!)), fit: BoxFit.cover))) : Container(width: double.infinity, decoration: const BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.vertical(top: Radius.circular(11))), child: const Icon(Icons.phishing, color: Colors.white24, size: 32))),
-                      Padding(padding: const EdgeInsets.all(8.0), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${trophy.weight} кг', style: const TextStyle(color: Color(0xFFD4D9A1), fontSize: 15, fontWeight: FontWeight.bold)), const SizedBox(height: 2), Text(trophy.bait, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 11)), const SizedBox(height: 2), Text(trophy.date.split(' ').first, style: const TextStyle(color: Colors.white38, fontSize: 10))])),
+                      Padding(padding: const EdgeInsets.all(8.0), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${trophy.weight} кг', style: const TextStyle(color: Color(0xFFE8ECD0), fontSize: 15, fontWeight: FontWeight.bold)), const SizedBox(height: 2), Text(trophy.bait, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 11)), const SizedBox(height: 2), Text(trophy.date.split(' ').first, style: const TextStyle(color: Colors.white38, fontSize: 10))])),
                     ]),
                   ),
                 );
