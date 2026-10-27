@@ -445,7 +445,7 @@ class CarpOutRadarPainter3D extends CustomPainter {
     }
 
     // 2. МАССИВ ДАЛЬНОСТЕЙ ПОЛНОСТЬЮ ЗАПОЛНЕН — ЦИФРЫ ВСТАЛИ НА СВОИ МЕСТА!
-    final List<int> distances =;
+   final List<int> distances = [60, 75, 90, 105, 120, 135, 150];
     
     for (int d in distances) {
       double radius = (d - 55) * maxRadiusPixels / 105;
