@@ -651,6 +651,81 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with TickerProviderStat
       )),
     );
   }
+  void _addStickDialog() {
+    String pvaType = 'Сетка ПВА-стик'; String hookBait = 'Pop-up 10мм (Плавающий)';
+    String selectedMarker = widget.availableMarkers.isNotEmpty ? widget.availableMarkers.first : 'Свободный заброс в сектор';
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(builder: (context, setDialogState) => AlertDialog(
+        backgroundColor: const Color(0xFF2E3B1E), title: const Text('Заброс поискового удилища 🎯'),
+        content: SingleChildScrollView(
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            const Align(alignment: Alignment.centerLeft, child: Text('На какую маркерную точку бросаем:', style: TextStyle(color: Colors.white60, fontSize: 11))),
+            DropdownButton<String>(dropdownColor: const Color(0xFF2E3B1E), value: selectedMarker, isExpanded: true, style: const TextStyle(color: Color(0xFFE8ECD0), fontWeight: FontWeight.bold), items: (widget.availableMarkers.isNotEmpty ? widget.availableMarkers : ['Свободный заброс в сектор']).map((s) => DropdownMenuItem(value: s, child: Text(s, maxLines: 1, overflow: TextOverflow.ellipsis))).toList(), onChanged: (v) { setDialogState(() { selectedMarker = v!; }); }),
+            const SizedBox(height: 8),
+            DropdownButton<String>(dropdownColor: const Color(0xFF2E3B1E), value: pvaType, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['Сетка ПВА-стик', 'ПВА-пакет (с пеллетсом)', '🚫 Без ПВА (одиночная)'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { pvaType = v!; }); }),
+            DropdownButton<String>(dropdownColor: const Color(0xFF2E3B1E), value: hookBait, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['Pop-up 10мм (Плавающий)', 'Wafters (Сбалансированный)', 'Искусственная кукуруза', 'Двойной тонущий 20мм'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { hookBait = v!; }); }),
+          ]),
+        ),
+        actions: [
+          TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена', style: TextStyle(color: Colors.white70))),
+          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)), onPressed: () { final now = DateTime.now(); Navigator.pop(context); String detectedRod = 'Поиск'; if (selectedMarker.contains('[') && selectedMarker.contains(']')) { detectedRod = selectedMarker.substring(selectedMarker.indexOf('[') + 1, selectedMarker.indexOf(']')); } setState(() { _sticks.add(PvaStickLog(id: now.millisecondsSinceEpoch.toString(), pvaType: pvaType, hookBait: hookBait, rodType: detectedRod, time: '${now.hour}:${now.minute.toString().padLeft(2, '0')}')); }); _saveFeedData(); }, child: const Text('В точку!', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+        ],
+      )),
+    );
+  }
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF6B8E23),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF2E3B1E), title: const Text('Тактика Питания & Timing', style: TextStyle(color: Color(0xFFE8ECD0), fontSize: 16, fontWeight: FontWeight.bold)),
+        bottom: TabBar(controller: _tabController, labelColor: const Color(0xFFE8ECD0), unselectedLabelColor: Colors.white54, indicatorColor: const Color(0xFFE8ECD0), tabs: const [Tab(icon: Icon(Icons.restaurant), text: 'Миксы'), Tab(icon: Icon(Icons.gpp_good), text: 'Стики'), Tab(icon: Icon(Icons.timer), text: 'Таймер')]),
+      ),
+      body: TabBarView(controller: _tabController, children: [
+        Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(children: [
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('История кормления сектора:', style: TextStyle(color: Color(0xFFE8ECD0), fontWeight: FontWeight.bold, fontSize: 13)), ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E3B1E), side: const BorderSide(color: Color(0xFFE8ECD0))), onPressed: _addMixDialog, icon: const Icon(Icons.add, color: Color(0xFFE8ECD0), size: 16), label: const Text('Корм', style: TextStyle(color: Color(0xFFE8ECD0), fontSize: 12)))]),
+            const SizedBox(height: 10),
+            Expanded(child: _mixes.isEmpty ? const Center(child: Text('Сводка пуста.', style: TextStyle(color: Colors.white38))) : ListView.builder(itemCount: _mixes.length, itemBuilder: (context, idx) { final m = _mixes[_mixes.length - 1 - idx]; return Card(color: const Color(0xFF2E3B1E), margin: const EdgeInsets.only(bottom: 8), child: ListTile(leading: const Icon(Icons.opacity, color: Color(0xFFC5E1A5)), title: Text(m.liquid, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)), subtitle: Text('База: ${m.boilieType}\nИнфо: ${m.notes}', style: const TextStyle(color: Colors.white70, fontSize: 12)), trailing: IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent, size: 18), onPressed: () { setState(() { _mixes.remove(m); }); _saveFeedData(); }))); })),
+          ]),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(children: [
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('Active насадки:', style: TextStyle(color: Color(0xFFE8ECD0), fontWeight: FontWeight.bold, fontSize: 13)), ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E3B1E), side: const BorderSide(color: Color(0xFFE8ECD0))), onPressed: _addStickDialog, icon: const Icon(Icons.gps_fixed, color: Color(0xFFE8ECD0), size: 16), label: const Text('Заброс', style: TextStyle(color: Color(0xFFE8ECD0), fontSize: 12)))]),
+            const SizedBox(height: 10),
+            Expanded(child: _sticks.isEmpty ? const Center(child: Text('Нет забросов', style: TextStyle(color: Colors.white38))) : ListView.builder(itemCount: _sticks.length, itemBuilder: (context, idx) { final s = _sticks[_sticks.length - 1 - idx]; return Card(color: const Color(0xFF2E3B1E), margin: const EdgeInsets.only(bottom: 8), child: ListTile(leading: const Icon(Icons.track_changes, color: Color(0xFFFF5252)), title: Text('${s.rodType} [${s.time}]', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)), subtitle: Text('ПВА: ${s.pvaType}\nПрезентация: ${s.hookBait}', style: const TextStyle(color: Colors.white70, fontSize: 12)), trailing: IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent, size: 18), onPressed: () { setState(() { _sticks.remove(s); }); _saveFeedData(); }))); })),
+          ]),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            const Text('ТАЙМЕР ОБНОВЛЕНИЯ ТОЧЕК', style: TextStyle(color: Color(0xFFE8ECD0), fontSize: 13, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 24),
+            Container(
+              width: 190, height: 190, decoration: BoxDecoration(color: const Color(0xFF2E3B1E), shape: BoxShape.circle, border: Border.all(color: _isTimerRunning ? const Color(0xFFE8ECD0) : Colors.white24, width: 4)),
+              child: Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Text(_isTimerRunning ? '${(_currentCountdown ~/ 60)}:${(_currentCountdown % 60).toString().padLeft(2, '0')}' : '${(_timerSeconds ~/ 60)}:00', style: TextStyle(fontSize: 42, fontWeight: FontWeight.bold, color: _isTimerRunning ? const Color(0xFFE8ECD0) : Colors.white)), const SizedBox(height: 4), Text(_isTimerRunning ? 'ИДЕТ ОТСЧЕТ' : 'ОЖИДАНИЕ', style: TextStyle(color: _isTimerRunning ? const Color(0xFFC5E1A5) : Colors.white38, fontSize: 10))])),
+            ),
+            const SizedBox(height: 30),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [_buildTimerPresetAction(2400, '40 мин'), const SizedBox(width: 8), _buildTimerPresetAction(3600, '1 час'), const SizedBox(width: 8), _buildTimerPresetAction(7200, '2 часа')]),
+            const SizedBox(height: 35),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              SizedBox(width: 130, height: 48, child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: _isTimerRunning ? Colors.orange.shade900 : const Color(0xFF4A5D32)), onPressed: () { if (_isTimerRunning) { setState(() { _isTimerRunning = false; }); } else { setState(() { _isTimerRunning = true; if (_currentCountdown == 0) { _currentCountdown = _timerSeconds; } }); _startCountdownLoop(); } }, child: Text(_isTimerRunning ? 'Пауза' : 'Старт', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)))),
+              const SizedBox(width: 12),
+              SizedBox(width: 130, height: 48, child: OutlinedButton(style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.white38)), onPressed: () { setState(() { _isTimerRunning = false; _currentCountdown = 0; }); }, child: const Text('Сброс', style: TextStyle(color: Colors.white70)))),
+            ]),
+          ]),
+        ),
+      ]),
+    );
+  }
+
+  Widget _buildTimerPresetAction(int secs, String label) { bool isSelected = _timerSeconds == secs; return ChoiceChip(label: Text(label, style: TextStyle(color: isSelected ? Colors.black87 : Colors.white70, fontWeight: FontWeight.bold, fontSize: 11)), selected: isSelected, selectedColor: const Color(0xFFE8ECD0), backgroundColor: const Color(0xFF2E3B1E), onSelected: (b) { if (b) { setState(() { _timerSeconds = secs; if (_isTimerRunning) _currentCountdown = secs; }); } }); }
+  void _startCountdownLoop() async { while (_isTimerRunning && _currentCountdown > 0) { await Future.delayed(const Duration(seconds: 1)); if (!mounted || !_isTimerRunning) return; setState(() { _currentCountdown--; if (_currentCountdown <= 0) { _isTimerRunning = false; _showTimerAlert(); } }); } }
+  void _showTimerAlert() { showDialog(context: context, builder: (context) => AlertDialog(backgroundColor: const Color(0xFFFF5252), title: const Text('ВРЕМЯ ПЕРЕЗАБРОСА! ⏱️🔥', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), content: const Text('Пора обновить оснастку!', style: TextStyle(color: Colors.white)), actions: [ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E3B1E)), onPressed: () { Navigator.pop(context); }, child: const Text('Принято', style: TextStyle(color: Colors.white)))])).then((_) { if (Navigator.canPop(context)) Navigator.pop(context); }); }
+}
 
   @override
   Widget build(BuildContext context) {
