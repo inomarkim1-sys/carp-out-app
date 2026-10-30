@@ -230,92 +230,45 @@ class CarpOutDashboard extends StatelessWidget {
 
   void _showCatchesDialog(BuildContext context) {
     final controller = TextEditingController(text: catches.toString());
-    showDialog(context: context, builder: (context) => AlertDialog(backgroundColor: const Color(0xFF1B2611), title: const Text('Изменить количество хвостов'), content: TextField(controller: controller, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white)), actions: [TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена')), ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)), onPressed: () { int? val = int.tryParse(controller.text); if (val != null) { Navigator.pop(context); onUpdateStats(val, weight, bigFish); } }, child: const Text('Сохранить'))]));
+    showDialog(context: context, builder: (context) => AlertDialog(backgroundColor: const Color(0xFF2E3B1E), title: const Text('Изменить количество хвостов'), content: TextField(controller: controller, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white)), actions: [TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена', style: TextStyle(color: Colors.white70))), ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)), onPressed: () { int? val = int.tryParse(controller.text); if (val != null) { Navigator.pop(context); onUpdateStats(val, weight, bigFish); } }, child: const Text('Сохранить', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)))]));
   }
 
   void _showWeightDialog(BuildContext context) {
     final controller = TextEditingController(text: weight.toString());
-    showDialog(context: context, builder: (context) => AlertDialog(backgroundColor: const Color(0xFF1B2611), title: const Text('Изменить общий вес улова'), content: TextField(controller: controller, keyboardType: const TextInputType.numberWithOptions(decimal: true), style: const TextStyle(color: Colors.white)), actions: [TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена')), ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)), onPressed: () { double? val = double.tryParse(controller.text); if (val != null) { Navigator.pop(context); onUpdateStats(catches, val, bigFish); } }, child: const Text('Сохранить'))]));
+    showDialog(context: context, builder: (context) => AlertDialog(backgroundColor: const Color(0xFF2E3B1E), title: const Text('Изменить общий вес улова'), content: TextField(controller: controller, keyboardType: const TextInputType.numberWithOptions(decimal: true), style: const TextStyle(color: Colors.white)), actions: [TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена', style: TextStyle(color: Colors.white70))), ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)), onPressed: () { double? val = double.tryParse(controller.text); if (val != null) { Navigator.pop(context); onUpdateStats(catches, val, bigFish); } }, child: const Text('Сохранить', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)))]));
   }
 
   void _showBigFishDialog(BuildContext context) {
     final controller = TextEditingController(text: bigFish);
-    showDialog(context: context, builder: (context) => AlertDialog(backgroundColor: const Color(0xFF1B2611), title: const Text('Обновить трофей BIG FISH'), content: TextField(controller: controller, keyboardType: const TextInputType.numberWithOptions(decimal: true), style: const TextStyle(color: Colors.white)), actions: [TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена')), ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)), onPressed: () { if (controller.text.isNotEmpty) { Navigator.pop(context); onUpdateStats(catches, weight, controller.text); } }, child: const Text('Сохранить'))]));
+    showDialog(context: context, builder: (context) => AlertDialog(backgroundColor: const Color(0xFF2E3B1E), title: const Text('Обновить трофей BIG FISH'), content: TextField(controller: controller, keyboardType: const TextInputType.numberWithOptions(decimal: true), style: const TextStyle(color: Colors.white)), actions: [TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена', style: TextStyle(color: Colors.white70))), ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)), onPressed: () { if (controller.text.isNotEmpty) { Navigator.pop(context); onUpdateStats(catches, weight, controller.text); } }, child: const Text('Сохранить', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)))]));
   }
 
   void _showInTheNetDialog(BuildContext context) {
     final weightController = TextEditingController();
-    showDialog(context: context, builder: (context) => AlertDialog(backgroundColor: const Color(0xFF1B2611), title: const Text('Рыба в подсаке! 🎣'), content: TextField(controller: weightController, style: const TextStyle(color: Colors.white), keyboardType: const TextInputType.numberWithOptions(decimal: true)), actions: [TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена')), ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)), onPressed: () { double inputWeight = double.tryParse(weightController.text) ?? 0.0; if (inputWeight > 0) { Navigator.pop(context); int newCatches = catches + 1; double newTotalWeight = weight + inputWeight; double currentBig = double.tryParse(bigFish) ?? 0.0; String newBigString = bigFish; if (inputWeight > currentBig) { newBigString = inputWeight.toStringAsFixed(3); } onUpdateStats(newCatches, newTotalWeight, newBigString); } }, child: const Text('В журнал!'))]));
+    showDialog(context: context, builder: (context) => AlertDialog(backgroundColor: const Color(0xFF2E3B1E), title: const Text('Рыба в подсаке! 🎣'), content: TextField(controller: weightController, style: const TextStyle(color: Colors.white), keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Вес рыбы (кг)', labelStyle: TextStyle(color: Colors.white60))), actions: [TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена', style: TextStyle(color: Colors.white70))), ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)), onPressed: () { double inputWeight = double.tryParse(weightController.text) ?? 0.0; if (inputWeight > 0) { Navigator.pop(context); int newCatches = catches + 1; double newTotalWeight = weight + inputWeight; double currentBig = double.tryParse(bigFish) ?? 0.0; String newBigString = bigFish; if (inputWeight > currentBig) { newBigString = inputWeight.toStringAsFixed(3); } onUpdateStats(newCatches, newTotalWeight, newBigString); } }, child: const Text('В журнал!', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)))]));
   }
+
   @override
   Widget build(BuildContext context) {
     double averageWeight = catches > 0 ? weight / catches : 0.0;
     return Scaffold(
-      backgroundColor: const Color(0xFF2E3B1E),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 25),
-            Row(children: [IconButton(icon: const Icon(Icons.menu, color: Color(0xFFD4D9A1)), onPressed: () => Scaffold.of(context).openDrawer()), const Text('CarpOut', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFFD4D9A1)))]),
-            const SizedBox(height: 10),
-            Container(
-              width: double.infinity, padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: const Color(0xFF1B2611), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFD4D9A1).withOpacity(0.2))),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(_getCurrentDate(), style: const TextStyle(color: Color(0xFFD4D9A1), fontSize: 13, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 6),
-                Text('ТЕКУЩАЯ СЕССИЯ - ДЛИТЕЛЬНОСТЬ $duration Ч.', style: const TextStyle(color: Colors.white60, fontSize: 11, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text(lake, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-                Text(sector, style: const TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.w500)),
-              ]),
-            ),
-            const SizedBox(height: 24),
-            GridView.count(
-              shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 1.3,
-              children: [
-                GestureDetector(onTap: () => _showCatchesDialog(context), child: _buildStatCard('Всего хвостов', '$catches шт.', Icons.phishing, const Color(0xFF4A5D32))),
-                GestureDetector(onTap: () => _showWeightDialog(context), child: _buildStatCard('Общий вес', '${weight.toStringAsFixed(3)} кг', Icons.scale, const Color(0xFF4A5D32))),
-                GestureDetector(onTap: () => _showCatchesDialog(context), child: _buildStatCard('Средний вес', '${averageWeight.toStringAsFixed(3)} кг', Icons.analytics, const Color(0xFF4A5D32))),
-                GestureDetector(onTap: () => _showBigFishDialog(context), child: _buildStatCard('BIG FISH 🔥', '$bigFish кг', Icons.emoji_events, const Color(0xFFFF5252))),
-              ],
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity, height: 56,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1B2611), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), side: const BorderSide(color: Color(0xFFD4D9A1), width: 1.2)),
-                onPressed: () => _showInTheNetDialog(context),
-                icon: const Icon(Icons.phishing, color: Color(0xFFD4D9A1)),
-                label: const Text('В подсаке! 🎣', style: TextStyle(color: Color(0xFFD4D9A1), fontSize: 18, fontWeight: FontWeight.bold)),
-              ),
-            ),
-          ],
-        ),
-      ),
+      backgroundColor: const Color(0xFF6B8E23),
+      body: SingleChildScrollView(padding: const EdgeInsets.all(16.0), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const SizedBox(height: 25), Row(children: [IconButton(icon: const Icon(Icons.menu, color: Color(0xFFE8ECD0)), onPressed: () => Scaffold.of(context).openDrawer()), const Text('CarpOut', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFFE8ECD0)))]),
+        const SizedBox(height: 10),
+        Container(width: double.infinity, padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: const Color(0xFF2E3B1E), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE8ECD0).withOpacity(0.2))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(_getCurrentDate(), style: const TextStyle(color: Color(0xFFE8ECD0), fontSize: 13, fontWeight: FontWeight.bold)), const SizedBox(height: 6), Text('ТЕКУЩАЯ СЕССИЯ - ДЛИТЕЛЬНОСТЬ $duration Ч.', style: const TextStyle(color: Colors.white60, fontSize: 11, fontWeight: FontWeight.bold)), const SizedBox(height: 4), Text(lake, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)), Text(sector, style: const TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.w500))])),
+        const SizedBox(height: 24),
+        GridView.count(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 1.3, children: [GestureDetector(onTap: () => _showCatchesDialog(context), child: _buildStatCard('Всего хвостов', '$catches шт.', Icons.phishing, const Color(0xFF4A5D32))), GestureDetector(onTap: () => _showWeightDialog(context), child: _buildStatCard('Общий вес', '${weight.toStringAsFixed(3)} кг', Icons.scale, const Color(0xFF4A5D32))), GestureDetector(onTap: () => _showCatchesDialog(context), child: _buildStatCard('Средний вес', '${averageWeight.toStringAsFixed(3)} кг', Icons.analytics, const Color(0xFF4A5D32))), GestureDetector(onTap: () => _showBigFishDialog(context), child: _buildStatCard('BIG FISH 🔥', '$bigFish кг', Icons.emoji_events, const Color(0xFFFF5252)))]),
+        const SizedBox(height: 24),
+        SizedBox(width: double.infinity, height: 56, child: ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E3B1E), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), side: const BorderSide(color: Color(0xFFE8ECD0), width: 1.2)), onPressed: () => _showInTheNetDialog(context), icon: const Icon(Icons.phishing, color: Color(0xFFE8ECD0)), label: const Text('В подсаке! 🎣', style: TextStyle(color: Color(0xFFE8ECD0), fontSize: 18, fontWeight: FontWeight.bold))))
+      ])),
     );
   }
-
-  Widget _buildStatCard(String title, String value, IconData icon, Color iconColor) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: const Color(0xFF1B2611), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFD4D9A1).withOpacity(0.3), width: 1.2)),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-        Row(children: [Icon(icon, color: iconColor, size: 18), const SizedBox(width: 6), Text(title, style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold))]),
-        const SizedBox(height: 8),
-        Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFFD4D9A1))),
-      ]),
-    );
-  }
+  Widget _buildStatCard(String title, String value, IconData icon, Color iconColor) { return Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: const Color(0xFF2E3B1E), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE8ECD0).withOpacity(0.3), width: 1.2)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [Row(children: [Icon(icon, color: iconColor, size: 18), const SizedBox(width: 6), Text(title, style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold))]), const SizedBox(height: 8), Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFFE8ECD0)))])); }
 }
 
 class MarkerPoint {
-  String name; double distance; double depth; String bottomType; double angle;
-  String assignedRod; // Добавили удилище в структуру памяти
-
+  String name; double distance; double depth; String bottomType; double angle; String assignedRod;
   MarkerPoint({required this.name, required this.distance, required this.depth, required this.bottomType, required this.angle, required this.assignedRod});
   Map<String, dynamic> toJson() => {'name': name, 'distance': distance, 'depth': depth, 'bottomType': bottomType, 'angle': angle, 'assignedRod': assignedRod};
   factory MarkerPoint.fromJson(Map<String, dynamic> json) => MarkerPoint(name: json['name'] ?? '', distance: (json['distance'] as num).toDouble(), depth: (json['depth'] as num).toDouble(), bottomType: json['bottomType'] ?? '', angle: (json['angle'] as num).toDouble(), assignedRod: json['assignedRod'] ?? 'Маркер / Свободная');
@@ -329,21 +282,16 @@ class MarkerMapScreenNew extends StatefulWidget {
 }
 
 class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
-   List<MarkerPoint> _points = [];
+  List<MarkerPoint> _points = [];
   final _nameController = TextEditingController();
   final _distanceController = TextEditingController();
   final _depthController = TextEditingController();
   String _selectedBottomType = '🐚 Ракушка';
-  String _selectedRod = 'Рабочее №1'; // Удилище для привязки
-
-  double _dragDistance = 0.0;
-  double _dragAngle = 0.0;
-  bool _isDragging = false;
-
+  String _selectedRod = 'Рабочее №1';
+  double _dragDistance = 0.0; double _dragAngle = 0.0; bool _isDragging = false;
 
   @override
   void initState() { super.initState(); _loadMarkerPoints(); }
-
   @override
   void didUpdateWidget(covariant MarkerMapScreenNew oldWidget) { super.didUpdateWidget(oldWidget); if (oldWidget.lakeKey != widget.lakeKey) { _loadMarkerPoints(); } }
 
@@ -364,42 +312,42 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
     _notifyParent();
   }
 
-    void _notifyParent() {
+  void _notifyParent() {
     List<String> names = _points.map((p) => '${p.name} (${p.distance.toStringAsFixed(1)}м) [${p.assignedRod}]').toList();
     widget.onMarkersChanged(names);
   }
 
-   void _addPointFromRadar(double tappedDistance, double tappedAngle) {
+  void _addPointFromRadar(double tappedDistance, double tappedAngle) {
     _nameController.clear(); _distanceController.text = tappedDistance.toStringAsFixed(1); _depthController.clear();
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: const Color(0xFF1B2611),
+          backgroundColor: const Color(0xFF2E3B1E),
           title: const Text('🎯 Засечь точку ловли', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16)),
           content: SingleChildScrollView(
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-              TextField(controller: _nameController, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Название / Ориентир', labelStyle: TextStyle(color: Colors.white60))),
-              TextField(controller: _distanceController, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Дистанция (метры)', labelStyle: TextStyle(color: Colors.white60))),
-              TextField(controller: _depthController, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Глубина (метры)', labelStyle: TextStyle(color: Colors.white60))),
+              TextField(controller: _nameController, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Название / Ориентир')),
+              TextField(controller: _distanceController, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Дистанция (метры)')),
+              TextField(controller: _depthController, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Глубина (метры)')),
               const SizedBox(height: 12),
               const Align(alignment: Alignment.centerLeft, child: Text('Привязать к рабочему удилищу:', style: TextStyle(color: Colors.white60, fontSize: 11))),
               DropdownButton<String>(
-                dropdownColor: const Color(0xFF1B2611), value: _selectedRod, isExpanded: true, style: const TextStyle(color: Color(0xFFD4D9A1), fontWeight: FontWeight.bold),
+                dropdownColor: const Color(0xFF2E3B1E), value: _selectedRod, isExpanded: true, style: const TextStyle(color: Color(0xFFE8ECD0), fontWeight: FontWeight.bold),
                 items: <String>['Рабочее №1', 'Рабочее №2', 'Рабочее №3', 'Рабочее №4', 'Маркер / Свободная'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
                 onChanged: (v) { setDialogState(() { _selectedRod = v!; }); },
               ),
               const SizedBox(height: 12),
               const Align(alignment: Alignment.centerLeft, child: Text('Структура дна в точке:', style: TextStyle(color: Colors.white60, fontSize: 11))),
               DropdownButton<String>(
-                dropdownColor: const Color(0xFF1B2611), value: _selectedBottomType, isExpanded: true, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                dropdownColor: const Color(0xFF2E3B1E), value: _selectedBottomType, isExpanded: true, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 items: <String>['🐚 Ракушка', '🍃 Ил', '🪨 Камни', '🪵 Коряга', '🏖️ Песок'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
                 onChanged: (v) { setDialogState(() { _selectedBottomType = v!; }); },
               ),
             ]),
           ),
           actions: [
-            TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
+            TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена', style: TextStyle(color: Colors.white70))),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
               onPressed: () async {
@@ -409,7 +357,7 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
                   await _saveMarkerPoints();
                 }
               },
-              child: const Text('В журнал', style: TextStyle(color: Colors.white)),
+              child: const Text('В журнал', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -417,27 +365,26 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF2E3B1E),
+      backgroundColor: const Color(0xFF6B8E23),
       body: LayoutBuilder(builder: (context, constraints) {
         double w = constraints.maxWidth; double h = constraints.maxHeight;
-        double centerX = w / 2; double bottomY = h - 70; // Прижали основание лучей к логотипу CARPOUT
+        double centerX = w / 2; double bottomY = h - 70;
         double maxRadiusPixels = h - 140;
 
         return Stack(children: [
           GestureDetector(
             onPanStart: (details) {
               double dx = details.localPosition.dx - centerX; double dy = bottomY - details.localPosition.dy;
-              if (dy.abs() < 50) { setState(() { _isDragging = true; _dragDistance = 55.0; _dragAngle = dx / maxRadiusPixels; }); }
+              if (dy.abs() < 60) { setState(() { _isDragging = true; _dragDistance = 55.0; _dragAngle = dx / (maxRadiusPixels * 1.1); }); }
             },
             onPanUpdate: (details) {
               if (_isDragging) {
                 double dx = details.localPosition.dx - centerX; double dy = bottomY - details.localPosition.dy;
                 double factor = dy / maxRadiusPixels; if (factor < 0) factor = 0; if (factor > 1) factor = 1;
-                setState(() { _dragDistance = 55.0 + (105.0 * factor); _dragAngle = dx / maxRadiusPixels; });
+                setState(() { _dragDistance = 55.0 + (105.0 * factor); _dragAngle = dx / (maxRadiusPixels * 1.1); });
               }
             },
             onPanEnd: (details) {
@@ -448,23 +395,23 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
           Positioned(
             bottom: 20, right: 20,
             child: FloatingActionButton.extended(
-              backgroundColor: const Color(0xFF1B2611),
-              shape: RoundedRectangleBorder(side: const BorderSide(color: Color(0xFFD4D9A1), width: 1.2), borderRadius: BorderRadius.circular(16)),
+              backgroundColor: const Color(0xFF2E3B1E),
+              shape: RoundedRectangleBorder(side: const BorderSide(color: Color(0xFFE8ECD0), width: 1.2), borderRadius: BorderRadius.circular(16)),
               onPressed: () {
                 showModalBottomSheet(
-                  context: context, backgroundColor: const Color(0xFF2E3B1E), shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+                  context: context, backgroundColor: const Color(0xFF6B8E23), shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
                   builder: (context) => StatefulBuilder(builder: (context, setSheetState) => Column(children: [
                     const SizedBox(height: 12), Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white30, borderRadius: BorderRadius.circular(2))), const SizedBox(height: 16),
-                    const Text('ЖУРНАЛ МАРКЕРНЫХ ТОЧЕК', style: TextStyle(color: Color(0xFFD4D9A1), fontWeight: FontWeight.bold, fontSize: 13)), const SizedBox(height: 12),
+                    const Text('ЖУРНАЛ МАРКЕРНЫХ ТОЧЕК', style: TextStyle(color: Color(0xFFE8ECD0), fontWeight: FontWeight.bold, fontSize: 13)), const SizedBox(height: 12),
                     Expanded(child: _points.isEmpty ? const Center(child: Text('Нет сохраненных точек', style: TextStyle(color: Colors.white38))) : ListView.builder(itemCount: _points.length, itemBuilder: (context, index) {
                       final point = _points[index];
                       return Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5), color: const Color(0xFF1B2611), shape: RoundedRectangleBorder(side: BorderSide(color: const Color(0xFFD4D9A1).withOpacity(0.3))),
+                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5), color: const Color(0xFF2E3B1E), shape: RoundedRectangleBorder(side: BorderSide(color: const Color(0xFFE8ECD0).withOpacity(0.3))),
                         child: ListTile(
                           leading: const Icon(Icons.location_on, color: Color(0xFFFF5252)), title: Text('${point.name} [${point.assignedRod}]', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
                           subtitle: Text('Дно: ${point.bottomType} | Гл: ${point.depth}м', style: const TextStyle(color: Colors.white70, fontSize: 12)),
                           trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-                            Text('${point.distance.toStringAsFixed(1)} м', style: const TextStyle(color: Color(0xFFD4D9A1), fontWeight: FontWeight.bold)),
+                            Text('${point.distance.toStringAsFixed(1)} м', style: const TextStyle(color: Color(0xFFE8ECD0), fontWeight: FontWeight.bold)),
                             IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20), onPressed: () { Navigator.pop(context); setState(() { _points.removeAt(index); }); _saveMarkerPoints(); }),
                           ]),
                         ),
@@ -473,7 +420,7 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
                   ])),
                 );
               },
-              icon: const Icon(Icons.analytics, color: Color(0xFFD4D9A1)), label: const Text('Журнал точек', style: TextStyle(color: Color(0xFFD4D9A1), fontWeight: FontWeight.bold)),
+              icon: const Icon(Icons.analytics, color: Color(0xFFE8ECD0)), label: const Text('Журнал точек', style: TextStyle(color: Color(0xFFE8ECD0), fontWeight: FontWeight.bold)),
             ),
           ),
         ]);
@@ -482,36 +429,33 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
   }
 }
 
-// ===================================================================
-// ЧАСТЬ 2Б: МАТЕМАТИЧЕСКИЙ ОТРИСОВЩИК ЛУЧЕЙ, ДУГ ДАЛЬНОСТИ И 3D-МИШЕНЕЙ
-// ===================================================================
 class CarpOutRadarPainter3D extends CustomPainter {
   final List<MarkerPoint> savedPoints; final double currentDragDist; final double currentDragAngle; final bool isDragging; final double centerX; final double bottomY; final double maxRadius;
   CarpOutRadarPainter3D({required this.savedPoints, required this.currentDragDist, required this.currentDragAngle, required this.isDragging, required this.centerX, required this.bottomY, required this.maxRadius});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final mainPaint = Paint()..color = const Color(0xFFD4D9A1)..strokeWidth = 1.5..style = PaintingStyle.stroke;
-    final dashPaint = Paint()..color = const Color(0xFF4A5D32).withOpacity(0.6)..strokeWidth = 1.0..style = PaintingStyle.stroke;
+    final mainPaint = Paint()..color = const Color(0xFFE8ECD0)..strokeWidth = 1.5..style = PaintingStyle.stroke;
+    final dashPaint = Paint()..color = const Color(0xFF2E3B1E).withOpacity(0.5)..strokeWidth = 1.0..style = PaintingStyle.stroke;
     final pointPaint = Paint()..color = const Color(0xFFFF5252)..style = PaintingStyle.fill;
     final livePaint = Paint()..color = Colors.orangeAccent..style = PaintingStyle.fill;
 
-    final textPaint = TextStyle(color: const Color(0xFFD4D9A1).withOpacity(0.9), fontSize: 10, fontWeight: FontWeight.bold);
-    final markerLabelPaint = TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, backgroundColor: const Color(0xFF1B2611).withOpacity(0.85));
+    final textPaint = TextStyle(color: const Color(0xFFE8ECD0), fontSize: 10, fontWeight: FontWeight.bold);
+    final markerLabelPaint = TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, backgroundColor: const Color(0xFF2E3B1E).withOpacity(0.85));
 
-    for (int angle = -40; angle <= 40; angle += 10) {
-      double pct = angle / 40.0;
-      double endX = centerX + (maxRadius * pct * 0.85); double endY = bottomY - maxRadius;
-      canvas.drawLine(Offset(centerX, bottomY), Offset(endX, endY), (angle % 20 == 0) ? mainPaint : dashPaint);
+    // Увеличенный угол обзора в 120 градусов (по 60 в каждую сторону)
+    for (int angle = -60; angle <= 60; angle += 15) {
+      double pct = angle / 60.0;
+      double endX = centerX + (maxRadius * pct * 1.4); double endY = bottomY - maxRadius;
+      canvas.drawLine(Offset(centerX, bottomY), Offset(endX, endY), (angle % 30 == 0) ? mainPaint : dashPaint);
     }
 
-    // МАССИВ ДУГ ДАЛЬНОСТИ ПОЛНОСТЬЮ ИСПРАВЛЕН И ЗАФИКСИРОВАН
-    final List<int> distances = [60, 75, 90, 105, 120, 135, 150];
+    final List<int> distances =;
     for (int d in distances) {
       double radius = (d - 55) * maxRadius / 105;
-      double startX = centerX - (radius * 0.65); double endX = centerX + (radius * 0.65); double targetY = bottomY - radius;
+      double startX = centerX - (radius * 1.1); double endX = centerX + (radius * 1.1); double targetY = bottomY - radius;
       
-      final path = Path()..moveTo(startX, targetY)..quadraticBezierTo(centerX, targetY + (radius * 0.08), endX, targetY);
+      final path = Path()..moveTo(startX, targetY)..quadraticBezierTo(centerX, targetY + (radius * 0.12), endX, targetY);
       canvas.drawPath(path, mainPaint);
       
       final textPainter = TextPainter(text: TextSpan(text: '${d}м', style: textPaint), textDirection: TextDirection.ltr)..layout();
@@ -520,28 +464,30 @@ class CarpOutRadarPainter3D extends CustomPainter {
 
     for (var point in savedPoints) {
       double r = (point.distance - 55) * maxRadius / 105;
-      double pX = centerX + (r * point.angle * 0.85); double pY = bottomY - r;
+      double pX = centerX + (r * point.angle * 1.1); double pY = bottomY - r;
 
-      canvas.drawCircle(Offset(pX, pY), 5, pointPaint);
-      canvas.drawCircle(Offset(pX, pY), 10, mainPaint..strokeWidth = 1.2);
-      
-      String labelText = '${point.name} (${point.distance.toStringAsFixed(1)}м)\n[${point.assignedRod}] ${point.bottomType}';
-      final labelPainter = TextPainter(text: TextSpan(text: labelText, style: markerLabelPaint), textDirection: TextDirection.ltr)..layout();
-      labelPainter.paint(canvas, Offset(pX + 12, pY - 12));
+      if (pY >= bottomY - maxRadius - 40 && pY <= bottomY + 20) {
+        canvas.drawCircle(Offset(pX, pY), 5, pointPaint);
+        canvas.drawCircle(Offset(pX, pY), 10, mainPaint..strokeWidth = 1.2);
+        
+        String labelText = '${point.name} (${point.distance.toStringAsFixed(1)}м)\n[${point.assignedRod}] ${point.bottomType}';
+        final labelPainter = TextPainter(text: TextSpan(text: labelText, style: markerLabelPaint), textDirection: TextDirection.ltr)..layout();
+        labelPainter.paint(canvas, Offset(pX + 12, pY - 12));
+      }
     }
 
     if (isDragging) {
       double r = (currentDragDist - 55) * maxRadius / 105;
-      double pX = centerX + (r * currentDragAngle * 0.85); double pY = bottomY - r;
+      double pX = centerX + (r * currentDragAngle * 1.1); double pY = bottomY - r;
 
       canvas.drawCircle(Offset(pX, pY), 7, livePaint);
-      canvas.drawLine(Offset(centerX, bottomY), Offset(pX, pY), livePaint..strokeWidth = 1.0);
+      canvas.drawLine(Offset(centerX, bottomY), Offset(pX, pY), livePaint..strokeWidth = 1.2);
 
       final liveLabel = TextPainter(text: TextSpan(text: 'ЗАБРОС: ${currentDragDist.toStringAsFixed(1)} м', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 11, backgroundColor: Colors.orangeAccent)), textDirection: TextDirection.ltr)..layout();
       liveLabel.paint(canvas, Offset(pX - liveLabel.width / 2, pY - 24));
     }
 
-    final logoPainter = TextPainter(text: const TextSpan(text: 'CARPOUT', style: TextStyle(color: Color(0xFFD4D9A1), fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2)), textDirection: TextDirection.ltr)..layout();
+    final logoPainter = TextPainter(text: const TextSpan(text: 'CARPOUT', style: TextStyle(color: Color(0xFFE8ECD0), fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2)), textDirection: TextDirection.ltr)..layout();
     logoPainter.paint(canvas, Offset(centerX - logoPainter.width / 2, bottomY + 20));
   }
 
@@ -639,7 +585,7 @@ class PvaStickLog {
 }
 
 class CarpFeedScreen extends StatefulWidget {
-  final String lakeKey; final List<String> availableMarkers; // Передаем список маркерных точек для автоподстановки
+  final String lakeKey; final List<String> availableMarkers;
   const CarpFeedScreen({Key? key, required this.lakeKey, required this.availableMarkers}) : super(key: key);
   @override
   _CarpFeedScreenState createState() => _CarpFeedScreenState();
@@ -669,55 +615,43 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with TickerProviderStat
     await prefs.setString('feed_mixes_${widget.lakeKey}', jsonEncode(_mixes.map((m) => m.toJson()).toList()));
     await prefs.setString('feed_sticks_${widget.lakeKey}', jsonEncode(_sticks.map((s) => s.toJson()).toList()));
   }
-
   void _addMixDialog() {
-    String liquid = '🍓 Клубничный Ликвид'; String boilieType = 'Вареные бойлы'; String boilieSize = 'Крушеные бойлы'; final notesCtrl = TextEditingController();
+    String baseLiquid = '🍓 Ликвид'; 
+    String liquidFlavor = '🍓 Клубника';
+    String boilieType = 'Вареные бойлы'; 
+    String boilieSize = 'Крушеные бойлы'; 
+    final notesCtrl = TextEditingController();
     String selectedMarker = widget.availableMarkers.isNotEmpty ? widget.availableMarkers.first : 'Свободный закорм сектора';
+
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(builder: (context, setDialogState) => AlertDialog(
-        backgroundColor: const Color(0xFF1B2611), title: const Text('Записать Сподовый Микс 🪣'),
+        backgroundColor: const Color(0xFF2E3B1E), title: const Text('Записать Сподовый Микс 🪣'),
         content: SingleChildScrollView(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            const Align(alignment: Alignment.centerLeft, child: Text('Выбрать точку на маркере:', style: TextStyle(color: Colors.white60, fontSize: 11))),
-            DropdownButton<String>(dropdownColor: const Color(0xFF1B2611), value: selectedMarker, isExpanded: true, style: const TextStyle(color: Color(0xFFD4D9A1), fontWeight: FontWeight.bold), items: (widget.availableMarkers.isNotEmpty ? widget.availableMarkers : ['Свободный закорм сектора']).map((s) => DropdownMenuItem(value: s, child: Text(s, maxLines: 1, overflow: TextOverflow.ellipsis))).toList(), onChanged: (v) { setDialogState(() { selectedMarker = v!; }); }),
+            const Align(alignment: Alignment.centerLeft, child: Text('Точка ловли на маркере:', style: TextStyle(color: Colors.white60, fontSize: 11))),
+            DropdownButton<String>(dropdownColor: const Color(0xFF2E3B1E), value: selectedMarker, isExpanded: true, style: const TextStyle(color: Color(0xFFE8ECD0), fontWeight: FontWeight.bold), items: (widget.availableMarkers.isNotEmpty ? widget.availableMarkers : ['Свободный закорм сектора']).map((s) => DropdownMenuItem(value: s, child: Text(s, maxLines: 1, overflow: TextOverflow.ellipsis))).toList(), onChanged: (v) { setDialogState(() { selectedMarker = v!; }); }),
             const SizedBox(height: 8),
-            DropdownButton<String>(dropdownColor: const Color(0xFF1B2611), value: liquid, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['🍓 Клубничный Ликвид', '🍍 Ананасовый Амино', '🧄 Чесночный CSL', '🦀 Криль Натурал', '🚫 Без ликвида'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { liquid = v!; }); }),
-            DropdownButton<String>(dropdownColor: const Color(0xFF1B2611), value: boilieType, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['Вареные бойлы', 'Растворимые бойлы', 'Пеллетс жирный', 'Зерновой микс'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { boilieType = v!; }); }),
-            DropdownButton<String>(dropdownColor: const Color(0xFF1B2611), value: boilieSize, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['Целые бойлы', 'Резаные (половинки)', 'Крушеные бойлы', 'Микс фракций'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { boilieSize = v!; }); }),
-            TextField(controller: notesCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Заметка (кол-во спомбов)', labelStyle: TextStyle(color: Colors.white60))),
+            const Align(alignment: Alignment.centerLeft, child: Text('Шаг 1: Жидкая база закорма:', style: TextStyle(color: Colors.white60, fontSize: 11))),
+            DropdownButton<String>(dropdownColor: const Color(0xFF2E3B1E), value: baseLiquid, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['💧 CSL', '🍓 Ликвид', '🧪 Бустер', '🚫 Без заливки'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { baseLiquid = v!; }); }),
+            const SizedBox(height: 8),
+            const Align(alignment: Alignment.centerLeft, child: Text('Шаг 2: Ароматика / Вкус:', style: TextStyle(color: Colors.white60, fontSize: 11))),
+            DropdownButton<String>(dropdownColor: const Color(0xFF2E3B1E), value: liquidFlavor, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['🍓 Клубника', '🍍 Ананас', '🧄 Чеснок', '🦀 Криль', '🥥 Слива / Кокос'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { liquidFlavor = v!; }); }),
+            const SizedBox(height: 8),
+            const Align(alignment: Alignment.centerLeft, child: Text('Шаг 3: Сухой корм / Фракция:', style: TextStyle(color: Colors.white60, fontSize: 11))),
+            DropdownButton<String>(dropdownColor: const Color(0xFF2E3B1E), value: boilieType, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['Вареные бойлы', 'Растворимые бойлы', 'Пеллетс жирный', 'Зерновой микс (конопля/кукуруза)'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { boilieType = v!; }); }),
+            DropdownButton<String>(dropdownColor: const Color(0xFF2E3B1E), value: boilieSize, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['Целые бойлы', 'Резаные (половинки)', 'Крушеные бойлы', 'Микс фракций'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { boilieSize = v!; }); }),
+            TextField(controller: notesCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Кол-во спомбов / Заметки', labelStyle: TextStyle(color: Colors.white60))),
           ]),
         ),
         actions: [
-          TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена')),
-          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)), onPressed: () { Navigator.pop(context); setState(() { _mixes.add(BaitMix(id: DateTime.now().millisecondsSinceEpoch.toString(), liquid: liquid, boilieType: boilieType, boilieSize: boilieSize, notes: '${notesCtrl.text.isEmpty ? 'Плановое кормление' : notesCtrl.text} -> Точка: $selectedMarker')); }); _saveFeedData(); }, child: const Text('Всыпать')),
+          TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена', style: TextStyle(color: Colors.white70))),
+          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)), onPressed: () { Navigator.pop(context); setState(() { _mixes.add(BaitMix(id: DateTime.now().millisecondsSinceEpoch.toString(), liquid: '$baseLiquid ($liquidFlavor)', boilieType: boilieType, boilieSize: boilieSize, notes: '${notesCtrl.text.isEmpty ? 'Плановое кормление' : notesCtrl.text} -> Точка: $selectedMarker')); }); _saveFeedData(); }, child: const Text('Всыпать', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
         ],
       )),
     );
   }
-  void _addStickDialog() {
-    String pvaType = 'Сетка ПВА-стик'; String hookBait = 'Pop-up 10мм (Плавающий)';
-    String selectedMarker = widget.availableMarkers.isNotEmpty ? widget.availableMarkers.first : 'Свободный заброс в сектор';
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(builder: (context, setDialogState) => AlertDialog(
-        backgroundColor: const Color(0xFF3B4A22), title: const Text('Заброс поискового удилища 🎯'),
-        content: SingleChildScrollView(
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            const Align(alignment: Alignment.centerLeft, child: Text('На какую маркерную точку бросаем:', style: TextStyle(color: Colors.white60, fontSize: 11))),
-            DropdownButton<String>(dropdownColor: const Color(0xFF3B4A22), value: selectedMarker, isExpanded: true, style: const TextStyle(color: Color(0xFFE8ECD0), fontWeight: FontWeight.bold), items: (widget.availableMarkers.isNotEmpty ? widget.availableMarkers : ['Свободный заброс в сектор']).map((s) => DropdownMenuItem(value: s, child: Text(s, maxLines: 1, overflow: TextOverflow.ellipsis))).toList(), onChanged: (v) { setDialogState(() { selectedMarker = v!; }); }),
-            const SizedBox(height: 8),
-            DropdownButton<String>(dropdownColor: const Color(0xFF3B4A22), value: pvaType, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['Сетка ПВА-стик', 'ПВА-пакет (с пеллетсом)', '🚫 Без ПВА (одиночная)'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { pvaType = v!; }); }),
-            DropdownButton<String>(dropdownColor: const Color(0xFF3B4A22), value: hookBait, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['Pop-up 10мм (Плавающий)', 'Wafters (Сбалансированный)', 'Искусственная кукуруза', 'Двойной тонущий 20мм'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { hookBait = v!; }); }),
-          ]),
-        ),
-        actions: [
-          TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена', style: TextStyle(color: Colors.white60))),
-          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)), onPressed: () { final now = DateTime.now(); Navigator.pop(context); String detectedRod = 'Поиск'; if (selectedMarker.contains('[') && selectedMarker.contains(']')) { detectedRod = selectedMarker.substring(selectedMarker.indexOf('[') + 1, selectedMarker.indexOf(']')); } setState(() { _sticks.add(PvaStickLog(id: now.millisecondsSinceEpoch.toString(), pvaType: pvaType, hookBait: hookBait, rodType: detectedRod, time: '${now.hour}:${now.minute.toString().padLeft(2, '0')}')); }); _saveFeedData(); }, child: const Text('В точку!')),
-        ],
-      )),
-    );
-  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
