@@ -419,7 +419,7 @@ class CarpOutRadarPainter3D extends CustomPainter {
       canvas.drawLine(Offset(centerX, bottomY), Offset(endX, endY), (angle % 30 == 0) ? mainPaint : dashPaint);
     }
 
-    final List<int> distances =;
+    final List<int> distances = [60, 75, 90, 105, 120, 135, 150];
     for (int d in distances) {
       double radius = (d - 55) * maxRadius / 105;
       double startX = centerX - (radius * 1.1); double endX = centerX + (radius * 1.1); double targetY = bottomY - radius;
