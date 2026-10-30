@@ -18,22 +18,22 @@ class CarpOutApp extends StatelessWidget {
       title: 'CarpOut',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primaryColor: const Color(0xFF556B2F), // Светлая тактическая олива
-        scaffoldBackgroundColor: const Color(0xFF556B2F), // Освежённый фоновый тон
+        primaryColor: const Color(0xFF6B8E23), // Ещё более светлая полевая олива для солнца
+        scaffoldBackgroundColor: const Color(0xFF6B8E23), // Освежённый фоновый тон
         dialogTheme: const DialogThemeData(
-          backgroundColor: Color(0xFF3B4A22), // Плотный хаки для окон
+          backgroundColor: const Color(0xFF2E3B1E), // Контрастный плотный хаки для окон
           titleTextStyle: TextStyle(color: Color(0xFFE8ECD0), fontSize: 18, fontWeight: FontWeight.bold),
-          contentTextStyle: TextStyle(color: Colors.white70),
+          contentTextStyle: TextStyle(color: Colors.white),
         ),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF3B4A22), // Контрастная шапка
+          backgroundColor: Color(0xFF2E3B1E), 
           iconTheme: IconThemeData(color: Color(0xFFE8ECD0)),
           titleTextStyle: TextStyle(color: Color(0xFFE8ECD0), fontSize: 16, fontWeight: FontWeight.bold),
         ),
         colorScheme: ColorScheme.fromSwatch().copyWith(
-          primary: const Color(0xFF556B2F),
-          secondary: const Color(0xFF6B8E23),
-          surface: const Color(0xFF3B4A22),
+          primary: const Color(0xFF6B8E23),
+          secondary: const Color(0xFF8B0000), // Тактический тёмно-красный акцент
+          surface: const Color(0xFF2E3B1E),
         ),
       ),
       home: const MainNavigationScreen(),
@@ -44,7 +44,7 @@ class CarpOutApp extends StatelessWidget {
 class CarpOutAppIconPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final bgPaint = Paint()..color = const Color(0xFF3B4A22)..style = PaintingStyle.fill;
+    final bgPaint = Paint()..color = const Color(0xFF2E3B1E)..style = PaintingStyle.fill;
     final borderPaint = Paint()..color = const Color(0xFFE8ECD0)..strokeWidth = 2.5..style = PaintingStyle.stroke;
     final fishPaint = Paint()..color = const Color(0xFFE8ECD0)..style = PaintingStyle.fill;
 
@@ -63,12 +63,13 @@ class CarpOutAppIconPainter extends CustomPainter {
     path.quadraticBezierTo(w * 0.33, h * 0.64, w * 0.28, h * 0.58);
     canvas.drawPath(path, fishPaint);
 
-     final textPainter = TextPainter(text: const TextSpan(text: 'CARPOUT', style: TextStyle(color: Color(0xFFD4D9A1), fontSize: 9.5, fontWeight: FontWeight.bold, letterSpacing: 1.5)), textDirection: TextDirection.ltr)..layout();
+    final textPainter = TextPainter(text: const TextSpan(text: 'CARPOUT', style: TextStyle(color: Color(0xFFE8ECD0), fontSize: 9.5, fontWeight: FontWeight.bold, letterSpacing: 1.5)), textDirection: TextDirection.ltr)..layout();
     textPainter.paint(canvas, Offset(w / 2 - textPainter.width / 2, h * 0.22));
   }
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({Key? key}) : super(key: key);
   @override
@@ -83,95 +84,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   String _sessionDuration = '24';
   int _catchesCount = 0; double _totalWeight = 0.0; String _bigFishWeight = '0.000';
   List<String> _markerNames = [];
-
-  @override
-  void initState() { super.initState(); _loadAllAppData(); }
-
-  Future<void> _loadAllAppData() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _selectedLake = prefs.getString('currentLake') ?? 'гранный';
-      _sectorName = prefs.getString('sector_$_selectedLake') ?? 'Сектор №1';
-      _sessionDuration = prefs.getString('duration_$_selectedLake') ?? '24';
-      _catchesCount = prefs.getInt('catches_$_selectedLake') ?? 0;
-      _totalWeight = prefs.getDouble('weight_$_selectedLake') ?? 0.0;
-      _bigFishWeight = prefs.getString('big_$_selectedLake') ?? '0.000';
-      final String? lakesJson = prefs.getString('lakesList');
-      if (lakesJson != null) { _lakesList = List<String>.from(jsonDecode(lakesJson)); }
-      final String? pointsJson = prefs.getString('markers_$_selectedLake');
-      if (pointsJson != null) { _markerNames = (jsonDecode(pointsJson) as List).map((item) => item['name'] as String).toList(); }
-    });
-  }
-
-  Future<void> _saveAllAppData() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('currentLake', _selectedLake);
-    await prefs.setString('lakesList', jsonEncode(_lakesList));
-    await prefs.setString('sector_$_selectedLake', _sectorName);
-    await prefs.setString('duration_$_selectedLake', _sessionDuration);
-    await prefs.setInt('catches_$_selectedLake', _catchesCount);
-    await prefs.setDouble('weight_$_selectedLake', _totalWeight);
-    await prefs.setString('big_$_selectedLake', _bigFishWeight);
-  }
-
-  void _updateMarkersList(List<String> newMarkers) { setState(() { _markerNames = newMarkers; }); }
-
-  void _addNewLakeDialog() {
-    final controller = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1B2611),
-        title: const Text('Добавить новый водоем'),
-        content: TextField(controller: controller, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Название озера/реки', labelStyle: TextStyle(color: Colors.white60))),
-        actions: [
-          TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
-            onPressed: () async {
-              if (controller.text.isNotEmpty && !_lakesList.contains(controller.text)) {
-                Navigator.pop(context);
-                setState(() { _lakesList.add(controller.text); _selectedLake = controller.text; _sectorName = 'Сектор №1'; _sessionDuration = '24'; _catchesCount = 0; _totalWeight = 0.0; _bigFishWeight = '0.000'; _markerNames = []; });
-                await _saveAllAppData(); await _loadAllAppData();
-              }
-            },
-            child: const Text('Создать'),
-          ),
-        ],
-      ),
-    );
-  }
-  @override
-  Widget build(BuildContext context) {
-    final List<Widget> _screens = [
-      CarpOutDashboard(lake: _selectedLake, sector: _sectorName, duration: _sessionDuration, catches: _catchesCount, weight: _totalWeight, bigFish: _bigFishWeight, availableMarkers: _markerNames, onUpdateSession: (l, s, d) async { setState(() { _sectorName = s; _sessionDuration = d; }); await _saveAllAppData(); }, onUpdateStats: (c, w, b) async { setState(() { _catchesCount = c; _totalWeight = w; _bigFishWeight = b; }); await _saveAllAppData(); }),
-      MarkerMapScreenNew(lakeKey: _selectedLake, onMarkersChanged: _updateMarkersList),
-      const CarpClipsCalculator(),
-      CarpFeedScreen(lakeKey: _selectedLake, availableMarkers: _markerNames),
-      FishSocialScreen(lakeKey: _selectedLake),
-    ];
-    return Scaffold(
-      drawer: Drawer(
-        backgroundColor: const Color(0xFF2E3B1E),
-        child: Column(children: [
-          UserAccountsDrawerHeader(decoration: const BoxDecoration(color: Color(0xFF1B2611)), accountName: const Text('CarpOut Тактический Центр', style: TextStyle(fontWeight: FontWeight.bold)), accountEmail: const Text('Локальные сессии рыбалки'), currentAccountPicture: CustomPaint(painter: CarpOutAppIconPainter())),
-          Padding(padding: const EdgeInsets.symmetric(horizontal: 16.0), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('СПИСОК ВОДОЕМОВ:', style: TextStyle(color: Color(0xFFD4D9A1), fontWeight: FontWeight.bold)), IconButton(icon: const Icon(Icons.add_circle, color: Color(0xFFD4D9A1)), onPressed: _addNewLakeDialog)])),
-          Expanded(child: ListView.builder(itemCount: _lakesList.length, itemBuilder: (context, index) {
-            final lakeItem = _lakesList[index]; bool isCurrent = lakeItem == _selectedLake;
-            final sectorCtrl = TextEditingController(text: isCurrent ? _sectorName : 'Сектор №1'); final durationCtrl = TextEditingController(text: isCurrent ? _sessionDuration : '24');
-            return Theme(data: ThemeData(unselectedWidgetColor: Colors.white70), child: ExpansionTile(
-              leading: Icon(Icons.water, color: isCurrent ? const Color(0xFFD4D9A1) : Colors.white70), title: Text(lakeItem, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              trailing: Row(mainAxisSize: MainAxisSize.min, children: [if (isCurrent) const Icon(Icons.check_circle, color: Color(0xFFD4D9A1), size: 20), IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20), onPressed: () async { if (_lakesList.length > 1) { Navigator.pop(context); setState(() { _lakesList.remove(lakeItem); if (isCurrent) _selectedLake = _lakesList.first; }); await _saveAllAppData(); await _loadAllAppData(); } })]),
-              children: [Container(padding: const EdgeInsets.all(12), margin: const EdgeInsets.all(8), decoration: BoxDecoration(color: const Color(0xFF1B2611), borderRadius: BorderRadius.circular(12)), child: Column(children: [TextField(controller: sectorCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Сектор ловли')), TextField(controller: durationCtrl, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Длительность сессии')), ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)), onPressed: () async { Navigator.pop(context); setState(() { _selectedLake = lakeItem; _sectorName = sectorCtrl.text; _sessionDuration = durationCtrl.text; }); await _saveAllAppData(); await _loadAllAppData(); }, child: const Text('Выбрать и применить'))]))],
-            ));
-          }))
-        ]),
-      ),
-      body: IndexedStack(index: _currentIndex, children: _screens),
-      bottomNavigationBar: BottomNavigationBar(currentIndex: _currentIndex, type: BottomNavigationBarType.fixed, backgroundColor: const Color(0xFF3B4A22), selectedItemColor: const Color(0xFFE8ECD0), unselectedItemColor: Colors.white54, onTap: (idx) { setState(() { _currentIndex = idx; }); }, items: const [BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Инфо'), BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Маркер'), BottomNavigationBarItem(icon: Icon(Icons.calculate), label: 'Клипса'), BottomNavigationBarItem(icon: Icon(Icons.restaurant), label: 'Корм'), BottomNavigationBarItem(icon: Icon(Icons.photo_library), label: 'Трофеи')]),
-    );
-  }
-}
+  String _anglerName = 'Карпятник'; // Переменная для кастомного имени в шторке
 
 class CarpOutDashboard extends StatelessWidget {
   final String lake; final String sector; final String duration; final int catches; final double weight; final String bigFish; final List<String> availableMarkers; final Function(String, String, String) onUpdateSession; final Function(int, double, String) onUpdateStats;
