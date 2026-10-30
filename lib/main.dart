@@ -716,6 +716,119 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with TickerProviderStat
   void _startCountdownLoop() async { while (_isTimerRunning && _currentCountdown > 0) { await Future.delayed(const Duration(seconds: 1)); if (!mounted || !_isTimerRunning) return; setState(() { _currentCountdown--; if (_currentCountdown <= 0) { _isTimerRunning = false; _showTimerAlert(); } }); } }
   void _showTimerAlert() { showDialog(context: context, builder: (context) => AlertDialog(backgroundColor: const Color(0xFFFF5252), title: const Text('ВРЕМЯ ПЕРЕЗАБРОСА! ⏱️🔥', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), content: const Text('Пора обновить оснастку!', style: TextStyle(color: Colors.white)), actions: [ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E3B1E)), onPressed: () { Navigator.pop(context); }, child: const Text('Принято', style: TextStyle(color: Colors.white)))])).then((_) { if (Navigator.canPop(context)) Navigator.pop(context); }); }
 } // КЛАСС ЭКРАНА ПИТАНИЯ ГЕРМЕТИЧНО ЗАКРЫТ СКОБКОЙ!
+class FishTrophy {
+  String id; String weight; String date; String bait; String note; String? imagePath;
+  FishTrophy({required this.id, required this.weight, required this.date, required this.bait, required this.note, this.imagePath});
+  Map<String, dynamic> toJson() => {'id': id, 'weight': weight, 'date': date, 'bait': bait, 'note': note, 'imagePath': imagePath};
+  factory FishTrophy.fromJson(Map<String, dynamic> json) => FishTrophy(id: json['id'] ?? '', weight: json['weight'] ?? '0.000', date: json['date'] ?? '', bait: json['bait'] ?? '', note: json['note'] ?? '', imagePath: json['imagePath']);
+}
+
+class FishSocialScreen extends StatefulWidget {
+  final String lakeKey;
+  const FishSocialScreen({Key? key, required this.lakeKey}) : super(key: key);
+  @override
+  _FishSocialScreenState createState() => _FishSocialScreenState();
+}
+
+class _FishSocialScreenState extends State<FishSocialScreen> {
+  List<FishTrophy> _trophies = []; final _weightController = TextEditingController(); final _baitController = TextEditingController(); final _noteController = TextEditingController(); String? _selectedImagePath; final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() { super.initState(); _loadTrophies(); }
+  @override
+  void didUpdateWidget(covariant FishSocialScreen oldWidget) { super.didUpdateWidget(oldWidget); if (oldWidget.lakeKey != widget.lakeKey) { _loadTrophies(); } }
+
+  Future<void> _loadTrophies() async {
+    final prefs = await SharedPreferences.getInstance(); final String? trophiesJson = prefs.getString('trophies_${widget.lakeKey}');
+    setState(() { if (trophiesJson != null) { final List<dynamic> decoded = jsonDecode(trophiesJson); _trophies = decoded.map((item) => FishTrophy.fromJson(item)).toList(); } else { _trophies = []; } _sortTrophies(); });
+  }
+
+  Future<void> _saveTrophies() async { final prefs = await SharedPreferences.getInstance(); final String encoded = jsonEncode(_trophies.map((t) => t.toJson()).toList()); await prefs.setString('trophies_${widget.lakeKey}', encoded); }
+  void _sortTrophies() { _trophies.sort((a, b) => b.id.compareTo(a.id)); }
+
+  Future<void> _pickImage(ImageSource source, Function setDialogState) async {
+    final XFile? pickedFile = await _picker.pickImage(source: source, imageQuality: 85);
+    if (pickedFile != null) {
+      final Directory appDir = await getApplicationDocumentsDirectory(); final String fileName = 'trophy_${DateTime.now().millisecondsSinceEpoch}.png'; final File savedImage = await File(pickedFile.path).copy('${appDir.path}/$fileName');
+      setDialogState(() { _selectedImagePath = savedImage.path; });
+    }
+  }
+
+  void _addTrophyDialog() {
+    _weightController.clear(); _baitController.clear(); _noteController.clear(); _selectedImagePath = null;
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(builder: (context, setDialogState) => AlertDialog(
+        backgroundColor: const Color(0xFF2E3B1E), title: const Text('🏆 Зафиксировать Трофей'),
+        content: SingleChildScrollView(
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            TextField(controller: _weightController, keyboardType: const TextInputType.numberWithOptions(decimal: true), style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Вес рыбы (кг)', labelStyle: TextStyle(color: Colors.white60))),
+            TextField(controller: _baitController, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Насадка / Презентация', labelStyle: TextStyle(color: Colors.white60))),
+            TextField(controller: _noteController, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Заметка', labelStyle: TextStyle(color: Colors.white60))),
+            const SizedBox(height: 16),
+            _selectedImagePath != null ? Container(height: 100, width: double.infinity, decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), image: DecorationImage(image: FileImage(File(_selectedImagePath!)), fit: BoxFit.cover))) : const Text('Фото не выбрано', style: TextStyle(color: Colors.white38, fontSize: 12)),
+            const SizedBox(height: 12),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+              ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)), onPressed: () => _pickImage(ImageSource.camera, setDialogState), icon: const Icon(Icons.camera_alt, size: 16), label: const Text('Камера', style: TextStyle(fontSize: 11))),
+              ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)), onPressed: () => _pickImage(ImageSource.gallery, setDialogState), icon: const Icon(Icons.photo_library, size: 16), label: const Text('Галерея', style: TextStyle(fontSize: 11))),
+            ]),
+          ]),
+        ),
+        actions: [
+          TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена', style: TextStyle(color: Colors.white70))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)),
+            onPressed: () async { if (_weightController.text.isNotEmpty) { Navigator.pop(context); final now = DateTime.now(); setState(() { _trophies.add(FishTrophy(id: now.millisecondsSinceEpoch.toString(), weight: _weightController.text, date: '${now.day}.${now.month}.${now.year}', bait: _baitController.text.isEmpty ? 'Не указана' : _baitController.text, note: _noteController.text.isEmpty ? 'Без заметок' : _noteController.text, imagePath: _selectedImagePath)); _sortTrophies(); }); await _saveTrophies(); } },
+            child: const Text('В журнал', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      )),
+    );
+  }
+
+  void _viewAndEditDetails(FishTrophy trophy, int index) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF2E3B1E), title: Text('Трофей ${trophy.weight} кг'),
+        content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          trophy.imagePath != null ? Container(height: 180, width: double.infinity, decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), image: DecorationImage(image: FileImage(File(trophy.imagePath!)), fit: BoxFit.cover))) : Container(height: 100, width: double.infinity, decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.photo, color: Colors.white24, size: 40)),
+          const SizedBox(height: 16), Text('📅 Дата: ${trophy.date}'), const SizedBox(height: 8), Text('🎣 Насадка: ${trophy.bait}'), const SizedBox(height: 8), Text('📝 Заметка: ${trophy.note}'),
+        ]),
+        actions: [
+          TextButton(style: TextButton.styleFrom(foregroundColor: Colors.redAccent), onPressed: () async { Navigator.pop(context); setState(() { _trophies.removeAt(index); }); await _saveTrophies(); }, child: const Text('Удалить')),
+          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)), onPressed: () { Navigator.pop(context); }, child: const Text('Закрыть')),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF6B8E23),
+      appBar: AppBar(backgroundColor: const Color(0xFF2E3B1E), title: const Text('Журнал Ваших Трофеев 🏆'), actions: [IconButton(icon: const Icon(Icons.add_circle_outline), onPressed: _addTrophyDialog)]),
+      body: _trophies.isEmpty
+          ? const Center(child: Text('Лента пуста.', style: TextStyle(color: Colors.white38)))
+          : GridView.builder(
+              padding: const EdgeInsets.all(12), gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 0.82), itemCount: _trophies.length,
+              itemBuilder: (context, index) {
+                final trophy = _trophies[index];
+                return GestureDetector(
+                  onTap: () => _viewAndEditDetails(trophy, index),
+                  child: Container(
+                    decoration: BoxDecoration(color: const Color(0xFF2E3B1E), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE8ECD0).withOpacity(0.2))),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Expanded(child: trophy.imagePath != null ? Container(decoration: BoxDecoration(borderRadius: const BorderRadius.vertical(top: Radius.circular(11)), image: DecorationImage(image: FileImage(File(trophy.imagePath!)), fit: BoxFit.cover))) : Container(width: double.infinity, decoration: const BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.vertical(top: Radius.circular(11))), child: const Icon(Icons.phishing, color: Colors.white24, size: 32))),
+                      Padding(padding: const EdgeInsets.all(8.0), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${trophy.weight} кг', style: const TextStyle(color: Color(0xFFE8ECD0), fontSize: 15, fontWeight: FontWeight.bold)), const SizedBox(height: 2), Text(trophy.bait, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 11)), const SizedBox(height: 2), Text(trophy.date.split(' ').first, style: const TextStyle(color: Colors.white38, fontSize: 10))])),
+                    ]),
+                  ),
+                );
+              },
+            ),
+    );
+  }
+}
 
   @override
   Widget build(BuildContext context) {
