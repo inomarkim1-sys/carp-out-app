@@ -439,11 +439,9 @@ class CarpOutRadarPainter3D extends CustomPainter {
     final dashPaint = Paint()..color = const Color(0xFF2E3B1E).withOpacity(0.5)..strokeWidth = 1.0..style = PaintingStyle.stroke;
     final pointPaint = Paint()..color = const Color(0xFFFF5252)..style = PaintingStyle.fill;
     final livePaint = Paint()..color = Colors.orangeAccent..style = PaintingStyle.fill;
-
     final textPaint = TextStyle(color: const Color(0xFFE8ECD0), fontSize: 10, fontWeight: FontWeight.bold);
     final markerLabelPaint = TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, backgroundColor: const Color(0xFF2E3B1E).withOpacity(0.85));
 
-    // Увеличенный угол обзора в 120 градусов (по 60 в каждую сторону)
     for (int angle = -60; angle <= 60; angle += 15) {
       double pct = angle / 60.0;
       double endX = centerX + (maxRadius * pct * 1.4); double endY = bottomY - maxRadius;
@@ -454,10 +452,8 @@ class CarpOutRadarPainter3D extends CustomPainter {
     for (int d in distances) {
       double radius = (d - 55) * maxRadius / 105;
       double startX = centerX - (radius * 1.1); double endX = centerX + (radius * 1.1); double targetY = bottomY - radius;
-      
       final path = Path()..moveTo(startX, targetY)..quadraticBezierTo(centerX, targetY + (radius * 0.12), endX, targetY);
       canvas.drawPath(path, mainPaint);
-      
       final textPainter = TextPainter(text: TextSpan(text: '${d}м', style: textPaint), textDirection: TextDirection.ltr)..layout();
       textPainter.paint(canvas, Offset(centerX - textPainter.width / 2, targetY - 14));
     }
@@ -465,11 +461,9 @@ class CarpOutRadarPainter3D extends CustomPainter {
     for (var point in savedPoints) {
       double r = (point.distance - 55) * maxRadius / 105;
       double pX = centerX + (r * point.angle * 1.1); double pY = bottomY - r;
-
       if (pY >= bottomY - maxRadius - 40 && pY <= bottomY + 20) {
         canvas.drawCircle(Offset(pX, pY), 5, pointPaint);
         canvas.drawCircle(Offset(pX, pY), 10, mainPaint..strokeWidth = 1.2);
-        
         String labelText = '${point.name} (${point.distance.toStringAsFixed(1)}м)\n[${point.assignedRod}] ${point.bottomType}';
         final labelPainter = TextPainter(text: TextSpan(text: labelText, style: markerLabelPaint), textDirection: TextDirection.ltr)..layout();
         labelPainter.paint(canvas, Offset(pX + 12, pY - 12));
@@ -479,18 +473,14 @@ class CarpOutRadarPainter3D extends CustomPainter {
     if (isDragging) {
       double r = (currentDragDist - 55) * maxRadius / 105;
       double pX = centerX + (r * currentDragAngle * 1.1); double pY = bottomY - r;
-
       canvas.drawCircle(Offset(pX, pY), 7, livePaint);
       canvas.drawLine(Offset(centerX, bottomY), Offset(pX, pY), livePaint..strokeWidth = 1.2);
-
       final liveLabel = TextPainter(text: TextSpan(text: 'ЗАБРОС: ${currentDragDist.toStringAsFixed(1)} м', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 11, backgroundColor: Colors.orangeAccent)), textDirection: TextDirection.ltr)..layout();
       liveLabel.paint(canvas, Offset(pX - liveLabel.width / 2, pY - 24));
     }
-
     final logoPainter = TextPainter(text: const TextSpan(text: 'CARPOUT', style: TextStyle(color: Color(0xFFE8ECD0), fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2)), textDirection: TextDirection.ltr)..layout();
     logoPainter.paint(canvas, Offset(centerX - logoPainter.width / 2, bottomY + 20));
   }
-
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
@@ -674,7 +664,7 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with TickerProviderStat
       )),
     );
   }
-  @override
+   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF6B8E23),
@@ -725,7 +715,7 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with TickerProviderStat
   Widget _buildTimerPresetAction(int secs, String label) { bool isSelected = _timerSeconds == secs; return ChoiceChip(label: Text(label, style: TextStyle(color: isSelected ? Colors.black87 : Colors.white70, fontWeight: FontWeight.bold, fontSize: 11)), selected: isSelected, selectedColor: const Color(0xFFE8ECD0), backgroundColor: const Color(0xFF2E3B1E), onSelected: (b) { if (b) { setState(() { _timerSeconds = secs; if (_isTimerRunning) _currentCountdown = secs; }); } }); }
   void _startCountdownLoop() async { while (_isTimerRunning && _currentCountdown > 0) { await Future.delayed(const Duration(seconds: 1)); if (!mounted || !_isTimerRunning) return; setState(() { _currentCountdown--; if (_currentCountdown <= 0) { _isTimerRunning = false; _showTimerAlert(); } }); } }
   void _showTimerAlert() { showDialog(context: context, builder: (context) => AlertDialog(backgroundColor: const Color(0xFFFF5252), title: const Text('ВРЕМЯ ПЕРЕЗАБРОСА! ⏱️🔥', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), content: const Text('Пора обновить оснастку!', style: TextStyle(color: Colors.white)), actions: [ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E3B1E)), onPressed: () { Navigator.pop(context); }, child: const Text('Принято', style: TextStyle(color: Colors.white)))])).then((_) { if (Navigator.canPop(context)) Navigator.pop(context); }); }
-}
+} // КЛАСС ЭКРАНА ПИТАНИЯ ГЕРМЕТИЧНО ЗАКРЫТ СКОБКОЙ!
 
   @override
   Widget build(BuildContext context) {
