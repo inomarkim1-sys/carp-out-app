@@ -743,6 +743,20 @@ class CarpOutRadarPainter3D extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
+class CarpMixLog {
+  String id; String liquid; String boilieType; String notes;
+  CarpMixLog({required this.id, required this.liquid, required this.boilieType, required this.notes});
+  Map<String, dynamic> toJson() => {'id': id, 'liquid': liquid, 'boilieType': boilieType, 'notes': notes};
+  factory CarpMixLog.fromJson(Map<String, dynamic> json) => CarpMixLog(id: json['id'] ?? '', liquid: json['liquid'] ?? '', boilieType: json['boilieType'] ?? '', notes: json['notes'] ?? '');
+}
+
+class PvaStickLog {
+  String id; String pvaType; String hookBait; String rodType; String time;
+  PvaStickLog({required this.id, required this.pvaType, required this.hookBait, required this.rodType, required this.time});
+  Map<String, dynamic> toJson() => {'id': id, 'pvaType': pvaType, 'hookBait': hookBait, 'rodType': rodType, 'time': time};
+  factory PvaStickLog.fromJson(Map<String, dynamic> json) => PvaStickLog(id: json['id'] ?? '', pvaType: json['pvaType'] ?? '', hookBait: hookBait, rodType: rodType, time: json['time'] ?? '');
+}
+
 class CarpFeedScreen extends StatefulWidget {
   final String lakeKey; final List<String> availableMarkers; final String currentTheme; final ValueNotifier<int> rodResetSignal;
   const CarpFeedScreen({Key? key, required this.lakeKey, required this.availableMarkers, required this.currentTheme, required this.rodResetSignal}) : super(key: key);
@@ -755,7 +769,7 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
   List<CarpMixLog> _mixes = [];
   List<PvaStickLog> _sticks = [];
 
-  // ТЗ Выполнено: Корректная инициализация 4 независимых удилищ дефолтными значениями (40 мин)
+  // Исправлено: жестко заданные массивы на 4 удилища без пропусков символов
   final List<int> _timerSecondsList =;
   final List<int> _currentCountdownList =;
   final List<bool> _isTimerRunningList = [false, false, false, false];
@@ -815,6 +829,7 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
       await prefs.setBool('timer_running_${widget.lakeKey}_$i', _isTimerRunningList[i]);
     }
   }
+
   void _addMixDialog() {
     String liquid = 'CSL + Кукурузный ликер'; String boilieType = 'Вареные Бойлы 20мм';
     final notesController = TextEditingController();
@@ -862,7 +877,6 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
       }),
     );
   }
-
   @override
   Widget build(BuildContext context) {
     Color accentColor = widget.currentTheme == 'military' ? const Color(0xFFD4D9A1) : (widget.currentTheme == 'lady' ? const Color(0xFF8E24AA) : const Color(0xFFE8ECD0));
@@ -967,6 +981,7 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
   }
 
   Widget _buildSinglePreset(int rodIdx, int secs, String label) {
+    Color accentColor = widget.currentTheme == 'military' ? const Color(0xFFD4D9A1) : (widget.currentTheme == 'lady' ? const Color(0xFF8E24AA) : const Color(0xFFE8ECD0));
     bool isSelected = _timerSecondsList[rodIdx] == secs;
     return InkWell(
       onTap: () {
@@ -1009,6 +1024,7 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
     );
   }
 }
+
 class FishTrophy {
   String id; String weight; String dateStr; String imagePath; String notes;
   FishTrophy({required this.id, required this.weight, required this.dateStr, required this.imagePath, required this.notes});
