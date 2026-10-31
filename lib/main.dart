@@ -839,8 +839,16 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
         backgroundColor: const Color(0xFF1B2611), title: const Text('Залить спод-микс 🌽🍯'),
         content: SingleChildScrollView(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            DropdownButton<String>(dropdownColor: const Color(0xFF1B2611), value: liquid, isExpanded: true, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold), items: <String>['CSL + Кукурузный ликер', 'Аминокомплекс Complex-T', '🚫 Без ликвида (сухой)', 'Сладкий бустер Меласса'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { liquid = v!; }); }),
-            DropdownButton<String>(dropdownColor: const Color(0xFF1B2611), value: boilieType, isExpanded: true, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold), items: <String>['Вареные Бойлы 20мм', 'Пылящие бойлы 24мм', 'Конопля + Зерновые', 'Пеллетс Халибут 14мм'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { boilieType = v!; }); }),
+            DropdownButton<String>(
+              dropdownColor: const Color(0xFF1B2611), value: liquid, isExpanded: true, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold), 
+              items: <String>['CSL + Кукурузный ликер', 'Аминокомплекс Complex-T', '🚫 Без ликвида (сухой)', 'Сладкий бустер Меласса', 'Атрактант Robin Red (Специи)', 'Экстракт Натурального Мотыля', 'Масляная кислота N-Butyric'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), 
+              onChanged: (v) { setDialogState(() { liquid = v!; }); }
+            ),
+            DropdownButton<String>(
+              dropdownColor: const Color(0xFF1B2611), value: boilieType, isExpanded: true, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold), 
+              items: <String>['Вареные Бойлы 20мм', 'Пылящие бойлы 24мм', 'Конопля + Зерновые', 'Пеллетс Халибут 14мм', 'Крушенные бойлы Squid-Octopus', 'Ферментированный Тигровый Орех', 'Быстрорастворимый пеллетс 6мм'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), 
+              onChanged: (v) { setDialogState(() { boilieType = v!; }); }
+            ),
             TextField(controller: notesController, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Количество спомбов / Инфо', labelStyle: TextStyle(color: Colors.white60))),
           ]),
         ),
@@ -866,7 +874,11 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
               DropdownButton<String>(dropdownColor: const Color(0xFF1B2611), value: selectedMarker, isExpanded: true, style: const TextStyle(color: Color(0xFFE8ECD0), fontWeight: FontWeight.bold), items: (widget.availableMarkers.isNotEmpty ? widget.availableMarkers : ['Свободный заброс в сектор']).map((s) => DropdownMenuItem(value: s, child: Text(s, maxLines: 1, overflow: TextOverflow.ellipsis))).toList(), onChanged: (v) { setDialogState(() { selectedMarker = v!; }); }),
               const SizedBox(height: 8),
               DropdownButton<String>(dropdownColor: const Color(0xFF1B2611), value: pvaType, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['Сетка ПВА-стик', 'ПВА-пакет (с пеллетсом)', '🚫 Без ПВА (одиночная)'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { pvaType = v!; }); }),
-              DropdownButton<String>(dropdownColor: const Color(0xFF1B2611), value: hookBait, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['Pop-up 10мм (Плавающий)', 'Wafters (Сбалансированный)', 'Искусственная кукуруза', 'Двойной тонущий 20мм'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { hookBait = v!; }); }),
+              DropdownButton<String>(
+                dropdownColor: const Color(0xFF1B2611), value: hookBait, isExpanded: true, style: const TextStyle(color: Colors.white), 
+                items: <String>['Pop-up 10мм (Плавающий)', 'Wafters (Сбалансированный)', 'Искусственная кукуруза', 'Двойной тонущий 20мм', 'Плавающий Тигровый Орех', 'Бойл Горох 14мм (Пылик)', 'Растворимый дамбелс Ананас', 'Натуральная кукуруза + Слива'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), 
+                onChanged: (v) { setDialogState(() { hookBait = v!; }); }
+              ),
             ]),
           ),
           actions: [
@@ -877,6 +889,7 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
       }),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     Color accentColor = widget.currentTheme == 'military' ? const Color(0xFFD4D9A1) : (widget.currentTheme == 'lady' ? const Color(0xFF8E24AA) : const Color(0xFFE8ECD0));
@@ -1012,7 +1025,13 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
     }
   }
 
-  void _showSingleTimerAlert(int idx) {
+  void _showSingleTimerAlert(int idx) async {
+    // В ТЗ Добавлено: Цикличный механический аларм (5 громких жужжащих сигналов перезаброса)
+    for (int i = 0; i < 5; i++) {
+      Feedback.vibrate();
+      await Future.delayed(const Duration(milliseconds: 350));
+    }
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1023,7 +1042,6 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
       ),
     );
   }
-}
 
 class FishTrophy {
   String id; String weight; String dateStr; String imagePath; String notes;
