@@ -272,6 +272,64 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ),
     );
   }
+  @override
+  Widget build(BuildContext context) {
+    Color drawerBg = widget.currentTheme == 'lady' ? const Color(0xFFE1BEE7) : const Color(0xFF556B2F);
+    Color txtColor = widget.currentTheme == 'lady' ? Colors.black87 : Colors.white;
+    Color accentColor = widget.currentTheme == 'military' ? const Color(0xFFD4D9A1) : (widget.currentTheme == 'lady' ? const Color(0xFF8E24AA) : const Color(0xFFE8ECD0));
+
+    final List<Widget> _screens = [
+      CarpOutDashboard(
+        currentTheme: widget.currentTheme, lake: _selectedLake, sector: _sectorName, duration: _sessionDuration, catches: _catchesCount, weight: _totalWeight, bigFish: _bigFishWeight, speciesStats: _fishSpeciesStats, availableMarkers: _markerNames,
+        onUpdateSession: (l, s, d) async { setState(() { _sectorName = s; _sessionDuration = d; }); await _saveAllAppData(); },
+        onUpdateStats: (c, w, b, updatedSpecies, resetRodNum) async {
+          setState(() { _catchesCount = c; _totalWeight = w; _bigFishWeight = b; _fishSpeciesStats = updatedSpecies; });
+          await _saveAllAppData();
+          if (resetRodNum > 0) { _rodResetSignal.value = resetRodNum; _rodResetSignal.value = 0; }
+        }
+      ),
+      MarkerMapScreenNew(lakeKey: _selectedLake, onMarkersChanged: _updateMarkersList, currentTheme: widget.currentTheme),
+      CarpWeatherScreen(lakeKey: _selectedLake, currentTheme: widget.currentTheme),
+      CarpFeedScreen(lakeKey: _selectedLake, availableMarkers: _markerNames, currentTheme: widget.currentTheme, rodResetSignal: _rodResetSignal),
+      FishSocialScreen(lakeKey: _selectedLake, currentTheme: widget.currentTheme),
+    ];
+
+    return Scaffold(
+      drawer: Drawer(
+        backgroundColor: drawerBg,
+        child: Column(children: [
+          UserAccountsDrawerHeader(
+            decoration: const BoxDecoration(color: Color(0xFF1B2611)),
+            accountName: InkWell(
+              onTap: _showEditNameDialog,
+              child: Row(children: [Text('Привет, $_anglerName! 👋', style: TextStyle(fontWeight: FontWeight.bold, color: accentColor, fontSize: 15)), const SizedBox(width: 6), Icon(Icons.edit, color: accentColor, size: 14)]),
+            ),
+            accountEmail: const Text('Удачной сессии и жирных паровозов!', style: TextStyle(color: Colors.white70, fontSize: 11)),
+            currentAccountPicture: CustomPaint(painter: CarpOutAppIconPainter(accentColor))
+          ),
+          ListTile(
+            leading: Icon(Icons.palette, color: accentColor),
+            title: Text('⚙️ Настройки интерфейса', style: TextStyle(color: txtColor, fontWeight: FontWeight.bold)),
+            onTap: () { Navigator.pop(context); _showInterfaceSettings(); },
+          ),
+          const Divider(color: Colors.white24),
+          Padding(padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('СПИСОК ВОДОЕМОВ:', style: TextStyle(color: accentColor, fontWeight: FontWeight.bold, fontSize: 12)), IconButton(icon: Icon(Icons.add_circle, color: accentColor), onPressed: _addNewLakeDialog)])),
+          Expanded(child: ListView.builder(itemCount: _lakesList.length, itemBuilder: (context, index) {
+            final lakeItem = _lakesList[index]; bool isCurrent = lakeItem == _selectedLake;
+            final sectorCtrl = TextEditingController(text: isCurrent ? _sectorName : 'Сектор №1'); final durationCtrl = TextEditingController(text: isCurrent ? _sessionDuration : '24');
+            return Theme(data: ThemeData(unselectedWidgetColor: Colors.white70), child: ExpansionTile(
+              leading: Icon(Icons.water, color: isCurrent ? accentColor : Colors.white70), title: Text(lakeItem, style: TextStyle(color: txtColor, fontWeight: FontWeight.bold)),
+              trailing: Row(mainAxisSize: MainAxisSize.min, children: [if (isCurrent) Icon(Icons.check_circle, color: accentColor, size: 20), IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20), onPressed: () async { if (_lakesList.length > 1) { Navigator.pop(context); setState(() { _lakesList.remove(lakeItem); if (isCurrent) _selectedLake = _lakesList.first; }); await _saveAllAppData(); await _loadAllAppData(); } })]),
+              children: [Container(padding: const EdgeInsets.all(12), margin: const EdgeInsets.all(8), decoration: BoxDecoration(color: const Color(0xFF1B2611), borderRadius: BorderRadius.circular(12)), child: Column(children: [TextField(controller: sectorCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Сектор ловли', labelStyle: TextStyle(color: Colors.white60))), TextField(controller: durationCtrl, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Длительность сессии (ч)', labelStyle: TextStyle(color: Colors.white60))), const SizedBox(height: 8), ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)), onPressed: () async { Navigator.pop(context); setState(() { _selectedLake = lakeItem; _sectorName = sectorCtrl.text; _sessionDuration = durationCtrl.text; }); await _saveAllAppData(); await _loadAllAppData(); }, child: const Text('Выбрать и применить', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)))].map((w) => Padding(padding: const EdgeInsets.only(bottom: 4), child: w)).toList()))],
+            ));
+          }))
+        ]),
+      ),
+      body: IndexedStack(index: _currentIndex, children: _screens),
+      bottomNavigationBar: BottomNavigationBar(currentIndex: _currentIndex, type: BottomNavigationBarType.fixed, backgroundColor: const Color(0xFF1B2611), selectedItemColor: accentColor, unselectedItemColor: Colors.white54, onTap: (idx) { setState(() { _currentIndex = idx; }); }, items: const [BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Инфо'), BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Маркер'), BottomNavigationBarItem(icon: Icon(Icons.cloud), label: 'Барометр'), BottomNavigationBarItem(icon: Icon(Icons.restaurant), label: 'Корм'), BottomNavigationBarItem(icon: Icon(Icons.photo_library), label: 'Трофеи')]),
+    );
+  }
+
 class CarpOutDashboard extends StatelessWidget {
   final String currentTheme; final String lake; final String sector; final String duration; final int catches; final double weight; final String bigFish; final Map<String, int> speciesStats; final List<String> availableMarkers; final Function(String, String, String) onUpdateSession; final Function(int, double, String, Map<String, int>, int) onUpdateStats;
   const CarpOutDashboard({Key? key, required this.currentTheme, required this.lake, required this.sector, required this.duration, required this.catches, required this.weight, required this.bigFish, required this.speciesStats, required this.availableMarkers, required this.onUpdateSession, required this.onUpdateStats}) : super(key: key);
@@ -389,7 +447,14 @@ class CarpOutDashboard extends StatelessWidget {
 
   Widget _buildStatCard(String title, String value, IconData icon, Color iconColor, Color bg, Color txt, Color accent) { return Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12), border: Border.all(color: accent.withOpacity(0.3), width: 1.2)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [Row(children: [Icon(icon, color: iconColor, size: 18), const SizedBox(width: 6), Text(title, style: TextStyle(color: txt.withOpacity(0.7), fontSize: 11, fontWeight: FontWeight.bold))]), const SizedBox(height: 8), Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: accent))])); }
 }
-class MarkerPoint {
+class CarpWeatherLog {
+  String id; double pressure; String trend; String time;
+  CarpWeatherLog({required this.id, required this.pressure, required this.trend, required this.time});
+  Map<String, dynamic> toJson() => {'id': id, 'pressure': pressure, 'trend': trend, 'time': time};
+  factory CarpWeatherLog.fromJson(Map<String, dynamic> json) => CarpWeatherLog(id: json['id'] ?? '', pressure: (json['pressure'] as num).toDouble(), trend: json['trend'] ?? '➡️ Стабильно', time: json['time'] ?? '');
+}
+
+  class MarkerPoint {
   String name; double distance; double depth; String bottomType; double angle; String assignedRod;
   MarkerPoint({required this.name, required this.distance, required this.depth, required this.bottomType, required this.angle, required this.assignedRod});
   Map<String, dynamic> toJson() => {'name': name, 'distance': distance, 'depth': depth, 'bottomType': bottomType, 'angle': angle, 'assignedRod': assignedRod};
@@ -1102,4 +1167,62 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
       ),
     );
   }
+}
+class CarpPressureChartPainter extends CustomPainter {
+  final List<CarpWeatherLog> logs; final Color accent;
+  CarpPressureChartPainter(this.logs, this.accent);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final gridPaint = Paint()..color = accent.withOpacity(0.15)..strokeWidth = 1.0;
+    final linePaint = Paint()..color = accent..strokeWidth = 2.5..style = PaintingStyle.stroke;
+    final pointPaint = Paint()..color = const Color(0xFFFF5252)..style = PaintingStyle.fill;
+    
+    // Рисуем сетку барометра
+    double steps = 4;
+    for (int i = 0; i <= steps; i++) {
+      double y = (size.height / steps) * i;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
+    }
+
+    if (logs.length < 2) {
+      final tp = TextPainter(text: TextSpan(text: 'Нужно минимум 2 замера для графика', style: TextStyle(color: accent.withOpacity(0.5), fontSize: 11)), textDirection: TextDirection.ltr)..layout();
+      tp.paint(canvas, Offset(size.width / 2 - tp.width / 2, size.height / 2 - tp.height / 2));
+      return;
+    }
+
+    // Ищем минимум и максимум для масштабирования
+    double minP = logs.map((e) => e.pressure).reduce((a, b) => a < b ? a : b);
+    double maxP = logs.map((e) => e.pressure).reduce((a, b) => a > b ? a : b);
+    if (maxP == minP) { minP -= 5; maxP += 5; }
+    double range = maxP - minP;
+
+    final path = Path();
+    double dx = size.width / (logs.length - 1);
+
+    for (int i = 0; i < logs.length; i++) {
+      double x = dx * i;
+      double normalizedY = (logs[i].pressure - minP) / range;
+      double y = size.height - (normalizedY * (size.height - 20) + 10);
+
+      if (i == 0) { path.moveTo(x, y); } else { path.lineTo(x, y); }
+    }
+
+    canvas.drawPath(path, linePaint);
+
+    // Расставляем точки замеров и подписи мм рт.ст.
+    for (int i = 0; i < logs.length; i++) {
+      double x = dx * i;
+      double normalizedY = (logs[i].pressure - minP) / range;
+      double y = size.height - (normalizedY * (size.height - 20) + 10);
+
+      canvas.drawCircle(Offset(x, y), 4, pointPaint);
+      
+      final label = TextPainter(text: TextSpan(text: '${logs[i].pressure.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)), textDirection: TextDirection.ltr)..layout();
+      label.paint(canvas, Offset(x - label.width / 2, y - 14));
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
