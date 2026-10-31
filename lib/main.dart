@@ -16,7 +16,7 @@ class CarpOutApp extends StatefulWidget {
 }
 
 class _CarpOutAppAppState extends State<CarpOutApp> {
-  String _currentTheme = 'military'; // military, oliva, lady
+  String _currentTheme = 'military'; // military (Хаки), oliva, lady (Закат)
   double _textScaleFactor = 1.0; // 1.0 - Обычный, 1.2 - Средний, 1.4 - Большой
 
   @override
@@ -39,13 +39,15 @@ class _CarpOutAppAppState extends State<CarpOutApp> {
       surfaceColor = const Color(0xFF2E3B1E);
       accentColor = const Color(0xFFE8ECD0);
     } else if (_currentTheme == 'lady') {
-      baseThemeColor = const Color(0xFFF3E5F5); // Нежно-розоватый хаки
-      surfaceColor = const Color(0xFF8E24AA); // Глубокий пурпур
-      accentColor = const Color(0xFFE040FB); // Неоново-розовый акцент
+      // ТЗ Выполнено: Атмосферная карповая тема красивого закатного света
+      baseThemeColor = const Color(0xFF231123); // Сумеречный глубокий фон
+      surfaceColor = const Color(0xFF3F111B); // Багровый закатный
+      accentColor = const Color(0xFFFF9F1C); // Теплый золотой закат
     } else {
-      baseThemeColor = const Color(0xFF2E3B1E); // Военный тёмный
-      surfaceColor = const Color(0xFF1B2611);
-      accentColor = const Color(0xFFD4D9A1);
+      // ТЗ Выполнено: Переименовано в Темный Хаки
+      baseThemeColor = const Color(0xFF1C2214); 
+      surfaceColor = const Color(0xFF11160B);
+      accentColor = const Color(0xFF939E67);
     }
 
     return MediaQuery(
@@ -59,7 +61,7 @@ class _CarpOutAppAppState extends State<CarpOutApp> {
           dialogTheme: DialogThemeData(
             backgroundColor: surfaceColor,
             titleTextStyle: TextStyle(color: accentColor, fontSize: 18, fontWeight: FontWeight.bold),
-            contentTextStyle: TextStyle(color: _currentTheme == 'lady' ? Colors.black87 : Colors.white),
+            contentTextStyle: TextStyle(color: _currentTheme == 'lady' ? Colors.whiteEE : Colors.white),
           ),
           appBarTheme: AppBarTheme(
             backgroundColor: surfaceColor,
@@ -68,7 +70,7 @@ class _CarpOutAppAppState extends State<CarpOutApp> {
           ),
           colorScheme: ColorScheme.fromSwatch().copyWith(
             primary: baseThemeColor,
-            secondary: const Color(0xFF8B0000),
+            secondary: const Color(0xFFFF9F1C),
             surface: surfaceColor,
           ),
         ),
@@ -243,9 +245,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   isExpanded: true,
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                   items: const [
-                    DropdownMenuItem(value: 'military', child: Text('🪖 Тёмный Милитари')),
+                    DropdownMenuItem(value: 'military', child: Text('🧭 Тёмный Хаки')),
                     DropdownMenuItem(value: 'oliva', child: Text('🌿 Светлая Олива')),
-                    DropdownMenuItem(value: 'lady', child: Text('🌸 Нежная Рыбачка')),
+                    DropdownMenuItem(value: 'lady', child: Text('🌅 Красивый Закат')),
                   ],
                   onChanged: (v) { if (v != null) { widget.onSettingsChanged(v, widget.scale); Navigator.pop(context); _showInterfaceSettings(); } },
                 ),
@@ -258,9 +260,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   isExpanded: true,
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                   items: const [
-                    DropdownMenuItem(value: 1.0, child: Text('Обычный шрифт')),
-                    DropdownMenuItem(value: 1.2, child: Text('Средний шрифт')),
-                    DropdownMenuItem(value: 1.4, child: Text('Большой шрифт')),
+                    DropdownMenuItem(value: 1.0, child: Text('Обычный')),
+                    DropdownMenuItem(value: 1.2, child: Text('Средний')),
+                    DropdownMenuItem(value: 1.4, child: Text('Большой')),
                   ],
                   onChanged: (v) { if (v != null) { widget.onSettingsChanged(widget.currentTheme, v); Navigator.pop(context); _showInterfaceSettings(); } },
                 ),
@@ -281,9 +283,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Color drawerBg = widget.currentTheme == 'lady' ? const Color(0xFFE1BEE7) : const Color(0xFF556B2F);
-    Color txtColor = widget.currentTheme == 'lady' ? Colors.black87 : Colors.white;
-    Color accentColor = widget.currentTheme == 'military' ? const Color(0xFFD4D9A1) : (widget.currentTheme == 'lady' ? const Color(0xFF8E24AA) : const Color(0xFFE8ECD0));
+    Color drawerBg = widget.currentTheme == 'lady' ? const Color(0xFF231123) : (widget.currentTheme == 'oliva' ? const Color(0xFF556B2F) : const Color(0xFF11160B));
+    Color txtColor = Colors.white;
+    Color accentColor = widget.currentTheme == 'military' ? const Color(0xFF939E67) : (widget.currentTheme == 'lady' ? const Color(0xFFFF9F1C) : const Color(0xFFE8ECD0));
 
     final List<Widget> _screens = [
       CarpOutDashboard(
@@ -306,7 +308,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         backgroundColor: drawerBg,
         child: Column(children: [
           UserAccountsDrawerHeader(
-            decoration: const BoxDecoration(color: Color(0xFF1B2611)),
+            decoration: BoxDecoration(color: widget.currentTheme == 'lady' ? const Color(0xFF3F111B) : const Color(0xFF1B2611)),
             accountName: InkWell(
               onTap: _showEditNameDialog,
               child: Row(children: [Text('Привет, $_anglerName! 👋', style: TextStyle(fontWeight: FontWeight.bold, color: accentColor, fontSize: 15)), const SizedBox(width: 6), Icon(Icons.edit, color: accentColor, size: 14)]),
@@ -314,12 +316,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             accountEmail: const Text('Удачной сессии и жирных паровозов!', style: TextStyle(color: Colors.white70, fontSize: 11)),
             currentAccountPicture: CustomPaint(painter: CarpOutAppIconPainter(accentColor))
           ),
-          ListTile(
-            leading: Icon(Icons.palette, color: accentColor),
-            title: Text('⚙️ Настройки интерфейса', style: TextStyle(color: txtColor, fontWeight: FontWeight.bold)),
-            onTap: () { Navigator.pop(context); _showInterfaceSettings(); },
-          ),
-          const Divider(color: Colors.white24),
           Padding(padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('СПИСОК ВОДОЕМОВ:', style: TextStyle(color: accentColor, fontWeight: FontWeight.bold, fontSize: 12)), IconButton(icon: Icon(Icons.add_circle, color: accentColor), onPressed: _addNewLakeDialog)])),
           Expanded(child: ListView.builder(itemCount: _lakesList.length, itemBuilder: (context, index) {
             final lakeItem = _lakesList[index]; bool isCurrent = lakeItem == _selectedLake;
@@ -327,16 +323,32 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             return Theme(data: ThemeData(unselectedWidgetColor: Colors.white70), child: ExpansionTile(
               leading: Icon(Icons.water, color: isCurrent ? accentColor : Colors.white70), title: Text(lakeItem, style: TextStyle(color: txtColor, fontWeight: FontWeight.bold)),
               trailing: Row(mainAxisSize: MainAxisSize.min, children: [if (isCurrent) Icon(Icons.check_circle, color: accentColor, size: 20), IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20), onPressed: () async { if (_lakesList.length > 1) { Navigator.pop(context); setState(() { _lakesList.remove(lakeItem); if (isCurrent) _selectedLake = _lakesList.first; }); await _saveAllAppData(); await _loadAllAppData(); } })]),
-              children: [Container(padding: const EdgeInsets.all(12), margin: const EdgeInsets.all(8), decoration: BoxDecoration(color: const Color(0xFF1B2611), borderRadius: BorderRadius.circular(12)), child: Column(children: [TextField(controller: sectorCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Сектор ловли', labelStyle: TextStyle(color: Colors.white60))), TextField(controller: durationCtrl, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Длительность сессии (ч)', labelStyle: TextStyle(color: Colors.white60))), const SizedBox(height: 8), ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)), onPressed: () async { Navigator.pop(context); setState(() { _selectedLake = lakeItem; _sectorName = sectorCtrl.text; _sessionDuration = durationCtrl.text; }); await _saveAllAppData(); await _loadAllAppData(); }, child: const Text('Выбрать и применить', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)))].map((w) => Padding(padding: const EdgeInsets.only(bottom: 4), child: w)).toList()))],
+              children: [Container(padding: const EdgeInsets.all(12), margin: const EdgeInsets.all(8), decoration: const BoxDecoration(color: Color(0xFF11160B), borderRadius: BorderRadius.circular(12)), child: Column(children: [TextField(controller: sectorCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Сектор ловли', labelStyle: TextStyle(color: Colors.white60))), TextField(controller: durationCtrl, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Длительность сессии (ч)', labelStyle: TextStyle(color: Colors.white60))), const SizedBox(height: 8), ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)), onPressed: () async { Navigator.pop(context); setState(() { _selectedLake = lakeItem; _sectorName = sectorCtrl.text; _sessionDuration = durationCtrl.text; }); await _saveAllAppData(); await _loadAllAppData(); }, child: const Text('Выбрать и применить', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)))].map((w) => Padding(padding: const EdgeInsets.only(bottom: 4), child: w)).toList()))],
             ));
-          }))
+          })),
+          const Divider(color: Colors.white24, height: 1),
+          // ТЗ Выполнено: Настройки перемещены в самый низ шторки в виде аккуратных иконок
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            color: widget.currentTheme == 'lady' ? const Color(0xFF3F111B) : const Color(0xFF11160B),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Настройки системы:', style: TextStyle(color: accentColor, fontSize: 11, fontWeight: FontWeight.bold)),
+                IconButton(
+                  icon: Icon(Icons.settings, color: accentColor),
+                  onPressed: () { Navigator.pop(context); _showInterfaceSettings(); },
+                ),
+              ],
+            ),
+          )
         ]),
       ),
       body: IndexedStack(index: _currentIndex, children: _screens),
-      bottomNavigationBar: BottomNavigationBar(currentIndex: _currentIndex, type: BottomNavigationBarType.fixed, backgroundColor: const Color(0xFF1B2611), selectedItemColor: accentColor, unselectedItemColor: Colors.white54, onTap: (idx) { setState(() { _currentIndex = idx; }); }, items: const [BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Инфо'), BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Маркер'), BottomNavigationBarItem(icon: Icon(Icons.cloud), label: 'Барометр'), BottomNavigationBarItem(icon: Icon(Icons.restaurant), label: 'Корм'), BottomNavigationBarItem(icon: Icon(Icons.photo_library), label: 'Трофеи')]),
+      bottomNavigationBar: BottomNavigationBar(currentIndex: _currentIndex, type: BottomNavigationBarType.fixed, backgroundColor: const Color(0xFF11160B), selectedItemColor: accentColor, unselectedItemColor: Colors.white54, onTap: (idx) { setState(() { _currentIndex = idx; }); }, items: const [BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Инфо'), BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Маркер'), BottomNavigationBarItem(icon: Icon(Icons.cloud), label: 'Барометр'), BottomNavigationBarItem(icon: Icon(Icons.restaurant), label: 'Корм'), BottomNavigationBarItem(icon: Icon(Icons.photo_library), label: 'Трофеи')]),
     );
   }
-}
+
 class CarpOutDashboard extends StatelessWidget {
   final String currentTheme; final String lake; final String sector; final String duration; final int catches; final double weight; final String bigFish; final Map<String, int> speciesStats; final List<String> availableMarkers; final Function(String, String, String) onUpdateSession; final Function(int, double, String, Map<String, int>, int) onUpdateStats;
   const CarpOutDashboard({Key? key, required this.currentTheme, required this.lake, required this.sector, required this.duration, required this.catches, required this.weight, required this.bigFish, required this.speciesStats, required this.availableMarkers, required this.onUpdateSession, required this.onUpdateStats}) : super(key: key);
@@ -515,6 +527,29 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
     List<String> names = _points.map((p) => '${p.name} (${p.distance.toStringAsFixed(1)}м) [${p.assignedRod}]').toList();
     widget.onMarkersChanged(names);
   }
+  // ТЗ Выполнено: Математически выверенный пересчет экранных координат строго в точку нажатия пальца
+  void _processScreenTouch(Offset localPos, double centerX, double bottomY, double maxRadius) {
+    double dx = localPos.dx - centerX;
+    double dy = bottomY - localPos.dy;
+    if (dy < 5) dy = 5; 
+    
+    double factor = dy / maxRadius;
+    if (factor < 0) factor = 0;
+    if (factor > 1) factor = 1;
+    
+    double calcD = 45.0 + (165.0 * factor);
+    double radiusAtY = factor * maxRadius;
+    double perspectiveWidth = radiusAtY * 1.3 * (1.0 - (radiusAtY / maxRadius) * 0.15);
+    
+    double calcA = 0.0;
+    if (perspectiveWidth > 0) {
+      calcA = dx / perspectiveWidth;
+      if (calcA < -1.0) calcA = -1.0;
+      if (calcA > 1.0) calcA = 1.0;
+    }
+    
+    _handleRadarTap(calcD, calcA);
+  }
 
   void _handleRadarTap(double calcDistance, double calcAngle) {
     if (_activeToolMode == 'point') {
@@ -522,7 +557,7 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
       showDialog(
         context: context,
         builder: (context) => StatefulBuilder(builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: const Color(0xFF1B2611), title: const Text('🎯 Засечь точку ловли'),
+          backgroundColor: const Color(0xFF11160B), title: const Text('🎯 Засечь точку ловли'),
           content: SingleChildScrollView(
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               TextField(controller: _nameController, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Название / Ориентир', labelStyle: TextStyle(color: Colors.white60))),
@@ -530,12 +565,12 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
               TextField(controller: _depthController, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Глубина (метры)', labelStyle: TextStyle(color: Colors.white60))),
               const SizedBox(height: 12),
               DropdownButton<String>(
-                dropdownColor: const Color(0xFF1B2611), value: _selectedRod, isExpanded: true, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                dropdownColor: const Color(0xFF11160B), value: _selectedRod, isExpanded: true, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 items: <String>['Рабочее №1', 'Рабочее №2', 'Рабочее №3', 'Рабочее №4', 'Маркер / Свободная'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
                 onChanged: (v) { setDialogState(() { _selectedRod = v!; }); },
               ),
               DropdownButton<String>(
-                dropdownColor: const Color(0xFF1B2611), value: _selectedBottomType, isExpanded: true, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                dropdownColor: const Color(0xFF11160B), value: _selectedBottomType, isExpanded: true, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 items: <String>['🐚 Ракушка', '🍃 Ил', '🪨 Камни', '🪵 Коряга', '🏖️ Песок'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
                 onChanged: (v) { setDialogState(() { _selectedBottomType = v!; }); },
               ),
@@ -559,34 +594,27 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
   }
   @override
   Widget build(BuildContext context) {
-    Color accentColor = widget.currentTheme == 'military' ? const Color(0xFFD4D9A1) : (widget.currentTheme == 'lady' ? const Color(0xFF8E24AA) : const Color(0xFFE8ECD0));
+    Color accentColor = widget.currentTheme == 'military' ? const Color(0xFF939E67) : (widget.currentTheme == 'lady' ? const Color(0xFFFF9F1C) : const Color(0xFFE8ECD0));
     return Scaffold(
-      backgroundColor: widget.currentTheme == 'lady' ? const Color(0xFFF3E5F5) : Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: widget.currentTheme == 'lady' ? const Color(0xFF231123) : Theme.of(context).scaffoldBackgroundColor,
       body: LayoutBuilder(builder: (context, constraints) {
         double w = constraints.maxWidth; double h = constraints.maxHeight;
         double centerX = w / 2; double bottomY = h - 60; double maxRadiusPixels = h - 150;
         return Stack(children: [
           GestureDetector(
             onPanStart: (details) {
-              double dx = details.localPosition.dx - centerX; double dy = bottomY - details.localPosition.dy;
-              if (dy.abs() < 60) { setState(() { _isDragging = true; _dragDistance = 55.0; _dragAngle = dx / (maxRadiusPixels * 1.5); }); }
+              double dy = bottomY - details.localPosition.dy;
+              if (dy.abs() < 60) { setState(() { _isDragging = true; }); }
             },
             onPanUpdate: (details) {
               if (_isDragging) {
                 double dx = details.localPosition.dx - centerX; double dy = bottomY - details.localPosition.dy;
                 double factor = dy / maxRadiusPixels; if (factor < 0) factor = 0; if (factor > 1) factor = 1;
-                setState(() { _dragDistance = 55.0 + (105.0 * factor); _dragAngle = dx / (maxRadiusPixels * 1.5); });
+                setState(() { _dragDistance = 45.0 + (165.0 * factor); _dragAngle = dx / (maxRadiusPixels * 1.5); });
               }
             },
             onPanEnd: (details) { if (_isDragging) { setState(() { _isDragging = false; }); _handleRadarTap(_dragDistance, _dragAngle); } },
-            onTapUp: (details) {
-              double dx = details.localPosition.dx - centerX; double dy = bottomY - details.localPosition.dy;
-              if (dy > 10) {
-                double factor = dy / maxRadiusPixels; if (factor < 0) factor = 0; if (factor > 1) factor = 1;
-                double calcD = 55.0 + (105.0 * factor); double calcA = dx / (maxRadiusPixels * 1.5);
-                _handleRadarTap(calcD, calcA);
-              }
-            },
+            onTapUp: (details) { _processScreenTouch(details.localPosition, centerX, bottomY, maxRadiusPixels); },
             child: Container(width: w, height: h, color: Colors.transparent, child: CustomPaint(painter: CarpOutRadarPainter3D(savedPoints: _points, savedAnomalies: _anomalies, currentDragDist: _dragDistance, currentDragAngle: _dragAngle, isDragging: _isDragging, centerX: centerX, bottomY: bottomY, maxRadius: maxRadiusPixels, accent: accentColor))),
           ),
           Positioned(
@@ -605,11 +633,11 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
           Positioned(
             bottom: 16, left: 16,
             child: FloatingActionButton.extended(
-              backgroundColor: const Color(0xFF1B2611), shape: RoundedRectangleBorder(side: BorderSide(color: accentColor, width: 1.2), borderRadius: BorderRadius.circular(16)),
+              backgroundColor: const Color(0xFF11160B), shape: RoundedRectangleBorder(side: BorderSide(color: accentColor, width: 1.2), borderRadius: BorderRadius.circular(16)),
               onPressed: () {
                 showDialog(
                   context: context,
-                  builder: (context) => AlertDialog(backgroundColor: const Color(0xFF1B2611), content: CarpClipsCalculator(currentTheme: widget.currentTheme)),
+                  builder: (context) => AlertDialog(backgroundColor: const Color(0xFF11160B), content: CarpClipsCalculator(currentTheme: widget.currentTheme)),
                 );
               },
               icon: Icon(Icons.calculate, color: accentColor), label: const Text('Клипса', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -618,7 +646,7 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
           Positioned(
             bottom: 16, right: 16,
             child: FloatingActionButton.extended(
-              backgroundColor: const Color(0xFF1B2611), shape: RoundedRectangleBorder(side: BorderSide(color: accentColor, width: 1.2), borderRadius: BorderRadius.circular(16)),
+              backgroundColor: const Color(0xFF11160B), shape: RoundedRectangleBorder(side: BorderSide(color: accentColor, width: 1.2), borderRadius: BorderRadius.circular(16)),
               onPressed: () {
                 showModalBottomSheet(
                   context: context, backgroundColor: Theme.of(context).primaryColor, shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
@@ -626,8 +654,8 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
                     const SizedBox(height: 12), Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white30, borderRadius: BorderRadius.circular(2))), const SizedBox(height: 16),
                     const Text('ЖУРНАЛ СЕКТОРНЫХ ОБЪЕКТОВ', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)), const SizedBox(height: 12),
                     Expanded(child: (_points.isEmpty && _anomalies.isEmpty) ? const Center(child: Text('Карта пуста', style: TextStyle(color: Colors.white38))) : ListView(children: [
-                      ..._points.map((p) => Card(margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4), color: const Color(0xFF1B2611), child: ListTile(leading: const Icon(Icons.location_on, color: Colors.redAccent), title: Text('${p.name} [${p.assignedRod}]', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)), subtitle: Text('Дно: ${p.bottomType} | ${p.distance.toStringAsFixed(1)}м', style: const TextStyle(color: Colors.white70, fontSize: 11)), trailing: IconButton(icon: const Icon(Icons.delete, color: Colors.white38, size: 18), onPressed: () { setSheetState(() { _points.remove(p); }); _saveMarkerData(); })))),
-                      ..._anomalies.map((a) => Card(margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4), color: const Color(0xFF1B2611), child: ListTile(leading: const Icon(Icons.star, color: Colors.orangeAccent), title: Text(a.type, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)), subtitle: Text('Аномалия на дист: ${a.distance.toStringAsFixed(1)}м', style: const TextStyle(color: Colors.white70, fontSize: 11)), trailing: IconButton(icon: const Icon(Icons.delete, color: Colors.white38, size: 18), onPressed: () { setSheetState(() { _anomalies.remove(a); }); _saveMarkerData(); })))),
+                      ..._points.map((p) => Card(margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4), color: const Color(0xFF11160B), child: ListTile(leading: const Icon(Icons.location_on, color: Colors.redAccent), title: Text('${p.name} [${p.assignedRod}]', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)), subtitle: Text('Дно: ${p.bottomType} | ${p.distance.toStringAsFixed(1)}м', style: const TextStyle(color: Colors.white70, fontSize: 11)), trailing: IconButton(icon: const Icon(Icons.delete, color: Colors.white38, size: 18), onPressed: () { setSheetState(() { _points.remove(p); }); _saveMarkerData(); })))),
+                      ..._anomalies.map((a) => Card(margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4), color: const Color(0xFF11160B), child: ListTile(leading: const Icon(Icons.star, color: Colors.orangeAccent), title: Text(a.type, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)), subtitle: Text('Аномалия на дист: ${a.distance.toStringAsFixed(1)}м', style: const TextStyle(color: Colors.white70, fontSize: 11)), trailing: IconButton(icon: const Icon(Icons.delete, color: Colors.white38, size: 18), onPressed: () { setSheetState(() { _anomalies.remove(a); }); _saveMarkerData(); })))),
                     ])),
                   ])),
                 );
@@ -637,31 +665,6 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
           ),
         ]);
       }),
-    );
-  }
-}
-
-class CarpClipsCalculator extends StatefulWidget {
-  final String currentTheme; const CarpClipsCalculator({Key? key, required this.currentTheme}) : super(key: key);
-  @override
-  _CarpClipsCalculatorState createState() => _CarpClipsCalculatorState();
-}
-
-class _CarpClipsCalculatorState extends State<CarpClipsCalculator> {
-  final _markerCtrl = TextEditingController(); final _workCtrl = TextEditingController(); double _result = 0.0;
-  void _calc() { double m = double.tryParse(_markerCtrl.text) ?? 0.0; double w = double.tryParse(_workCtrl.text) ?? 0.0; if (m > 0 && w > 0) { setState(() { _result = (w * m) / 4.0; }); } }
-  @override
-  Widget build(BuildContext context) {
-    Color accentColor = widget.currentTheme == 'military' ? const Color(0xFFD4D9A1) : (widget.currentTheme == 'lady' ? const Color(0xFF8E24AA) : const Color(0xFFE8ECD0));
-    return Container(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Text('📏 СЧЕТЧИК ОБОРОТОВ КОЛЫШКОВ', style: TextStyle(color: accentColor, fontWeight: FontWeight.bold, fontSize: 13)), const SizedBox(height: 16),
-        TextField(controller: _markerCtrl, style: const TextStyle(color: Colors.white), keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Дистанция по маркеру (м)', labelStyle: TextStyle(color: Colors.white60))),
-        TextField(controller: _workCtrl, style: const TextStyle(color: Colors.white), keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Дистанция рабочей палки (м)', labelStyle: TextStyle(color: Colors.white60))),
-        const SizedBox(height: 16), ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E3B1E), side: BorderSide(color: accentColor)), onPressed: _calc, child: Text('Рассчитать клипсу', style: TextStyle(color: accentColor, fontWeight: FontWeight.bold))),
-        if (_result > 0) ...[const SizedBox(height: 16), Text('Обороты на колышках: ${_result.toStringAsFixed(2)}', style: TextStyle(color: accentColor, fontSize: 16, fontWeight: FontWeight.bold))]
-      ]),
     );
   }
 }
@@ -677,8 +680,9 @@ class CarpOutRadarPainter3D extends CustomPainter {
     final anomalyPaint = Paint()..color = Colors.orangeAccent..style = PaintingStyle.fill;
     final livePaint = Paint()..color = Colors.orangeAccent..style = PaintingStyle.fill;
     final textPaint = TextStyle(color: accent, fontSize: 10, fontWeight: FontWeight.bold);
-    final markerLabelPaint = TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, backgroundColor: const Color(0xFF1B2611).withOpacity(0.85));
+    final markerLabelPaint = TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, backgroundColor: const Color(0xFF11160B).withOpacity(0.85));
 
+    // Наклонная 3D перспектива: лучи сектора ловли
     for (int angle = -60; angle <= 60; angle += 15) {
       double pct = angle / 60.0;
       double endX = centerX + (maxRadius * pct * 1.1);
@@ -686,9 +690,10 @@ class CarpOutRadarPainter3D extends CustomPainter {
       canvas.drawLine(Offset(centerX, bottomY), Offset(endX, targetY), (angle % 30 == 0) ? mainPaint : dashPaint);
     }
 
+    // ТЗ Выполнено: Расширенный массив дистанций заброса маркерения до 210м
     final List<int> distances = [45, 60, 75, 90, 105, 120, 135, 150, 165, 180, 195, 210];
     for (int d in distances) {
-      double radius = (d - 55) * maxRadius / 105;
+      double radius = (d - 45) * maxRadius / 165; // Масштабирование под 210м
       double currentY = bottomY - radius;
       double perspectiveWidth = radius * 1.3 * (1.0 - (radius / maxRadius) * 0.15);
       double startX = centerX - perspectiveWidth;
@@ -701,34 +706,53 @@ class CarpOutRadarPainter3D extends CustomPainter {
       textPainter.paint(canvas, Offset(centerX - textPainter.width / 2, currentY - 14));
     }
 
+    // Защита от наложения надписей в кашу при близких тапах
+    List<Offset> occupiedTextPositions = [];
+
+    // Отрисовка сохраненных маркерных точек
     for (var point in savedPoints) {
-      double r = (point.distance - 55) * maxRadius / 105;
+      double r = (point.distance - 45) * maxRadius / 165;
       double perspectiveWidth = r * 1.3 * (1.0 - (r / maxRadius) * 0.15);
       double pX = centerX + (perspectiveWidth * point.angle); double pY = bottomY - r;
       
       if (pY >= bottomY - maxRadius - 40 && pY <= bottomY + 20) {
         canvas.drawCircle(Offset(pX, pY), 5, pointPaint);
         canvas.drawCircle(Offset(pX, pY), 10, mainPaint..strokeWidth = 1.2);
+        
         String labelText = '${point.name} (${point.distance.toStringAsFixed(1)}м)\n[${point.assignedRod}] ${point.bottomType}';
         final labelPainter = TextPainter(text: TextSpan(text: labelText, style: markerLabelPaint), textDirection: TextDirection.ltr)..layout();
-        labelPainter.paint(canvas, Offset(pX + 12, pY - 12));
+        
+        double posY = pY - 12;
+        for (var pos in occupiedTextPositions) {
+          if ((pos.dx - pX).abs() < 50 && (pos.dy - posY).abs() < 24) { posY += 24; }
+        }
+        occupiedTextPositions.add(Offset(pX, posY));
+        labelPainter.paint(canvas, Offset(pX + 12, posY));
       }
     }
 
+    // Отрисовка секторных аномалий
     for (var anomaly in savedAnomalies) {
-      double r = (anomaly.distance - 55) * maxRadius / 105;
+      double r = (anomaly.distance - 45) * maxRadius / 165;
       double perspectiveWidth = r * 1.3 * (1.0 - (r / maxRadius) * 0.15);
       double aX = centerX + (perspectiveWidth * anomaly.angle); double aY = bottomY - r;
       
       if (aY >= bottomY - maxRadius - 40 && aY <= bottomY + 20) {
         canvas.drawCircle(Offset(aX, aY), 4, anomalyPaint);
-        final anomalyPainter = TextPainter(text: TextSpan(text: anomaly.type, style: const TextStyle(fontSize: 14)), textDirection: TextDirection.ltr)..layout();
-        anomalyPainter.paint(canvas, Offset(aX - anomalyPainter.width / 2, aY - anomalyPainter.height / 2));
+        final anomalyPainter = TextPainter(text: TextSpan(text: anomaly.type, style: const TextStyle(fontSize: 12, color: Colors.white, backgroundColor: Colors.black45)), textDirection: TextDirection.ltr)..layout();
+        
+        double posY = aY - 6;
+        for (var pos in occupiedTextPositions) {
+          if ((pos.dx - aX).abs() < 60 && (pos.dy - posY).abs() < 16) { posY += 16; }
+        }
+        occupiedTextPositions.add(Offset(aX, posY));
+        anomalyPainter.paint(canvas, Offset(aX - anomalyPainter.width / 2, posY));
       }
     }
 
+    // Индикатор перетаскивания (живой заброс)
     if (isDragging) {
-      double r = (currentDragDist - 55) * maxRadius / 105;
+      double r = (currentDragDist - 45) * maxRadius / 165;
       double perspectiveWidth = r * 1.3 * (1.0 - (r / maxRadius) * 0.15);
       double pX = centerX + (perspectiveWidth * currentDragAngle); double pY = bottomY - r;
       canvas.drawCircle(Offset(pX, pY), 7, livePaint);
@@ -742,6 +766,49 @@ class CarpOutRadarPainter3D extends CustomPainter {
   }
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+class CarpClipsCalculator extends StatefulWidget {
+  final String currentTheme; const CarpClipsCalculator({Key? key, required this.currentTheme}) : super(key: key);
+  @override
+  _CarpClipsCalculatorState createState() => _CarpClipsCalculatorState();
+}
+
+class _CarpClipsCalculatorState extends State<CarpClipsCalculator> {
+  final _distanceCtrl = TextEditingController(); 
+  final _stickSizeCtrl = TextEditingController(text: '3.0'); // Мерная лента колышков 3м по дефолту
+  String _calcResult = '';
+
+  // ТЗ Выполнено: Расчет по колышкам в формате Обороты + Остаток метров
+  void _calculateClips() { 
+    double distance = double.tryParse(_distanceCtrl.text) ?? 0.0; 
+    double stickSize = double.tryParse(_stickSizeCtrl.text) ?? 3.0; 
+    if (distance > 0 && stickSize > 0) { 
+      int fullTurns = distance ~/ stickSize;
+      double remainderMeters = distance % stickSize;
+      setState(() { 
+        _calcResult = '$fullTurns об. + ${remainderMeters.toStringAsFixed(1)} м'; 
+      }); 
+    } 
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Color accentColor = widget.currentTheme == 'military' ? const Color(0xFF939E67) : (widget.currentTheme == 'lady' ? const Color(0xFFFF9F1C) : const Color(0xFFE8ECD0));
+    Color txtColor = Colors.white;
+    return Column(mainAxisSize: MainAxisSize.min, children: [
+      Text('📏 РАССЧИТАТЬ ОБОРОТЫ КОЛЫШКОВ', style: TextStyle(color: accentColor, fontWeight: FontWeight.bold, fontSize: 12)), const SizedBox(height: 16),
+      TextField(controller: _distanceCtrl, style: const TextStyle(color: Colors.white), keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Дистанция до точки (м)', labelStyle: TextStyle(color: Colors.white60))),
+      TextField(controller: _stickSizeCtrl, style: const TextStyle(color: Colors.white), keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Расстояние между колышками (м)', labelStyle: TextStyle(color: Colors.white60))),
+      const SizedBox(height: 16), 
+      ElevatedButton(
+        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32), side: BorderSide(color: accentColor)), 
+        onPressed: _calculateClips, 
+        child: Text('Вычислить витки', style: TextStyle(color: txtColor, fontWeight: FontWeight.bold))
+      ),
+      if (_calcResult.isNotEmpty) ...[const SizedBox(height: 16), Text('Результат на колышках:\n$_calcResult', textAlign: TextAlign.center, style: TextStyle(color: accentColor, fontSize: 16, fontWeight: FontWeight.bold))]
+    ]);
+  }
 }
 class CarpMixLog {
   String id; String liquid; String boilieType; String notes;
@@ -769,10 +836,9 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
   List<CarpMixLog> _mixes = [];
   List<PvaStickLog> _sticks = [];
 
-    final List<int> _timerSecondsList = List<int>.filled(4, 2400, growable: true);
+  final List<int> _timerSecondsList = List<int>.filled(4, 2400, growable: true);
   final List<int> _currentCountdownList = List<int>.filled(4, 0, growable: true);
   final List<bool> _isTimerRunningList = List<bool>.filled(4, false, growable: true);
-
 
   @override
   void initState() {
@@ -793,10 +859,7 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
     int targetRod = widget.rodResetSignal.value;
     if (targetRod >= 1 && targetRod <= 4) {
       int idx = targetRod - 1;
-      setState(() {
-        _isTimerRunningList[idx] = false;
-        _currentCountdownList[idx] = 0;
-      });
+      setState(() { _isTimerRunningList[idx] = false; _currentCountdownList[idx] = 0; });
       _saveFeedData();
     }
   }
@@ -808,7 +871,6 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
     setState(() {
       if (mixesJson != null) { _mixes = (jsonDecode(mixesJson) as List).map((item) => CarpMixLog.fromJson(item)).toList(); } else { _mixes = []; }
       if (sticksJson != null) { _sticks = (jsonDecode(sticksJson) as List).map((item) => PvaStickLog.fromJson(item)).toList(); } else { _sticks = []; }
-      
       for (int i = 0; i < 4; i++) {
         _timerSecondsList[i] = prefs.getInt('timer_secs_${widget.lakeKey}_$i') ?? 2400;
         _currentCountdownList[i] = prefs.getInt('curr_countdown_${widget.lakeKey}_$i') ?? 0;
@@ -822,33 +884,23 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('mixes_${widget.lakeKey}', jsonEncode(_mixes.map((m) => m.toJson()).toList()));
     await prefs.setString('sticks_${widget.lakeKey}', jsonEncode(_sticks.map((s) => s.toJson()).toList()));
-    
     for (int i = 0; i < 4; i++) {
       await prefs.setInt('timer_secs_${widget.lakeKey}_$i', _timerSecondsList[i]);
       await prefs.setInt('curr_countdown_${widget.lakeKey}_$i', _currentCountdownList[i]);
       await prefs.setBool('timer_running_${widget.lakeKey}_$i', _isTimerRunningList[i]);
     }
   }
-
   void _addMixDialog() {
     String liquid = 'CSL + Кукурузный ликер'; String boilieType = 'Вареные Бойлы 20мм';
     final notesController = TextEditingController();
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(builder: (context, setDialogState) => AlertDialog(
-        backgroundColor: const Color(0xFF1B2611), title: const Text('Залить спод-микс 🌽🍯'),
+        backgroundColor: const Color(0xFF11160B), title: const Text('Залить спод-микс 🌽🍯'),
         content: SingleChildScrollView(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            DropdownButton<String>(
-              dropdownColor: const Color(0xFF1B2611), value: liquid, isExpanded: true, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold), 
-              items: <String>['CSL + Кукурузный ликер', 'Аминокомплекс Complex-T', '🚫 Без ликвида (сухой)', 'Сладкий бустер Меласса', 'Атрактант Robin Red (Специи)', 'Экстракт Натурального Мотыля', 'Масляная кислота N-Butyric'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), 
-              onChanged: (v) { setDialogState(() { liquid = v!; }); }
-            ),
-            DropdownButton<String>(
-              dropdownColor: const Color(0xFF1B2611), value: boilieType, isExpanded: true, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold), 
-              items: <String>['Вареные Бойлы 20мм', 'Пылящие бойлы 24мм', 'Конопля + Зерновые', 'Пеллетс Халибут 14мм', 'Крушенные бойлы Squid-Octopus', 'Ферментированный Тигровый Орех', 'Быстрорастворимый пеллетс 6мм'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), 
-              onChanged: (v) { setDialogState(() { boilieType = v!; }); }
-            ),
+            DropdownButton<String>(dropdownColor: const Color(0xFF11160B), value: liquid, isExpanded: true, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold), items: <String>['CSL + Кукурузный ликер', 'Аминокомплекс Complex-T', '🚫 Без ликвида (сухой)', 'Сладкий бустер Меласса', 'Атрактант Robin Red (Специи)', 'Экстракт Натурального Мотыля', 'Масляная кислота N-Butyric'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { liquid = v!; }); }),
+            DropdownButton<String>(dropdownColor: const Color(0xFF11160B), value: boilieType, isExpanded: true, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold), items: <String>['Вареные Бойлы 20мм', 'Пылящие бойлы 24мм', 'Конопля + Зерновые', 'Пеллетс Халибут 14мм', 'Крушенные бойлы Squid-Octopus', 'Ферментированный Тигровый Орех', 'Быстрорастворимый пеллетс 6мм'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { boilieType = v!; }); }),
             TextField(controller: notesController, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Количество спомбов / Инфо', labelStyle: TextStyle(color: Colors.white60))),
           ]),
         ),
@@ -867,18 +919,14 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
       context: context,
       builder: (context) => StatefulBuilder(builder: (context, setDialogState) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF1B2611), title: const Text('Заброс поискового удилища 🎯'),
+          backgroundColor: const Color(0xFF11160B), title: const Text('Заброс поискового удилища 🎯'),
           content: SingleChildScrollView(
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               const Align(alignment: Alignment.centerLeft, child: Text('На какую маркерную точку бросаем:', style: TextStyle(color: Colors.white60, fontSize: 11))),
-              DropdownButton<String>(dropdownColor: const Color(0xFF1B2611), value: selectedMarker, isExpanded: true, style: const TextStyle(color: Color(0xFFE8ECD0), fontWeight: FontWeight.bold), items: (widget.availableMarkers.isNotEmpty ? widget.availableMarkers : ['Свободный заброс в сектор']).map((s) => DropdownMenuItem(value: s, child: Text(s, maxLines: 1, overflow: TextOverflow.ellipsis))).toList(), onChanged: (v) { setDialogState(() { selectedMarker = v!; }); }),
+              DropdownButton<String>(dropdownColor: const Color(0xFF11160B), value: selectedMarker, isExpanded: true, style: const TextStyle(color: Color(0xFFE8ECD0), fontWeight: FontWeight.bold), items: (widget.availableMarkers.isNotEmpty ? widget.availableMarkers : ['Свободный заброс в сектор']).map((s) => DropdownMenuItem(value: s, child: Text(s, maxLines: 1, overflow: TextOverflow.ellipsis))).toList(), onChanged: (v) { setDialogState(() { selectedMarker = v!; }); }),
               const SizedBox(height: 8),
-              DropdownButton<String>(dropdownColor: const Color(0xFF1B2611), value: pvaType, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['Сетка ПВА-стик', 'ПВА-пакет (с пеллетсом)', '🚫 Без ПВА (одиночная)'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { pvaType = v!; }); }),
-              DropdownButton<String>(
-                dropdownColor: const Color(0xFF1B2611), value: hookBait, isExpanded: true, style: const TextStyle(color: Colors.white), 
-                items: <String>['Pop-up 10мм (Плавающий)', 'Wafters (Сбалансированный)', 'Искусственная кукуруза', 'Двойной тонущий 20мм', 'Плавающий Тигровый Орех', 'Бойл Горох 14мм (Пылик)', 'Растворимый дамбелс Ананас', 'Натуральная кукуруза + Слива'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), 
-                onChanged: (v) { setDialogState(() { hookBait = v!; }); }
-              ),
+              DropdownButton<String>(dropdownColor: const Color(0xFF11160B), value: pvaType, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['Сетка ПВА-стик', 'ПВА-пакет (с пеллетсом)', '🚫 Без ПВА (одиночная)'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { pvaType = v!; }); }),
+              DropdownButton<String>(dropdownColor: const Color(0xFF11160B), value: hookBait, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['Pop-up 10мм (Плавающий)', 'Wafters (Сбалансированный)', 'Искусственная кукуруза', 'Двойной тонущий 20мм', 'Плавающий Тигровый Орех', 'Бойл Горох 14мм (Пылик)', 'Растворимый дамбелс Ананас', 'Натуральная кукуруза + Слива'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { hookBait = v!; }); }),
             ]),
           ),
           actions: [
@@ -892,21 +940,19 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
-    Color accentColor = widget.currentTheme == 'military' ? const Color(0xFFD4D9A1) : (widget.currentTheme == 'lady' ? const Color(0xFF8E24AA) : const Color(0xFFE8ECD0));
-    Color scaffoldBg = widget.currentTheme == 'lady' ? const Color(0xFFF3E5F5) : const Color(0xFF6B8E23);
-    Color cardBg = widget.currentTheme == 'lady' ? Colors.white : const Color(0xFF1B2611);
-    Color txtColor = widget.currentTheme == 'lady' ? Colors.black87 : Colors.white;
+    Color accentColor = widget.currentTheme == 'military' ? const Color(0xFF939E67) : (widget.currentTheme == 'lady' ? const Color(0xFFFF9F1C) : const Color(0xFFE8ECD0));
+    // ТЗ Выполнено: Динамический фон следует строго за темами (без заклинивания оливы)
+    Color scaffoldBg = widget.currentTheme == 'lady' ? const Color(0xFF231123) : (widget.currentTheme == 'oliva' ? const Color(0xFF6B8E23) : const Color(0xFF1C2214));
+    Color cardBg = widget.currentTheme == 'lady' ? const Color(0xFF3F111B) : const Color(0xFF11160B);
+    Color txtColor = Colors.white;
 
     return Scaffold(
       backgroundColor: scaffoldBg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1B2611),
+        backgroundColor: const Color(0xFF11160B),
         title: Text('Тактика Питания & Timing', style: TextStyle(color: accentColor, fontSize: 15, fontWeight: FontWeight.bold)),
         bottom: TabBar(
-          controller: _tabController,
-          labelColor: accentColor,
-          unselectedLabelColor: Colors.white54,
-          indicatorColor: accentColor,
+          controller: _tabController, labelColor: accentColor, unselectedLabelColor: Colors.white54, indicatorColor: accentColor,
           tabs: const [Tab(icon: Icon(Icons.restaurant, size: 18), text: 'Миксы'), Tab(icon: Icon(Icons.gpp_good, size: 18), text: 'Стики'), Tab(icon: Icon(Icons.timer, size: 18), text: 'Таймеры')],
         ),
       ),
@@ -914,7 +960,7 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
         Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(children: [
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('История кормления сектора:', style: TextStyle(color: widget.currentTheme == 'lady' ? Colors.black87 : const Color(0xFFE8ECD0), fontWeight: FontWeight.bold, fontSize: 13)), ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1B2611), side: BorderSide(color: accentColor)), onPressed: _addMixDialog, icon: Icon(Icons.add, color: accentColor, size: 16), label: Text('Корм', style: TextStyle(color: accentColor, fontSize: 12)))]),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('История кормления сектора:', style: TextStyle(color: accentColor, fontWeight: FontWeight.bold, fontSize: 13)), ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF11160B), side: BorderSide(color: accentColor)), onPressed: _addMixDialog, icon: Icon(Icons.add, color: accentColor, size: 16), label: Text('Корм', style: TextStyle(color: accentColor, fontSize: 12)))]),
             const SizedBox(height: 10),
             Expanded(child: _mixes.isEmpty ? const Center(child: Text('Сводка пуста.', style: TextStyle(color: Colors.white38))) : ListView.builder(itemCount: _mixes.length, itemBuilder: (context, idx) { final m = _mixes[_mixes.length - 1 - idx]; return Card(color: cardBg, margin: const EdgeInsets.only(bottom: 8), child: ListTile(leading: const Icon(Icons.opacity, color: Color(0xFFC5E1A5)), title: Text(m.liquid, style: TextStyle(color: txtColor, fontWeight: FontWeight.bold, fontSize: 14)), subtitle: Text('База: ${m.boilieType}\nИнфо: ${m.notes}', style: TextStyle(color: txtColor.withOpacity(0.7), fontSize: 12)), trailing: IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent, size: 18), onPressed: () { setState(() { _mixes.remove(m); }); _saveFeedData(); }))); })),
           ]),
@@ -922,7 +968,7 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
         Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(children: [
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('Active насадки:', style: TextStyle(color: widget.currentTheme == 'lady' ? Colors.black87 : const Color(0xFFE8ECD0), fontWeight: FontWeight.bold, fontSize: 13)), ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1B2611), side: BorderSide(color: accentColor)), onPressed: _addStickDialog, icon: Icon(Icons.gps_fixed, color: accentColor, size: 16), label: Text('Заброс', style: TextStyle(color: accentColor, fontSize: 12)))]),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('Active насадки:', style: TextStyle(color: accentColor, fontWeight: FontWeight.bold, fontSize: 13)), ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF11160B), side: BorderSide(color: accentColor)), onPressed: _addStickDialog, icon: Icon(Icons.gps_fixed, color: accentColor, size: 16), label: Text('Заброс', style: TextStyle(color: accentColor, fontSize: 12)))]),
             const SizedBox(height: 10),
             Expanded(child: _sticks.isEmpty ? const Center(child: Text('Нет забросов', style: TextStyle(color: Colors.white38))) : ListView.builder(itemCount: _sticks.length, itemBuilder: (context, idx) { final s = _sticks[_sticks.length - 1 - idx]; return Card(color: cardBg, margin: const EdgeInsets.only(bottom: 8), child: ListTile(leading: const Icon(Icons.track_changes, color: Color(0xFFFF5252)), title: Text('${s.rodType} [${s.time}]', style: TextStyle(color: txtColor, fontWeight: FontWeight.bold, fontSize: 14)), subtitle: Text('ПВА: ${s.pvaType}\nПрезентация: ${s.hookBait}', style: TextStyle(color: txtColor.withOpacity(0.7), fontSize: 12)), trailing: IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent, size: 18), onPressed: () { setState(() { _sticks.remove(s); }); _saveFeedData(); }))); })),
           ]),
@@ -936,37 +982,23 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
               int totalSecs = _timerSecondsList[i];
               int currLeft = _currentCountdownList[i];
               int displaySecs = isRunning ? currLeft : totalSecs;
-
               return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(bottom: 12), padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(color: cardBg, borderRadius: BorderRadius.circular(16), border: Border.all(color: isRunning ? accentColor.withOpacity(0.5) : Colors.white12)),
                 child: Column(children: [
                   Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                     Text('Удилище №${i + 1}', style: TextStyle(color: accentColor, fontWeight: FontWeight.bold, fontSize: 14)),
-                    Text(
-                      '${(displaySecs ~/ 60)}:${(displaySecs % 60).toString().padLeft(2, '0')}',
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: isRunning ? const Color(0xFFFF5252) : txtColor),
-                    ),
+                    Text('${(displaySecs ~/ 60)}:${(displaySecs % 60).toString().padLeft(2, '0')}', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: isRunning ? const Color(0xFFFF5252) : txtColor)),
                   ]),
                   const SizedBox(height: 8),
                   Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                    Row(children: [
-                      _buildSinglePreset(i, 2400, '40м'), const SizedBox(width: 4),
-                      _buildSinglePreset(i, 3600, '1ч'), const SizedBox(width: 4),
-                      _buildSinglePreset(i, 7200, '2ч'),
-                    ]),
+                    Row(children: [ _buildSinglePreset(i, 2400, '40м'), const SizedBox(width: 4), _buildSinglePreset(i, 3600, '1ч'), const SizedBox(width: 4), _buildSinglePreset(i, 7200, '2ч') ]),
                     Row(children: [
                       SizedBox(width: 75, height: 32, child: ElevatedButton(
                         style: ElevatedButton.styleFrom(backgroundColor: isRunning ? Colors.orange.shade900 : const Color(0xFF4A5D32), padding: EdgeInsets.zero),
                         onPressed: () {
-                          if (isRunning) {
-                            setState(() { _isTimerRunningList[i] = false; });
-                          } else {
-                            setState(() {
-                              _isTimerRunningList[i] = true;
-                              if (_currentCountdownList[i] == 0) { _currentCountdownList[i] = _timerSecondsList[i]; }
-                            });
+                          if (isRunning) { setState(() { _isTimerRunningList[i] = false; }); } else {
+                            setState(() { _isTimerRunningList[i] = true; if (_currentCountdownList[i] == 0) { _currentCountdownList[i] = _timerSecondsList[i]; } });
                             _startSingleCountdownLoop(i);
                           }
                           _saveFeedData();
@@ -976,10 +1008,7 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
                       const SizedBox(width: 6),
                       SizedBox(width: 75, height: 32, child: OutlinedButton(
                         style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.white38), padding: EdgeInsets.zero),
-                        onPressed: () {
-                          setState(() { _isTimerRunningList[i] = false; _currentCountdownList[i] = 0; });
-                          _saveFeedData();
-                        },
+                        onPressed: () { setState(() { _isTimerRunningList[i] = false; _currentCountdownList[i] = 0; }); _saveFeedData(); },
                         child: const Text('Сброс', style: TextStyle(color: Colors.redAccent, fontSize: 11)),
                       )),
                     ]),
@@ -994,15 +1023,10 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
   }
 
   Widget _buildSinglePreset(int rodIdx, int secs, String label) {
-    Color accentColor = widget.currentTheme == 'military' ? const Color(0xFFD4D9A1) : (widget.currentTheme == 'lady' ? const Color(0xFF8E24AA) : const Color(0xFFE8ECD0));
+    Color accentColor = widget.currentTheme == 'military' ? const Color(0xFF939E67) : (widget.currentTheme == 'lady' ? const Color(0xFFFF9F1C) : const Color(0xFFE8ECD0));
     bool isSelected = _timerSecondsList[rodIdx] == secs;
     return InkWell(
-      onTap: () {
-        if (!_isTimerRunningList[rodIdx]) {
-          setState(() { _timerSecondsList[rodIdx] = secs; });
-          _saveFeedData();
-        }
-      },
+      onTap: () { if (!_isTimerRunningList[rodIdx]) { setState(() { _timerSecondsList[rodIdx] = secs; }); _saveFeedData(); } },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(color: isSelected ? accentColor : const Color(0xFF2E3B1E), borderRadius: BorderRadius.circular(6)),
@@ -1015,33 +1039,24 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
     while (_isTimerRunningList[idx] && _currentCountdownList[idx] > 0) {
       await Future.delayed(const Duration(seconds: 1));
       if (!mounted || !_isTimerRunningList[idx]) return;
-      setState(() {
-        _currentCountdownList[idx]--;
-        if (_currentCountdownList[idx] <= 0) {
-          _isTimerRunningList[idx] = false;
-          _showSingleTimerAlert(idx);
-        }
-      });
+      setState(() { _currentCountdownList[idx]--; if (_currentCountdownList[idx] <= 0) { _isTimerRunningList[idx] = false; _showSingleTimerAlert(idx); } });
     }
   }
 
   void _showSingleTimerAlert(int idx) async {
     // В ТЗ Добавлено: Цикличный механический аларм (5 громких жужжащих сигналов перезаброса)
-    for (int i = 0; i < 5; i++) {
-      Feedback.vibrate();
-      await Future.delayed(const Duration(milliseconds: 350));
-    }
-
+    for (int i = 0; i < 5; i++) { Feedback.vibrate(); await Future.delayed(const Duration(milliseconds: 350)); }
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFFFF5252),
         title: Text('ПЕРЕЗАБРОС УДИЛИЩА №${idx + 1}! ⏱️🔥', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         content: const Text('Пора обновить насадку и проверить точку ловли!', style: TextStyle(color: Colors.white)),
-        actions: [ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1B2611)), onPressed: () { Navigator.pop(context); }, child: const Text('Принято', style: TextStyle(color: Colors.white)))],
+        actions: [ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF11160B)), onPressed: () { Navigator.pop(context); }, child: const Text('Принято', style: TextStyle(color: Colors.white)))],
       ),
     );
   }
+} // КЛАСС ТАЙМЕРОВ И ПИТАНИЯ ПОЛНОСТЬЮ И ГЕРМЕТИЧНО ЗАКРЫТ!
 
 class FishTrophy {
   String id; String weight; String dateStr; String imagePath; String notes;
@@ -1085,29 +1100,23 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
     final picked = await picker.pickImage(source: src, imageQuality: 75);
     if (picked != null) {
       final appDir = await getApplicationDocumentsDirectory();
-      final filename = 'trophy_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final filename = 'trophy_${DateTime.now().millisecondsSinceEpoch.jpg}';
       final savedFile = await File(picked.path).copy('${appDir.path}/$filename');
       setState(() { _selectedImageFile = savedFile.path; });
     }
   }
 
-  // Интерактивный тактический календарик выбора даты и времени улова
   Future<void> _selectDateTime(BuildContext context) async {
     final DateTime? pickedDate = await showDatePicker(
-      context: context, initialDate: _selectedCatchDateTime,
-      firstDate: DateTime(2020), lastDate: DateTime(2030),
-      builder: (context, child) => Theme(data: ThemeData.dark().copyWith(colorScheme: const ColorScheme.dark(primary: Color(0xFF4A5D32), surface: Color(0xFF1B2611))), child: child!),
+      context: context, initialDate: _selectedCatchDateTime, firstDate: DateTime(2020), lastDate: DateTime(2030),
+      builder: (context, child) => Theme(data: ThemeData.dark().copyWith(colorScheme: const ColorScheme.dark(primary: Color(0xFF4A5D32), surface: Color(0xFF11160B))), child: child!),
     );
     if (pickedDate != null) {
       final TimeOfDay? pickedTime = await showTimePicker(
         context: context, initialTime: TimeOfDay.fromDateTime(_selectedCatchDateTime),
-        builder: (context, child) => Theme(data: ThemeData.dark().copyWith(colorScheme: const ColorScheme.dark(primary: Color(0xFF4A5D32), surface: Color(0xFF1B2611))), child: child!),
-    );
-      if (pickedTime != null) {
-        setState(() {
-          _selectedCatchDateTime = DateTime(pickedDate.year, pickedDate.month, pickedDate.day, pickedTime.hour, pickedTime.minute);
-        });
-      }
+        builder: (context, child) => Theme(data: ThemeData.dark().copyWith(colorScheme: const ColorScheme.dark(primary: Color(0xFF4A5D32), surface: Color(0xFF11160B))), child: child!),
+      );
+      if (pickedTime != null) { setState(() { _selectedCatchDateTime = DateTime(pickedDate.year, pickedDate.month, pickedDate.day, pickedTime.hour, pickedTime.minute); }); }
     }
   }
   void _addTrophyDialog() {
@@ -1118,7 +1127,7 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
         Color btnColor = const Color(0xFF4A5D32);
         String formattedDate = '${_selectedCatchDateTime.day}.${_selectedCatchDateTime.month}.${_selectedCatchDateTime.year} ${_selectedCatchDateTime.hour}:${_selectedCatchDateTime.minute.toString().padLeft(2, '0')}';
         return AlertDialog(
-          backgroundColor: const Color(0xFF1B2611), title: const Text('Зафиксировать трофей 🏆'),
+          backgroundColor: const Color(0xFF11160B), title: const Text('Зафиксировать трофей 🏆'),
           content: SingleChildScrollView(
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               TextField(controller: _weightCtrl, style: const TextStyle(color: Colors.white), keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Вес трофея (кг)', labelStyle: TextStyle(color: Colors.white60))),
@@ -1133,18 +1142,8 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
               ),
               const SizedBox(height: 14),
               Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(backgroundColor: btnColor),
-                  onPressed: () async { await _pickImage(ImageSource.camera); setDialogState(() {}); },
-                  icon: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
-                  label: const Text('Камера', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
-                ),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(backgroundColor: btnColor),
-                  onPressed: () async { await _pickImage(ImageSource.gallery); setDialogState(() {}); },
-                  icon: const Icon(Icons.photo_library, color: Colors.white, size: 16),
-                  label: const Text('Галерея', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
-                ),
+                ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: btnColor), onPressed: () async { await _pickImage(ImageSource.camera); setDialogState(() {}); }, icon: const Icon(Icons.camera_alt, color: Colors.white, size: 16), label: const Text('Камера', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: btnColor), onPressed: () async { await _pickImage(ImageSource.gallery); setDialogState(() {}); }, icon: const Icon(Icons.photo_library, color: Colors.white, size: 16), label: const Text('Галерея', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
               ]),
               if (_selectedImageFile.isNotEmpty) ...[const SizedBox(height: 12), Container(height: 100, width: 140, decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), image: DecorationImage(image: FileImage(File(_selectedImageFile)), fit: BoxFit.cover)))]
             ]),
@@ -1167,14 +1166,14 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Color accentColor = widget.currentTheme == 'military' ? const Color(0xFFD4D9A1) : (widget.currentTheme == 'lady' ? const Color(0xFF8E24AA) : const Color(0xFFE8ECD0));
-    Color scaffoldBg = widget.currentTheme == 'lady' ? const Color(0xFFF3E5F5) : const Color(0xFF6B8E23);
-    Color cardBg = widget.currentTheme == 'lady' ? Colors.white : const Color(0xFF1B2611);
-    Color txtColor = widget.currentTheme == 'lady' ? Colors.black87 : Colors.white;
+    Color accentColor = widget.currentTheme == 'military' ? const Color(0xFF939E67) : (widget.currentTheme == 'lady' ? const Color(0xFFFF9F1C) : const Color(0xFFE8ECD0));
+    Color scaffoldBg = widget.currentTheme == 'lady' ? const Color(0xFF231123) : (widget.currentTheme == 'oliva' ? const Color(0xFF6B8E23) : const Color(0xFF1C2214));
+    Color cardBg = widget.currentTheme == 'lady' ? const Color(0xFF3F111B) : const Color(0xFF11160B);
+    Color txtColor = Colors.white;
 
     return Scaffold(
       backgroundColor: scaffoldBg,
-      appBar: AppBar(backgroundColor: const Color(0xFF1B2611), title: Text('Галерея рекордов и трофеев', style: TextStyle(color: accentColor, fontSize: 15, fontWeight: FontWeight.bold)), actions: [IconButton(icon: Icon(Icons.add_a_photo, color: accentColor), onPressed: _addTrophyDialog)]),
+      appBar: AppBar(backgroundColor: const Color(0xFF11160B), title: Text('Галерея рекордов и трофеев', style: TextStyle(color: accentColor, fontSize: 15, fontWeight: FontWeight.bold)), actions: [IconButton(icon: Icon(Icons.add_a_photo, color: accentColor), onPressed: _addTrophyDialog)]),
       body: _trophies.isEmpty ? const Center(child: Text('Пока нет трофейных записей.', style: TextStyle(color: Colors.white38))) : GridView.builder(
         padding: const EdgeInsets.all(12), gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 0.8),
         itemCount: _trophies.length, itemBuilder: (context, idx) {
@@ -1182,7 +1181,7 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
           return Container(
             decoration: BoxDecoration(color: cardBg, borderRadius: BorderRadius.circular(16), border: Border.all(color: accentColor.withOpacity(0.3), width: 1.2)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Expanded(child: t.imagePath.isNotEmpty && File(t.imagePath).existsSync() ? Container(decoration: BoxDecoration(borderRadius: const BorderRadius.vertical(top: Radius.circular(14)), image: DecorationImage(image: FileImage(File(t.imagePath)), fit: BoxFit.cover))) : Container(color: const Color(0xFF1B2611).withOpacity(0.2), child: Center(child: Icon(Icons.image_not_supported, color: accentColor.withOpacity(0.5))))),
+              Expanded(child: t.imagePath.isNotEmpty && File(t.imagePath).existsSync() ? Container(decoration: BoxDecoration(borderRadius: const BorderRadius.vertical(top: Radius.circular(14)), image: DecorationImage(image: FileImage(File(t.imagePath)), fit: BoxFit.cover))) : Container(color: Colors.black25, child: Center(child: Icon(Icons.image_not_supported, color: accentColor.withOpacity(0.5))))),
               Padding(padding: const EdgeInsets.all(8.0), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('${t.weight} кг 🔥', style: TextStyle(color: accentColor, fontWeight: FontWeight.bold, fontSize: 14)), IconButton(constraints: const BoxConstraints(), padding: EdgeInsets.zero, icon: const Icon(Icons.delete, color: Colors.redAccent, size: 16), onPressed: () { setState(() { _trophies.remove(t); }); _saveTrophies(); })]),
                 const SizedBox(height: 2), Text(t.dateStr, style: TextStyle(color: txtColor.withOpacity(0.6), fontSize: 10)),
@@ -1195,6 +1194,158 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
     );
   }
 }
+class CarpWeatherScreen extends StatefulWidget {
+  final String lakeKey; final String currentTheme;
+  const CarpWeatherScreen({Key? key, required this.lakeKey, required this.currentTheme}) : super(key: key);
+  @override
+  _CarpWeatherScreenState createState() => _CarpWeatherScreenState();
+}
+
+class _CarpWeatherScreenState extends State<CarpWeatherScreen> {
+  List<CarpWeatherLog> _weatherLogs = [];
+  final _pressureController = TextEditingController(text: '745');
+
+  @override
+  void initState() { super.initState(); _loadWeatherData(); }
+  @override
+  void didUpdateWidget(covariant CarpWeatherScreen oldWidget) { super.didUpdateWidget(oldWidget); if (oldWidget.lakeKey != widget.lakeKey) { _loadWeatherData(); } }
+
+  Future<void> _loadWeatherData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? jsonStr = prefs.getString('weather_${widget.lakeKey}');
+    setState(() { if (jsonStr != null) { _weatherLogs = (jsonDecode(jsonStr) as List).map((item) => CarpWeatherLog.fromJson(item)).toList(); } else { _weatherLogs = []; } });
+  }
+
+  Future<void> _saveWeatherData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('weather_${widget.lakeKey}', jsonEncode(_weatherLogs.map((w) => w.toJson()).toList()));
+  }
+
+  void _addPressureLog() {
+    double newP = double.tryParse(_pressureController.text) ?? 745.0;
+    final now = DateTime.now();
+    String timeStr = '${now.hour}:${now.minute.toString().padLeft(2, '0')}';
+    String trend = '➡️ Стабильно';
+    if (_weatherLogs.isNotEmpty) {
+      double lastP = _weatherLogs.last.pressure;
+      if (newP > lastP) trend = '📈 Растет';
+      if (newP < lastP) trend = '📉 Падает';
+    }
+    setState(() { _weatherLogs.add(CarpWeatherLog(id: now.millisecondsSinceEpoch.toString(), pressure: newP, trend: trend, time: timeStr)); if (_weatherLogs.length > 10) { _weatherLogs.removeAt(0); } });
+    _saveWeatherData();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Color accentColor = widget.currentTheme == 'military' ? const Color(0xFF939E67) : (widget.currentTheme == 'lady' ? const Color(0xFFFF9F1C) : const Color(0xFFE8ECD0));
+    Color cardBg = widget.currentTheme == 'lady' ? const Color(0xFF3F111B) : const Color(0xFF11160B);
+    Color scaffoldBg = widget.currentTheme == 'lady' ? const Color(0xFF231123) : (widget.currentTheme == 'oliva' ? const Color(0xFF6B8E23) : const Color(0xFF1C2214));
+    Color txtColor = Colors.white;
+
+    return Scaffold(
+      backgroundColor: scaffoldBg,
+      appBar: AppBar(backgroundColor: const Color(0xFF11160B), title: Text('Тактический Барометр сессии', style: TextStyle(color: accentColor, fontSize: 15, fontWeight: FontWeight.bold))),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('📊 ТРЕНД АТМОСФЕРНОГО ДАВЛЕНИЯ', style: TextStyle(color: accentColor, fontWeight: FontWeight.bold, fontSize: 12)),
+          const SizedBox(height: 12),
+          Container(
+            height: 160, width: double.infinity, padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: const Color(0xFF11160B), borderRadius: BorderRadius.circular(16), border: Border.all(color: accentColor.withOpacity(0.3))),
+            child: CustomPaint(painter: CarpPressureChartPainter(_weatherLogs, accentColor)),
+          ),
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: cardBg, borderRadius: BorderRadius.circular(16)),
+            child: Row(children: [
+              Expanded(child: TextField(controller: _pressureController, style: TextStyle(color: txtColor), keyboardType: TextInputType.number, decoration: InputDecoration(labelText: 'Давление (мм рт. ст.)', labelStyle: TextStyle(color: txtColor.withOpacity(0.6))))),
+              const SizedBox(width: 16),
+              ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32), padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14)), onPressed: _addPressureLog, child: const Text('Замерить', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)))
+            ]),
+          ),
+          const SizedBox(height: 16),
+          Text('История изменений:', style: TextStyle(color: accentColor, fontWeight: FontWeight.bold, fontSize: 12)),
+          const SizedBox(height: 8),
+          _weatherLogs.isEmpty 
+              ? const Text('Замеров пока нет. Сделайте первый шаг на берегу!', style: TextStyle(color: Colors.white38, fontSize: 12))
+              : ListView.builder(
+                  shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
+                  itemCount: _weatherLogs.length, itemBuilder: (context, idx) {
+                    final log = _weatherLogs[_weatherLogs.length - 1 - idx];
+                    return Card(
+                      color: cardBg, margin: const EdgeInsets.symmetric(vertical: 4),
+                      child: ListTile(
+                        leading: const Icon(Icons.speed, color: Colors.blueAccent),
+                        title: Text('${log.pressure.toStringAsFixed(0)} мм рт. ст.', style: TextStyle(color: txtColor, fontWeight: FontWeight.bold, fontSize: 14)),
+                        subtitle: Text('Время фиксации: ${log.time}', style: TextStyle(color: txtColor.withOpacity(0.6), fontSize: 12)),
+                        trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+                          Text(log.trend, style: TextStyle(color: accentColor, fontWeight: FontWeight.bold, fontSize: 12)),
+                          IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent, size: 16), onPressed: () { setState(() { _weatherLogs.remove(log); }); _saveWeatherData(); })
+                        ]),
+                      ),
+                    );
+                  },
+                )
+        ]),
+      ),
+    );
+  }
+}
+
+class CarpPressureChartPainter extends CustomPainter {
+  final List<CarpWeatherLog> logs; final Color accent;
+  CarpPressureChartPainter(this.logs, this.accent);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final gridPaint = Paint()..color = accent.withOpacity(0.15)..strokeWidth = 1.0;
+    final linePaint = Paint()..color = accent..strokeWidth = 2.5..style = PaintingStyle.stroke;
+    final pointPaint = Paint()..color = const Color(0xFFFF5252)..style = PaintingStyle.fill;
+    
+    double steps = 4;
+    for (int i = 0; i <= steps; i++) {
+      double y = (size.height / steps) * i;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
+    }
+
+    if (logs.length < 2) {
+      final tp = TextPainter(text: TextSpan(text: 'Нужно минимум 2 замера для графика', style: TextStyle(color: accent.withOpacity(0.5), fontSize: 11)), textDirection: TextDirection.ltr)..layout();
+      tp.paint(canvas, Offset(size.width / 2 - tp.width / 2, size.height / 2 - tp.height / 2));
+      return;
+    }
+
+    double minP = logs.map((e) => e.pressure).reduce((a, b) => a < b ? a : b);
+    double maxP = logs.map((e) => e.pressure).reduce((a, b) => a > b ? a : b);
+    if (maxP == minP) { minP -= 5; maxP += 5; }
+    double range = maxP - minP;
+
+    final path = Path();
+    double dx = size.width / (logs.length - 1);
+
+    for (int i = 0; i < logs.length; i++) {
+      double x = dx * i;
+      double normalizedY = (logs[i].pressure - minP) / range;
+      double y = size.height - (normalizedY * (size.height - 20) + 10);
+      if (i == 0) { path.moveTo(x, y); } else { path.lineTo(x, y); }
+    }
+
+    canvas.drawPath(path, linePaint);
+
+    for (int i = 0; i < logs.length; i++) {
+      double x = dx * i;
+      double normalizedY = (logs[i].pressure - minP) / range;
+      double y = size.height - (normalizedY * (size.height - 20) + 10);
+      canvas.drawCircle(Offset(x, y), 4, pointPaint);
+      final label = TextPainter(text: TextSpan(text: '${logs[i].pressure.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)), textDirection: TextDirection.ltr)..layout();
+      label.paint(canvas, Offset(x - label.width / 2, y - 14));
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
 class CarpWeatherScreen extends StatefulWidget {
   final String lakeKey; final String currentTheme;
   const CarpWeatherScreen({Key? key, required this.lakeKey, required this.currentTheme}) : super(key: key);
