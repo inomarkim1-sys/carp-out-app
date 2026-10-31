@@ -754,7 +754,7 @@ class PvaStickLog {
   String id; String pvaType; String hookBait; String rodType; String time;
   PvaStickLog({required this.id, required this.pvaType, required this.hookBait, required this.rodType, required this.time});
   Map<String, dynamic> toJson() => {'id': id, 'pvaType': pvaType, 'hookBait': hookBait, 'rodType': rodType, 'time': time};
-  factory PvaStickLog.fromJson(Map<String, dynamic> json) => PvaStickLog(id: json['id'] ?? '', pvaType: json['pvaType'] ?? '', hookBait: hookBait, rodType: rodType, time: json['time'] ?? '');
+  factory PvaStickLog.fromJson(Map<String, dynamic> json) => PvaStickLog(id: json['id'] ?? '', pvaType: json['pvaType'] ?? '', hookBait: json['hookBait'] ?? '', rodType: json['rodType'] ?? '', time: json['time'] ?? '');
 }
 
 class CarpFeedScreen extends StatefulWidget {
@@ -769,7 +769,6 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
   List<CarpMixLog> _mixes = [];
   List<PvaStickLog> _sticks = [];
 
-  // Исправлено: жестко заданные массивы на 4 удилища без пропусков символов
   final List<int> _timerSecondsList =;
   final List<int> _currentCountdownList =;
   final List<bool> _isTimerRunningList = [false, false, false, false];
