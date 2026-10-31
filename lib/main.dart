@@ -107,8 +107,8 @@ class CarpOutAppIconPainter extends CustomPainter {
     path.quadraticBezierTo(w * 0.68, h * 0.51, w * 0.73, h * 0.58);
     path.lineTo(w * 0.83, h * 0.48); path.lineTo(w * 0.80, h * 0.58); path.lineTo(w * 0.83, h * 0.68);
     path.lineTo(w * 0.73, h * 0.58);
-    path.quadraticBezierTo(w * 0.63, h * 0.70, w * 0.45, h * 0.68);
-    path.quadraticBezierTo(w * 0.33, h * 0.64, w * 0.28, h * 0.58);
+    quadraticBezierTo(w * 0.63, h * 0.70, w * 0.45, h * 0.68);
+    quadraticBezierTo(w * 0.33, h * 0.64, w * 0.28, h * 0.58);
     canvas.drawPath(path, fishPaint);
 
     final textPainter = TextPainter(text: TextSpan(text: 'CARPOUT', style: TextStyle(color: accent, fontSize: 9.5, fontWeight: FontWeight.bold, letterSpacing: 1.5)), textDirection: TextDirection.ltr)..layout();
@@ -117,7 +117,6 @@ class CarpOutAppIconPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-
 class MainNavigationScreen extends StatefulWidget {
   final String currentTheme; final double scale; final Function(String, double) onSettingsChanged;
   const MainNavigationScreen({Key? key, required this.currentTheme, required this.scale, required this.onSettingsChanged}) : super(key: key);
@@ -136,7 +135,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   String _anglerName = 'Карпятник';
   Map<String, int> _fishSpeciesStats = {'Карп': 0, 'Амур': 0, 'Карась': 0, 'Толстолоб': 0, 'Лещ': 0, 'Сом': 0};
   
-  // Уведомитель для жесткого сброса таймера конкретного удилища (№ удилища от 1 до 4)
   final ValueNotifier<int> _rodResetSignal = ValueNotifier<int>(0);
 
   @override
@@ -181,6 +179,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   void _updateMarkersList(List<String> newMarkers) { setState(() { _markerNames = newMarkers; }); }
+
   void _showEditNameDialog() {
     final controller = TextEditingController(text: _anglerName);
     showDialog(
@@ -273,64 +272,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ),
     );
   }
-  @override
-  Widget build(BuildContext context) {
-    Color drawerBg = widget.currentTheme == 'lady' ? const Color(0xFFE1BEE7) : const Color(0xFF556B2F);
-    Color txtColor = widget.currentTheme == 'lady' ? Colors.black87 : Colors.white;
-    Color accentColor = widget.currentTheme == 'military' ? const Color(0xFFD4D9A1) : (widget.currentTheme == 'lady' ? const Color(0xFF8E24AA) : const Color(0xFFE8ECD0));
-
-    final List<Widget> _screens = [
-      CarpOutDashboard(
-        currentTheme: widget.currentTheme, lake: _selectedLake, sector: _sectorName, duration: _sessionDuration, catches: _catchesCount, weight: _totalWeight, bigFish: _bigFishWeight, speciesStats: _fishSpeciesStats, availableMarkers: _markerNames,
-        onUpdateSession: (l, s, d) async { setState(() { _sectorName = s; _sessionDuration = d; }); await _saveAllAppData(); },
-        onUpdateStats: (c, w, b, updatedSpecies, resetRodNum) async {
-          setState(() { _catchesCount = c; _totalWeight = w; _bigFishWeight = b; _fishSpeciesStats = updatedSpecies; });
-          await _saveAllAppData();
-          if (resetRodNum > 0) { _rodResetSignal.value = resetRodNum; _rodResetSignal.value = 0; }
-        }
-      ),
-      MarkerMapScreenNew(lakeKey: _selectedLake, onMarkersChanged: _updateMarkersList, currentTheme: widget.currentTheme),
-      CarpClipsCalculator(currentTheme: widget.currentTheme),
-      CarpFeedScreen(lakeKey: _selectedLake, availableMarkers: _markerNames, currentTheme: widget.currentTheme, rodResetSignal: _rodResetSignal),
-      FishSocialScreen(lakeKey: _selectedLake, currentTheme: widget.currentTheme),
-    ];
-
-    return Scaffold(
-      drawer: Drawer(
-        backgroundColor: drawerBg,
-        child: Column(children: [
-          UserAccountsDrawerHeader(
-            decoration: const BoxDecoration(color: Color(0xFF1B2611)),
-            accountName: InkWell(
-              onTap: _showEditNameDialog,
-              child: Row(children: [Text('Привет, $_anglerName! 👋', style: TextStyle(fontWeight: FontWeight.bold, color: accentColor, fontSize: 15)), const SizedBox(width: 6), Icon(Icons.edit, color: accentColor, size: 14)]),
-            ),
-            accountEmail: const Text('Удачной сессии и жирных паровозов!', style: TextStyle(color: Colors.white70, fontSize: 11)),
-            currentAccountPicture: CustomPaint(painter: CarpOutAppIconPainter(accentColor))
-          ),
-          ListTile(
-            leading: Icon(Icons.palette, color: accentColor),
-            title: Text('⚙️ Настройки интерфейса', style: TextStyle(color: txtColor, fontWeight: FontWeight.bold)),
-            onTap: () { Navigator.pop(context); _showInterfaceSettings(); },
-          ),
-          const Divider(color: Colors.white24),
-          Padding(padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('СПИСОК ВОДОЕМОВ:', style: TextStyle(color: accentColor, fontWeight: FontWeight.bold, fontSize: 12)), IconButton(icon: Icon(Icons.add_circle, color: accentColor), onPressed: _addNewLakeDialog)])),
-          Expanded(child: ListView.builder(itemCount: _lakesList.length, itemBuilder: (context, index) {
-            final lakeItem = _lakesList[index]; bool isCurrent = lakeItem == _selectedLake;
-            final sectorCtrl = TextEditingController(text: isCurrent ? _sectorName : 'Сектор №1'); final durationCtrl = TextEditingController(text: isCurrent ? _sessionDuration : '24');
-            return Theme(data: ThemeData(unselectedWidgetColor: Colors.white70), child: ExpansionTile(
-              leading: Icon(Icons.water, color: isCurrent ? accentColor : Colors.white70), title: Text(lakeItem, style: TextStyle(color: txtColor, fontWeight: FontWeight.bold)),
-              trailing: Row(mainAxisSize: MainAxisSize.min, children: [if (isCurrent) Icon(Icons.check_circle, color: accentColor, size: 20), IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20), onPressed: () async { if (_lakesList.length > 1) { Navigator.pop(context); setState(() { _lakesList.remove(lakeItem); if (isCurrent) _selectedLake = _lakesList.first; }); await _saveAllAppData(); await _loadAllAppData(); } })]),
-              children: [Container(padding: const EdgeInsets.all(12), margin: const EdgeInsets.all(8), decoration: BoxDecoration(color: const Color(0xFF1B2611), borderRadius: BorderRadius.circular(12)), child: Column(children: [TextField(controller: sectorCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Сектор ловли', labelStyle: TextStyle(color: Colors.white60))), TextField(controller: durationCtrl, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Длительность сессии (ч)', labelStyle: TextStyle(color: Colors.white60))), const SizedBox(height: 8), ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)), onPressed: () async { Navigator.pop(context); setState(() { _selectedLake = lakeItem; _sectorName = sectorCtrl.text; _sessionDuration = durationCtrl.text; }); await _saveAllAppData(); await _loadAllAppData(); }, child: const Text('Выбрать и применить', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)))].map((w) => Padding(padding: const EdgeInsets.only(bottom: 4), child: w)).toList()))],
-            ));
-          }))
-        ]),
-      ),
-      body: IndexedStack(index: _currentIndex, children: _screens),
-      bottomNavigationBar: BottomNavigationBar(currentIndex: _currentIndex, type: BottomNavigationBarType.fixed, backgroundColor: const Color(0xFF1B2611), selectedItemColor: accentColor, unselectedItemColor: Colors.white54, onTap: (idx) { setState(() { _currentIndex = idx; }); }, items: const [BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Инфо'), BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Маркер'), BottomNavigationBarItem(icon: Icon(Icons.calculate), label: 'Клипса'), BottomNavigationBarItem(icon: Icon(Icons.restaurant), label: 'Корм'), BottomNavigationBarItem(icon: Icon(Icons.photo_library), label: 'Трофеи')]),
-    );
-  }
-}
 class CarpOutDashboard extends StatelessWidget {
   final String currentTheme; final String lake; final String sector; final String duration; final int catches; final double weight; final String bigFish; final Map<String, int> speciesStats; final List<String> availableMarkers; final Function(String, String, String) onUpdateSession; final Function(int, double, String, Map<String, int>, int) onUpdateStats;
   const CarpOutDashboard({Key? key, required this.currentTheme, required this.lake, required this.sector, required this.duration, required this.catches, required this.weight, required this.bigFish, required this.speciesStats, required this.availableMarkers, required this.onUpdateSession, required this.onUpdateStats}) : super(key: key);
@@ -509,6 +450,7 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
     List<String> names = _points.map((p) => '${p.name} (${p.distance.toStringAsFixed(1)}м) [${p.assignedRod}]').toList();
     widget.onMarkersChanged(names);
   }
+
   void _handleRadarTap(double calcDistance, double calcAngle) {
     if (_activeToolMode == 'point') {
       _nameController.clear(); _distanceController.text = calcDistance.toStringAsFixed(1); _depthController.clear();
@@ -643,7 +585,7 @@ class CarpOutRadarPainter3D extends CustomPainter {
     }
 
     // Перспективные дуги дистанций (веер сужается вдаль)
-    final List<int> distances = [40, 60, 75, 90, 105, 120, 135, 150];
+    final List<int> distances = [45, 60, 75, 90, 105, 120, 135, 150, 165, 180, 195, 210];
     for (int d in distances) {
       double radius = (d - 55) * maxRadius / 105;
       double currentY = bottomY - radius;
@@ -659,6 +601,7 @@ class CarpOutRadarPainter3D extends CustomPainter {
       final textPainter = TextPainter(text: TextSpan(text: '${d}м', style: textPaint), textDirection: TextDirection.ltr)..layout();
       textPainter.paint(canvas, Offset(centerX - textPainter.width / 2, currentY - 14));
     }
+
     // Отрисовка сохраненных точек ловли с учетом 3D-перспективы
     for (var point in savedPoints) {
       double r = (point.distance - 55) * maxRadius / 105;
@@ -750,13 +693,13 @@ class CarpFeedScreen extends StatefulWidget {
   @override
   _CarpFeedScreenState createState() => _CarpFeedScreenState();
 }
+
 class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   List<CarpMixLog> _mixes = [];
   List<PvaStickLog> _sticks = [];
 
-  // Состояния для 4-х независимых удилищ
-  final List<int> _timerSecondsList =; // По дефолту 40 мин
+  final List<int> _timerSecondsList =;
   final List<int> _currentCountdownList =;
   final List<bool> _isTimerRunningList = [false, false, false, false];
 
@@ -765,8 +708,6 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _loadFeedData();
-
-    // Вшиваем тактический слушатель сброса таймера от подсака Дашборда
     widget.rodResetSignal.addListener(_handleRodResetFromDashboard);
   }
 
@@ -779,7 +720,6 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
 
   void _handleRodResetFromDashboard() {
     int targetRod = widget.rodResetSignal.value;
-    // На Дашборде удилища от 1 до 4. В массиве индексы от 0 до 3
     if (targetRod >= 1 && targetRod <= 4) {
       int idx = targetRod - 1;
       setState(() {
@@ -798,7 +738,6 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
       if (mixesJson != null) { _mixes = (jsonDecode(mixesJson) as List).map((item) => CarpMixLog.fromJson(item)).toList(); } else { _mixes = []; }
       if (sticksJson != null) { _sticks = (jsonDecode(sticksJson) as List).map((item) => PvaStickLog.fromJson(item)).toList(); } else { _sticks = []; }
       
-      // Загрузка состояний таймеров удилищ
       for (int i = 0; i < 4; i++) {
         _timerSecondsList[i] = prefs.getInt('timer_secs_${widget.lakeKey}_$i') ?? 2400;
         _currentCountdownList[i] = prefs.getInt('curr_countdown_${widget.lakeKey}_$i') ?? 0;
@@ -813,14 +752,12 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
     await prefs.setString('mixes_${widget.lakeKey}', jsonEncode(_mixes.map((m) => m.toJson()).toList()));
     await prefs.setString('sticks_${widget.lakeKey}', jsonEncode(_sticks.map((s) => s.toJson()).toList()));
     
-    // Сохранение состояний таймеров
     for (int i = 0; i < 4; i++) {
       await prefs.setInt('timer_secs_${widget.lakeKey}_$i', _timerSecondsList[i]);
       await prefs.setInt('curr_countdown_${widget.lakeKey}_$i', _currentCountdownList[i]);
       await prefs.setBool('timer_running_${widget.lakeKey}_$i', _isTimerRunningList[i]);
     }
   }
-
   void _addMixDialog() {
     String liquid = 'CSL + Кукурузный ликер'; String boilieType = 'Вареные Бойлы 20мм';
     final notesController = TextEditingController();
@@ -848,22 +785,24 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
     String selectedMarker = widget.availableMarkers.isNotEmpty ? widget.availableMarkers.first : 'Свободный заброс в сектор';
     showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(builder: (context, setDialogState) => AlertDialog(
-        backgroundColor: const Color(0xFF1B2611), title: const Text('Заброс поискового удилища 🎯'),
-        content: SingleChildScrollView(
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            const Align(alignment: Alignment.centerLeft, child: Text('На какую маркерную точку бросаем:', style: TextStyle(color: Colors.white60, fontSize: 11))),
-            DropdownButton<String>(dropdownColor: const Color(0xFF1B2611), value: selectedMarker, isExpanded: true, style: const TextStyle(color: Color(0xFFE8ECD0), fontWeight: FontWeight.bold), items: (widget.availableMarkers.isNotEmpty ? widget.availableMarkers : ['Свободный заброс в сектор']).map((s) => DropdownMenuItem(value: s, child: Text(s, maxLines: 1, overflow: TextOverflow.ellipsis))).toList(), onChanged: (v) { setDialogState(() { selectedMarker = v!; }); }),
-            const SizedBox(height: 8),
-            DropdownButton<String>(dropdownColor: const Color(0xFF1B2611), value: pvaType, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['Сетка ПВА-стик', 'ПВА-пакет (с пеллетсом)', '🚫 Без ПВА (одиночная)'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { pvaType = v!; }); }),
-            DropdownButton<String>(dropdownColor: const Color(0xFF1B2611), value: hookBait, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['Pop-up 10мм (Плавающий)', 'Wafters (Сбалансированный)', 'Искусственная кукуруза', 'Двойной тонущий 20мм'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { hookBait = v!; }); }),
-          ]),
-        ),
-        actions: [
-          TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена', style: TextStyle(color: Colors.white70))),
-          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)), onPressed: () { final now = DateTime.now(); Navigator.pop(context); String detectedRod = 'Поиск'; if (selectedMarker.contains('[') && selectedMarker.contains(']')) { detectedRod = selectedMarker.substring(selectedMarker.indexOf('[') + 1, selectedMarker.indexOf(']')); } setState(() { _sticks.add(PvaStickLog(id: now.millisecondsSinceEpoch.toString(), pvaType: pvaType, hookBait: hookBait, rodType: detectedRod, time: '${now.hour}:${now.minute.toString().padLeft(2, '0')}')); }); _saveFeedData(); }, child: const Text('В точку!', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-        ],
-      )),
+      builder: (context) => StatefulBuilder(builder: (context, setDialogState) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF1B2611), title: const Text('Заброс поискового удилища 🎯'),
+          content: SingleChildScrollView(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              const Align(alignment: Alignment.centerLeft, child: Text('На какую маркерную точку бросаем:', style: TextStyle(color: Colors.white60, fontSize: 11))),
+              DropdownButton<String>(dropdownColor: const Color(0xFF1B2611), value: selectedMarker, isExpanded: true, style: const TextStyle(color: Color(0xFFE8ECD0), fontWeight: FontWeight.bold), items: (widget.availableMarkers.isNotEmpty ? widget.availableMarkers : ['Свободный заброс в сектор']).map((s) => DropdownMenuItem(value: s, child: Text(s, maxLines: 1, overflow: TextOverflow.ellipsis))).toList(), onChanged: (v) { setDialogState(() { selectedMarker = v!; }); }),
+              const SizedBox(height: 8),
+              DropdownButton<String>(dropdownColor: const Color(0xFF1B2611), value: pvaType, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['Сетка ПВА-стик', 'ПВА-пакет (с пеллетсом)', '🚫 Без ПВА (одиночная)'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { pvaType = v!; }); }),
+              DropdownButton<String>(dropdownColor: const Color(0xFF1B2611), value: hookBait, isExpanded: true, style: const TextStyle(color: Colors.white), items: <String>['Pop-up 10мм (Плавающий)', 'Wafters (Сбалансированный)', 'Искусственная кукуруза', 'Двойной тонущий 20мм'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { setDialogState(() { hookBait = v!; }); }),
+            ]),
+          ),
+          actions: [
+            TextButton(onPressed: () { Navigator.pop(context); }, child: const Text('Отмена', style: TextStyle(color: Colors.white70))),
+            ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)), onPressed: () { final now = DateTime.now(); Navigator.pop(context); String detectedRod = 'Поиск'; if (selectedMarker.contains('[') && selectedMarker.contains(']')) { detectedRod = selectedMarker.substring(selectedMarker.indexOf('[') + 1, selectedMarker.indexOf(']')); } setState(() { _sticks.add(PvaStickLog(id: now.millisecondsSinceEpoch.toString(), pvaType: pvaType, hookBait: hookBait, rodType: detectedRod, time: '${now.hour}:${now.minute.toString().padLeft(2, '0')}')); }); _saveFeedData(); }, child: const Text('В точку!', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+          ],
+        );
+      }),
     );
   }
   @override
@@ -1011,7 +950,7 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
       ),
     );
   }
-} // КЛАСС ТАЙМЕРОВ И ПИТАНИЯ ПОЛНОСТЬЮ И ГЕРМЕТИЧНО ЗАКРЫТ!
+}
 class FishTrophy {
   String id; String weight; String dateStr; String imagePath; String notes;
   FishTrophy({required this.id, required this.weight, required this.dateStr, required this.imagePath, required this.notes});
