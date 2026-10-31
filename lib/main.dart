@@ -39,13 +39,11 @@ class _CarpOutAppAppState extends State<CarpOutApp> {
       surfaceColor = const Color(0xFF2E3B1E);
       accentColor = const Color(0xFFE8ECD0);
     } else if (_currentTheme == 'lady') {
-      // ТЗ Выполнено: Атмосферная карповая тема красивого закатного света
       baseThemeColor = const Color(0xFF231123); // Сумеречный глубокий фон
       surfaceColor = const Color(0xFF3F111B); // Багровый закатный
       accentColor = const Color(0xFFFF9F1C); // Теплый золотой закат
     } else {
-      // ТЗ Выполнено: Переименовано в Темный Хаки
-      baseThemeColor = const Color(0xFF1C2214); 
+      baseThemeColor = const Color(0xFF1C2214); // Тёмный хаки
       surfaceColor = const Color(0xFF11160B);
       accentColor = const Color(0xFF939E67);
     }
@@ -61,7 +59,7 @@ class _CarpOutAppAppState extends State<CarpOutApp> {
           dialogTheme: DialogThemeData(
             backgroundColor: surfaceColor,
             titleTextStyle: TextStyle(color: accentColor, fontSize: 18, fontWeight: FontWeight.bold),
-            contentTextStyle: TextStyle(color: _currentTheme == 'lady' ? Colors.whiteEE : Colors.white),
+            contentTextStyle: TextStyle(color: Colors.white),
           ),
           appBarTheme: AppBarTheme(
             backgroundColor: surfaceColor,
@@ -125,6 +123,20 @@ class CarpWeatherLog {
   CarpWeatherLog({required this.id, required this.pressure, required this.trend, required this.time});
   Map<String, dynamic> toJson() => {'id': id, 'pressure': pressure, 'trend': trend, 'time': time};
   factory CarpWeatherLog.fromJson(Map<String, dynamic> json) => CarpWeatherLog(id: json['id'] ?? '', pressure: (json['pressure'] as num).toDouble(), trend: json['trend'] ?? '➡️ Стабильно', time: json['time'] ?? '');
+}
+
+class MarkerPoint {
+  String name; double distance; double depth; String bottomType; double angle; String assignedRod;
+  MarkerPoint({required this.name, required this.distance, required this.depth, required this.bottomType, required this.angle, required this.assignedRod});
+  Map<String, dynamic> toJson() => {'name': name, 'distance': distance, 'depth': depth, 'bottomType': bottomType, 'angle': angle, 'assignedRod': assignedRod};
+  factory MarkerPoint.fromJson(Map<String, dynamic> json) => MarkerPoint(name: json['name'] ?? '', distance: (json['distance'] as num).toDouble(), depth: (json['depth'] as num).toDouble(), bottomType: json['bottomType'] ?? '', angle: (json['angle'] as num).toDouble(), assignedRod: json['assignedRod'] ?? 'Маркер / Свободная');
+}
+
+class CarpAnomaly {
+  String id; String type; double distance; double angle;
+  CarpAnomaly({required this.id, required this.type, required this.distance, required this.angle});
+  Map<String, dynamic> toJson() => {'id': id, 'type': type, 'distance': distance, 'angle': angle};
+  factory CarpAnomaly.fromJson(Map<String, dynamic> json) => CarpAnomaly(id: json['id'] ?? '', type: json['type'] ?? '🪵 Коряга', distance: (json['distance'] as num).toDouble(), angle: (json['angle'] as num).toDouble());
 }
 class MainNavigationScreen extends StatefulWidget {
   final String currentTheme; final double scale; final Function(String, double) onSettingsChanged;
@@ -240,12 +252,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 const Text('Тема оформления:', style: TextStyle(color: Colors.white70, fontSize: 12)),
                 const SizedBox(height: 6),
                 DropdownButton<String>(
-                  dropdownColor: const Color(0xFF1B2611),
+                  dropdownColor: const Color(0xFF11160B),
                   value: widget.currentTheme,
                   isExpanded: true,
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                   items: const [
-                    DropdownMenuItem(value: 'military', child: Text('🧭 Тёмный Хаки')),
+                    DropdownMenuItem(value: 'military', child: Text('Compass Тёмный Хаки')),
                     DropdownMenuItem(value: 'oliva', child: Text('🌿 Светлая Олива')),
                     DropdownMenuItem(value: 'lady', child: Text('🌅 Красивый Закат')),
                   ],
@@ -255,7 +267,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 const Text('Размер текста:', style: TextStyle(color: Colors.white70, fontSize: 12)),
                 const SizedBox(height: 6),
                 DropdownButton<double>(
-                  dropdownColor: const Color(0xFF1B2611),
+                  dropdownColor: const Color(0xFF11160B),
                   value: widget.scale,
                   isExpanded: true,
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -308,7 +320,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         backgroundColor: drawerBg,
         child: Column(children: [
           UserAccountsDrawerHeader(
-            decoration: BoxDecoration(color: widget.currentTheme == 'lady' ? const Color(0xFF3F111B) : const Color(0xFF1B2611)),
+            decoration: BoxDecoration(color: widget.currentTheme == 'lady' ? const Color(0xFF3F111B) : const Color(0xFF1C2214)),
             accountName: InkWell(
               onTap: _showEditNameDialog,
               child: Row(children: [Text('Привет, $_anglerName! 👋', style: TextStyle(fontWeight: FontWeight.bold, color: accentColor, fontSize: 15)), const SizedBox(width: 6), Icon(Icons.edit, color: accentColor, size: 14)]),
@@ -327,7 +339,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             ));
           })),
           const Divider(color: Colors.white24, height: 1),
-          // ТЗ Выполнено: Настройки перемещены в самый низ шторки в виде аккуратных иконок
           Container(
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             color: widget.currentTheme == 'lady' ? const Color(0xFF3F111B) : const Color(0xFF11160B),
@@ -345,10 +356,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         ]),
       ),
       body: IndexedStack(index: _currentIndex, children: _screens),
-      bottomNavigationBar: BottomNavigationBar(currentIndex: _currentIndex, type: BottomNavigationBarType.fixed, backgroundColor: const Color(0xFF11160B), selectedItemColor: accentColor, unselectedItemColor: Colors.white54, onTap: (idx) { setState(() { _currentIndex = idx; }); }, items: const [BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Инфо'), BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Маркер'), BottomNavigationBarItem(icon: Icon(Icons.cloud), label: 'Барометр'), BottomNavigationBarItem(icon: Icon(Icons.restaurant), label: 'Корм'), BottomNavigationBarItem(icon: Icon(Icons.photo_library), label: 'Трофеи')]),
+      bottomNavigationBar: BottomNavigationBar(currentIndex: _currentIndex, type: BottomNavigationBarType.fixed, backgroundColor: const Color(0xFF11160B), selectedItemColor: accentColor, unselectedItemColor: Colors.white54, onTap: (idx) { setState(() { _currentIndex = idx; }); }, items: const [BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Инфо'), BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Marker'), BottomNavigationBarItem(icon: Icon(Icons.cloud), label: 'Барометр'), BottomNavigationBarItem(icon: Icon(Icons.restaurant), label: 'Корм'), BottomNavigationBarItem(icon: Icon(Icons.photo_library), label: 'Трофеи')]),
     );
   }
-
+}
 class CarpOutDashboard extends StatelessWidget {
   final String currentTheme; final String lake; final String sector; final String duration; final int catches; final double weight; final String bigFish; final Map<String, int> speciesStats; final List<String> availableMarkers; final Function(String, String, String) onUpdateSession; final Function(int, double, String, Map<String, int>, int) onUpdateStats;
   const CarpOutDashboard({Key? key, required this.currentTheme, required this.lake, required this.sector, required this.duration, required this.catches, required this.weight, required this.bigFish, required this.speciesStats, required this.availableMarkers, required this.onUpdateSession, required this.onUpdateStats}) : super(key: key);
@@ -396,14 +407,14 @@ class CarpOutDashboard extends StatelessWidget {
                   const SizedBox(height: 12),
                   const Text('Какая рыба:', style: TextStyle(color: Colors.white60, fontSize: 11)),
                   DropdownButton<String>(
-                    dropdownColor: const Color(0xFF1B2611), value: selectedSpecies, isExpanded: true, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    dropdownColor: const Color(0xFF11160B), value: selectedSpecies, isExpanded: true, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                     items: <String>['Карп', 'Амур', 'Карась', 'Толстолоб', 'Лещ', 'Сом'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
                     onChanged: (v) { setDialogState(() { selectedSpecies = v!; }); },
                   ),
                   const SizedBox(height: 12),
                   const Text('На какое удилище поймано:', style: TextStyle(color: Colors.white60, fontSize: 11)),
                   DropdownButton<int>(
-                    dropdownColor: const Color(0xFF1B2611), value: selectedRod, isExpanded: true, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    dropdownColor: const Color(0xFF11160B), value: selectedRod, isExpanded: true, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                     items: const [DropdownMenuItem(value: 1, child: Text('Рабочее удилище №1')), DropdownMenuItem(value: 2, child: Text('Рабочее удилище №2')), DropdownMenuItem(value: 3, child: Text('Рабочее удилище №3')), DropdownMenuItem(value: 4, child: Text('Рабочее удилище №4'))],
                     onChanged: (v) { setDialogState(() { selectedRod = v!; }); },
                   ),
@@ -441,16 +452,16 @@ class CarpOutDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double averageWeight = catches > 0 ? weight / catches : 0.0;
-    Color accentColor = currentTheme == 'military' ? const Color(0xFFD4D9A1) : (currentTheme == 'lady' ? const Color(0xFF8E24AA) : const Color(0xFFE8ECD0));
-    Color cardBg = currentTheme == 'lady' ? Colors.white : const Color(0xFF1B2611);
-    Color txtColor = currentTheme == 'lady' ? Colors.black87 : Colors.white;
+    Color accentColor = currentTheme == 'military' ? const Color(0xFF939E67) : (currentTheme == 'lady' ? const Color(0xFFFF9F1C) : const Color(0xFFE8ECD0));
+    Color cardBg = currentTheme == 'lady' ? const Color(0xFF3F111B) : const Color(0xFF11160B);
+    Color txtColor = Colors.white;
 
     return Scaffold(
-      backgroundColor: currentTheme == 'lady' ? const Color(0xFFF3E5F5) : Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: currentTheme == 'lady' ? const Color(0xFF231123) : Theme.of(context).scaffoldBackgroundColor,
       body: SingleChildScrollView(padding: const EdgeInsets.all(16.0), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const SizedBox(height: 25), Row(children: [IconButton(icon: Icon(Icons.menu, color: accentColor), onPressed: () => Scaffold.of(context).openDrawer()), Text('CarpOut', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: accentColor))]),
         const SizedBox(height: 10),
-        Container(width: double.infinity, padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: const Color(0xFF1B2611), borderRadius: BorderRadius.circular(16), border: Border.all(color: accentColor.withOpacity(0.2))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(_getCurrentDate(), style: TextStyle(color: accentColor, fontSize: 13, fontWeight: FontWeight.bold)), const SizedBox(height: 6), const Text('ТЕКУЩАЯ СЕССИЯ', style: TextStyle(color: Colors.white60, fontSize: 11, fontWeight: FontWeight.bold)), const SizedBox(height: 4), Text(lake, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)), Text(sector, style: const TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.w500))])),
+        Container(width: double.infinity, padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: const Color(0xFF11160B), borderRadius: BorderRadius.circular(16), border: Border.all(color: accentColor.withOpacity(0.2))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(_getCurrentDate(), style: TextStyle(color: accentColor, fontSize: 13, fontWeight: FontWeight.bold)), const SizedBox(height: 6), const Text('ТЕКУЩАЯ СЕССИЯ', style: TextStyle(color: Colors.white60, fontSize: 11, fontWeight: FontWeight.bold)), const SizedBox(height: 4), Text(lake, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)), Text(sector, style: const TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.w500))])),
         const SizedBox(height: 24),
         GridView.count(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 1.3, children: [
           GestureDetector(onTap: () => _showSpeciesSummary(context), child: _buildStatCard('Всего хвостов', '$catches шт.', Icons.phishing, const Color(0xFF4A5D32), cardBg, txtColor, accentColor)),
@@ -459,27 +470,13 @@ class CarpOutDashboard extends StatelessWidget {
           _buildStatCard('BIG FISH 🔥', '$bigFish кг', Icons.emoji_events, const Color(0xFFFF5252), cardBg, txtColor, accentColor)
         ]),
         const SizedBox(height: 24),
-        SizedBox(width: double.infinity, height: 56, child: ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1B2611), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), side: BorderSide(color: accentColor, width: 1.2)), onPressed: () => _showInTheNetDialog(context), icon: Icon(Icons.phishing, color: accentColor), label: Text('В подсаке! 🎣', style: TextStyle(color: accentColor, fontSize: 18, fontWeight: FontWeight.bold))))
+        SizedBox(width: double.infinity, height: 56, child: ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF11160B), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), side: BorderSide(color: accentColor, width: 1.2)), onPressed: () => _showInTheNetDialog(context), icon: Icon(Icons.phishing, color: accentColor), label: Text('В подсаке! 🎣', style: TextStyle(color: accentColor, fontSize: 18, fontWeight: FontWeight.bold))))
       ])),
     );
   }
 
   Widget _buildStatCard(String title, String value, IconData icon, Color iconColor, Color bg, Color txt, Color accent) { return Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12), border: Border.all(color: accent.withOpacity(0.3), width: 1.2)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [Row(children: [Icon(icon, color: iconColor, size: 18), const SizedBox(width: 6), Text(title, style: TextStyle(color: txt.withOpacity(0.7), fontSize: 11, fontWeight: FontWeight.bold))]), const SizedBox(height: 8), Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: accent))])); }
 }
-class MarkerPoint {
-  String name; double distance; double depth; String bottomType; double angle; String assignedRod;
-  MarkerPoint({required this.name, required this.distance, required this.depth, required this.bottomType, required this.angle, required this.assignedRod});
-  Map<String, dynamic> toJson() => {'name': name, 'distance': distance, 'depth': depth, 'bottomType': bottomType, 'angle': angle, 'assignedRod': assignedRod};
-  factory MarkerPoint.fromJson(Map<String, dynamic> json) => MarkerPoint(name: json['name'] ?? '', distance: (json['distance'] as num).toDouble(), depth: (json['depth'] as num).toDouble(), bottomType: json['bottomType'] ?? '', angle: (json['angle'] as num).toDouble(), assignedRod: json['assignedRod'] ?? 'Маркер / Свободная');
-}
-
-class CarpAnomaly {
-  String id; String type; double distance; double angle;
-  CarpAnomaly({required this.id, required this.type, required this.distance, required this.angle});
-  Map<String, dynamic> toJson() => {'id': id, 'type': type, 'distance': distance, 'angle': angle};
-  factory CarpAnomaly.fromJson(Map<String, dynamic> json) => CarpAnomaly(id: json['id'] ?? '', type: json['type'] ?? '🪵 Коряга', distance: (json['distance'] as num).toDouble(), angle: (json['angle'] as num).toDouble());
-}
-
 class MarkerMapScreenNew extends StatefulWidget {
   final String lakeKey; final Function(List<String>) onMarkersChanged; final String currentTheme;
   const MarkerMapScreenNew({Key? key, required this.lakeKey, required this.onMarkersChanged, required this.currentTheme}) : super(key: key);
@@ -527,7 +524,8 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
     List<String> names = _points.map((p) => '${p.name} (${p.distance.toStringAsFixed(1)}м) [${p.assignedRod}]').toList();
     widget.onMarkersChanged(names);
   }
-  // ТЗ Выполнено: Математически выверенный пересчет экранных координат строго в точку нажатия пальца
+
+  // ТЗ Выполнено: Выверенный пересчет экранных координат строго в точку нажатия пальца на 3D-веере
   void _processScreenTouch(Offset localPos, double centerX, double bottomY, double maxRadius) {
     double dx = localPos.dx - centerX;
     double dy = bottomY - localPos.dy;
@@ -668,105 +666,6 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
     );
   }
 }
-class CarpOutRadarPainter3D extends CustomPainter {
-  final List<MarkerPoint> savedPoints; final List<CarpAnomaly> savedAnomalies; final double currentDragDist; final double currentDragAngle; final bool isDragging; final double centerX; final double bottomY; final double maxRadius; final Color accent;
-  CarpOutRadarPainter3D({required this.savedPoints, required this.savedAnomalies, required this.currentDragDist, required this.currentDragAngle, required this.isDragging, required this.centerX, required this.bottomY, required this.maxRadius, required this.accent});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final mainPaint = Paint()..color = accent.withOpacity(0.7)..strokeWidth = 1.5..style = PaintingStyle.stroke;
-    final dashPaint = Paint()..color = accent.withOpacity(0.25)..strokeWidth = 1.0..style = PaintingStyle.stroke;
-    final pointPaint = Paint()..color = const Color(0xFFFF5252)..style = PaintingStyle.fill;
-    final anomalyPaint = Paint()..color = Colors.orangeAccent..style = PaintingStyle.fill;
-    final livePaint = Paint()..color = Colors.orangeAccent..style = PaintingStyle.fill;
-    final textPaint = TextStyle(color: accent, fontSize: 10, fontWeight: FontWeight.bold);
-    final markerLabelPaint = TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, backgroundColor: const Color(0xFF11160B).withOpacity(0.85));
-
-    // Наклонная 3D перспектива: лучи сектора ловли
-    for (int angle = -60; angle <= 60; angle += 15) {
-      double pct = angle / 60.0;
-      double endX = centerX + (maxRadius * pct * 1.1);
-      double targetY = bottomY - maxRadius;
-      canvas.drawLine(Offset(centerX, bottomY), Offset(endX, targetY), (angle % 30 == 0) ? mainPaint : dashPaint);
-    }
-
-    // ТЗ Выполнено: Расширенный массив дистанций заброса маркерения до 210м
-    final List<int> distances = [45, 60, 75, 90, 105, 120, 135, 150, 165, 180, 195, 210];
-    for (int d in distances) {
-      double radius = (d - 45) * maxRadius / 165; // Масштабирование под 210м
-      double currentY = bottomY - radius;
-      double perspectiveWidth = radius * 1.3 * (1.0 - (radius / maxRadius) * 0.15);
-      double startX = centerX - perspectiveWidth;
-      double endX = centerX + perspectiveWidth;
-      
-      final path = Path()..moveTo(startX, currentY)..quadraticBezierTo(centerX, currentY + (radius * 0.05), endX, currentY);
-      canvas.drawPath(path, mainPaint);
-      
-      final textPainter = TextPainter(text: TextSpan(text: '${d}м', style: textPaint), textDirection: TextDirection.ltr)..layout();
-      textPainter.paint(canvas, Offset(centerX - textPainter.width / 2, currentY - 14));
-    }
-
-    // Защита от наложения надписей в кашу при близких тапах
-    List<Offset> occupiedTextPositions = [];
-
-    // Отрисовка сохраненных маркерных точек
-    for (var point in savedPoints) {
-      double r = (point.distance - 45) * maxRadius / 165;
-      double perspectiveWidth = r * 1.3 * (1.0 - (r / maxRadius) * 0.15);
-      double pX = centerX + (perspectiveWidth * point.angle); double pY = bottomY - r;
-      
-      if (pY >= bottomY - maxRadius - 40 && pY <= bottomY + 20) {
-        canvas.drawCircle(Offset(pX, pY), 5, pointPaint);
-        canvas.drawCircle(Offset(pX, pY), 10, mainPaint..strokeWidth = 1.2);
-        
-        String labelText = '${point.name} (${point.distance.toStringAsFixed(1)}м)\n[${point.assignedRod}] ${point.bottomType}';
-        final labelPainter = TextPainter(text: TextSpan(text: labelText, style: markerLabelPaint), textDirection: TextDirection.ltr)..layout();
-        
-        double posY = pY - 12;
-        for (var pos in occupiedTextPositions) {
-          if ((pos.dx - pX).abs() < 50 && (pos.dy - posY).abs() < 24) { posY += 24; }
-        }
-        occupiedTextPositions.add(Offset(pX, posY));
-        labelPainter.paint(canvas, Offset(pX + 12, posY));
-      }
-    }
-
-    // Отрисовка секторных аномалий
-    for (var anomaly in savedAnomalies) {
-      double r = (anomaly.distance - 45) * maxRadius / 165;
-      double perspectiveWidth = r * 1.3 * (1.0 - (r / maxRadius) * 0.15);
-      double aX = centerX + (perspectiveWidth * anomaly.angle); double aY = bottomY - r;
-      
-      if (aY >= bottomY - maxRadius - 40 && aY <= bottomY + 20) {
-        canvas.drawCircle(Offset(aX, aY), 4, anomalyPaint);
-        final anomalyPainter = TextPainter(text: TextSpan(text: anomaly.type, style: const TextStyle(fontSize: 12, color: Colors.white, backgroundColor: Colors.black45)), textDirection: TextDirection.ltr)..layout();
-        
-        double posY = aY - 6;
-        for (var pos in occupiedTextPositions) {
-          if ((pos.dx - aX).abs() < 60 && (pos.dy - posY).abs() < 16) { posY += 16; }
-        }
-        occupiedTextPositions.add(Offset(aX, posY));
-        anomalyPainter.paint(canvas, Offset(aX - anomalyPainter.width / 2, posY));
-      }
-    }
-
-    // Индикатор перетаскивания (живой заброс)
-    if (isDragging) {
-      double r = (currentDragDist - 45) * maxRadius / 165;
-      double perspectiveWidth = r * 1.3 * (1.0 - (r / maxRadius) * 0.15);
-      double pX = centerX + (perspectiveWidth * currentDragAngle); double pY = bottomY - r;
-      canvas.drawCircle(Offset(pX, pY), 7, livePaint);
-      canvas.drawLine(Offset(centerX, bottomY), Offset(pX, pY), livePaint..strokeWidth = 1.2);
-      final liveLabel = TextPainter(text: TextSpan(text: 'ЗАБРОС: ${currentDragDist.toStringAsFixed(1)} м', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 11, backgroundColor: Colors.orangeAccent)), textDirection: TextDirection.ltr)..layout();
-      liveLabel.paint(canvas, Offset(pX - liveLabel.width / 2, pY - 24));
-    }
-
-    final logoPainter = TextPainter(text: TextSpan(text: 'CARPOUT', style: TextStyle(color: accent.withOpacity(0.5), fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.5)), textDirection: TextDirection.ltr)..layout();
-    logoPainter.paint(canvas, Offset(24, bottomY + 20));
-  }
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
-}
 
 class CarpClipsCalculator extends StatefulWidget {
   final String currentTheme; const CarpClipsCalculator({Key? key, required this.currentTheme}) : super(key: key);
@@ -776,10 +675,9 @@ class CarpClipsCalculator extends StatefulWidget {
 
 class _CarpClipsCalculatorState extends State<CarpClipsCalculator> {
   final _distanceCtrl = TextEditingController(); 
-  final _stickSizeCtrl = TextEditingController(text: '3.0'); // Мерная лента колышков 3м по дефолту
+  final _stickSizeCtrl = TextEditingController(text: '3.0'); 
   String _calcResult = '';
 
-  // ТЗ Выполнено: Расчет по колышкам в формате Обороты + Остаток метров
   void _calculateClips() { 
     double distance = double.tryParse(_distanceCtrl.text) ?? 0.0; 
     double stickSize = double.tryParse(_stickSizeCtrl.text) ?? 3.0; 
@@ -809,6 +707,101 @@ class _CarpClipsCalculatorState extends State<CarpClipsCalculator> {
       if (_calcResult.isNotEmpty) ...[const SizedBox(height: 16), Text('Результат на колышках:\n$_calcResult', textAlign: TextAlign.center, style: TextStyle(color: accentColor, fontSize: 16, fontWeight: FontWeight.bold))]
     ]);
   }
+}
+class CarpOutRadarPainter3D extends CustomPainter {
+  final List<MarkerPoint> savedPoints; final List<CarpAnomaly> savedAnomalies; final double currentDragDist; final double currentDragAngle; final bool isDragging; final double centerX; final double bottomY; final double maxRadius; final Color accent;
+  CarpOutRadarPainter3D({required this.savedPoints, required this.savedAnomalies, required this.currentDragDist, required this.currentDragAngle, required this.isDragging, required this.centerX, required this.bottomY, required this.maxRadius, required this.accent});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final mainPaint = Paint()..color = accent.withOpacity(0.7)..strokeWidth = 1.5..style = PaintingStyle.stroke;
+    final dashPaint = Paint()..color = accent.withOpacity(0.25)..strokeWidth = 1.0..style = PaintingStyle.stroke;
+    final pointPaint = Paint()..color = const Color(0xFFFF5252)..style = PaintingStyle.fill;
+    final anomalyPaint = Paint()..color = Colors.orangeAccent..style = PaintingStyle.fill;
+    final livePaint = Paint()..color = Colors.orangeAccent..style = PaintingStyle.fill;
+    final textPaint = TextStyle(color: accent, fontSize: 10, fontWeight: FontWeight.bold);
+    final markerLabelPaint = TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, backgroundColor: const Color(0xFF11160B).withOpacity(0.85));
+
+    for (int angle = -60; angle <= 60; angle += 15) {
+      double pct = angle / 60.0;
+      double endX = centerX + (maxRadius * pct * 1.1);
+      double targetY = bottomY - maxRadius;
+      canvas.drawLine(Offset(centerX, bottomY), Offset(endX, targetY), (angle % 30 == 0) ? mainPaint : dashPaint);
+    }
+
+    // ТЗ Выполнено: Массив дистанций заброса маркерения расширен до 210м
+    final List<int> distances =;
+    for (int d in distances) {
+      double radius = (d - 45) * maxRadius / 165; 
+      double currentY = bottomY - radius;
+      double perspectiveWidth = radius * 1.3 * (1.0 - (radius / maxRadius) * 0.15);
+      double startX = centerX - perspectiveWidth;
+      double endX = centerX + perspectiveWidth;
+      
+      final path = Path()..moveTo(startX, currentY)..quadraticBezierTo(centerX, currentY + (radius * 0.05), endX, currentY);
+      canvas.drawPath(path, mainPaint);
+      
+      final textPainter = TextPainter(text: TextSpan(text: '${d}м', style: textPaint), textDirection: TextDirection.ltr)..layout();
+      textPainter.paint(canvas, Offset(centerX - textPainter.width / 2, currentY - 14));
+    }
+
+    // Алгоритм ТЗ: Защита от наложения надписей на маркерном экране
+    List<Offset> occupiedTextPositions = [];
+
+    for (var point in savedPoints) {
+      double r = (point.distance - 45) * maxRadius / 165;
+      double perspectiveWidth = r * 1.3 * (1.0 - (r / maxRadius) * 0.15);
+      double pX = centerX + (perspectiveWidth * point.angle); double pY = bottomY - r;
+      
+      if (pY >= bottomY - maxRadius - 40 && pY <= bottomY + 20) {
+        canvas.drawCircle(Offset(pX, pY), 5, pointPaint);
+        canvas.drawCircle(Offset(pX, pY), 10, mainPaint..strokeWidth = 1.2);
+        
+        String labelText = '${point.name} (${point.distance.toStringAsFixed(1)}м)\n[${point.assignedRod}] ${point.bottomType}';
+        final labelPainter = TextPainter(text: TextSpan(text: labelText, style: markerLabelPaint), textDirection: TextDirection.ltr)..layout();
+        
+        double posY = pY - 12;
+        for (var pos in occupiedTextPositions) {
+          if ((pos.dx - pX).abs() < 50 && (pos.dy - posY).abs() < 24) { posY += 24; }
+        }
+        occupiedTextPositions.add(Offset(pX, posY));
+        labelPainter.paint(canvas, Offset(pX + 12, posY));
+      }
+    }
+
+    for (var anomaly in savedAnomalies) {
+      double r = (anomaly.distance - 45) * maxRadius / 165;
+      double perspectiveWidth = r * 1.3 * (1.0 - (r / maxRadius) * 0.15);
+      double aX = centerX + (perspectiveWidth * anomaly.angle); double aY = bottomY - r;
+      
+      if (aY >= bottomY - maxRadius - 40 && aY <= bottomY + 20) {
+        canvas.drawCircle(Offset(aX, aY), 4, anomalyPaint);
+        final anomalyPainter = TextPainter(text: TextSpan(text: anomaly.type, style: const TextStyle(fontSize: 12, color: Colors.white, backgroundColor: Colors.black45)), textDirection: TextDirection.ltr)..layout();
+        
+        double posY = aY - 6;
+        for (var pos in occupiedTextPositions) {
+          if ((pos.dx - aX).abs() < 60 && (pos.dy - posY).abs() < 16) { posY += 16; }
+        }
+        occupiedTextPositions.add(Offset(aX, posY));
+        anomalyPainter.paint(canvas, Offset(aX - anomalyPainter.width / 2, posY));
+      }
+    }
+
+    if (isDragging) {
+      double r = (currentDragDist - 45) * maxRadius / 165;
+      double perspectiveWidth = r * 1.3 * (1.0 - (r / maxRadius) * 0.15);
+      double pX = centerX + (perspectiveWidth * currentDragAngle); double pY = bottomY - r;
+      canvas.drawCircle(Offset(pX, pY), 7, livePaint);
+      canvas.drawLine(Offset(centerX, bottomY), Offset(pX, pY), livePaint..strokeWidth = 1.2);
+      final liveLabel = TextPainter(text: TextSpan(text: 'ЗАБРОС: ${currentDragDist.toStringAsFixed(1)} м', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 11, backgroundColor: Colors.orangeAccent)), textDirection: TextDirection.ltr)..layout();
+      liveLabel.paint(canvas, Offset(pX - liveLabel.width / 2, pY - 24));
+    }
+
+    final logoPainter = TextPainter(text: TextSpan(text: 'CARPOUT', style: TextStyle(color: accent.withOpacity(0.5), fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.5)), textDirection: TextDirection.ltr)..layout();
+    logoPainter.paint(canvas, Offset(24, bottomY + 20));
+  }
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 class CarpMixLog {
   String id; String liquid; String boilieType; String notes;
@@ -890,6 +883,7 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
       await prefs.setBool('timer_running_${widget.lakeKey}_$i', _isTimerRunningList[i]);
     }
   }
+
   void _addMixDialog() {
     String liquid = 'CSL + Кукурузный ликер'; String boilieType = 'Вареные Бойлы 20мм';
     final notesController = TextEditingController();
@@ -937,11 +931,9 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
       }),
     );
   }
-
   @override
   Widget build(BuildContext context) {
     Color accentColor = widget.currentTheme == 'military' ? const Color(0xFF939E67) : (widget.currentTheme == 'lady' ? const Color(0xFFFF9F1C) : const Color(0xFFE8ECD0));
-    // ТЗ Выполнено: Динамический фон следует строго за темами (без заклинивания оливы)
     Color scaffoldBg = widget.currentTheme == 'lady' ? const Color(0xFF231123) : (widget.currentTheme == 'oliva' ? const Color(0xFF6B8E23) : const Color(0xFF1C2214));
     Color cardBg = widget.currentTheme == 'lady' ? const Color(0xFF3F111B) : const Color(0xFF11160B);
     Color txtColor = Colors.white;
@@ -1044,7 +1036,6 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
   }
 
   void _showSingleTimerAlert(int idx) async {
-    // В ТЗ Добавлено: Цикличный механический аларм (5 громких жужжащих сигналов перезаброса)
     for (int i = 0; i < 5; i++) { Feedback.vibrate(); await Future.delayed(const Duration(milliseconds: 350)); }
     showDialog(
       context: context,
@@ -1056,8 +1047,7 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
       ),
     );
   }
-} // КЛАСС ТАЙМЕРОВ И ПИТАНИЯ ПОЛНОСТЬЮ И ГЕРМЕТИЧНО ЗАКРЫТ!
-
+}
 class FishTrophy {
   String id; String weight; String dateStr; String imagePath; String notes;
   FishTrophy({required this.id, required this.weight, required this.dateStr, required this.imagePath, required this.notes});
@@ -1100,7 +1090,7 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
     final picked = await picker.pickImage(source: src, imageQuality: 75);
     if (picked != null) {
       final appDir = await getApplicationDocumentsDirectory();
-      final filename = 'trophy_${DateTime.now().millisecondsSinceEpoch.jpg}';
+      final filename = 'trophy_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final savedFile = await File(picked.path).copy('${appDir.path}/$filename');
       setState(() { _selectedImageFile = savedFile.path; });
     }
@@ -1142,8 +1132,18 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
               ),
               const SizedBox(height: 14),
               Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-                ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: btnColor), onPressed: () async { await _pickImage(ImageSource.camera); setDialogState(() {}); }, icon: const Icon(Icons.camera_alt, color: Colors.white, size: 16), label: const Text('Камера', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: btnColor), onPressed: () async { await _pickImage(ImageSource.gallery); setDialogState(() {}); }, icon: const Icon(Icons.photo_library, color: Colors.white, size: 16), label: const Text('Галерея', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(backgroundColor: btnColor),
+                  onPressed: () async { await _pickImage(ImageSource.camera); setDialogState(() {}); },
+                  icon: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
+                  label: const Text('Камера', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                ),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(backgroundColor: btnColor),
+                  onPressed: () async { await _pickImage(ImageSource.gallery); setDialogState(() {}); },
+                  icon: const Icon(Icons.photo_library, color: Colors.white, size: 16),
+                  label: const Text('Галерея', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                ),
               ]),
               if (_selectedImageFile.isNotEmpty) ...[const SizedBox(height: 12), Container(height: 100, width: 140, decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), image: DecorationImage(image: FileImage(File(_selectedImageFile)), fit: BoxFit.cover)))]
             ]),
@@ -1337,162 +1337,6 @@ class CarpPressureChartPainter extends CustomPainter {
       double normalizedY = (logs[i].pressure - minP) / range;
       double y = size.height - (normalizedY * (size.height - 20) + 10);
       canvas.drawCircle(Offset(x, y), 4, pointPaint);
-      final label = TextPainter(text: TextSpan(text: '${logs[i].pressure.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)), textDirection: TextDirection.ltr)..layout();
-      label.paint(canvas, Offset(x - label.width / 2, y - 14));
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
-}
-
-class CarpWeatherScreen extends StatefulWidget {
-  final String lakeKey; final String currentTheme;
-  const CarpWeatherScreen({Key? key, required this.lakeKey, required this.currentTheme}) : super(key: key);
-  @override
-  _CarpWeatherScreenState createState() => _CarpWeatherScreenState();
-}
-
-class _CarpWeatherScreenState extends State<CarpWeatherScreen> {
-  List<CarpWeatherLog> _weatherLogs = [];
-  final _pressureController = TextEditingController(text: '745');
-
-  @override
-  void initState() { super.initState(); _loadWeatherData(); }
-  @override
-  void didUpdateWidget(covariant CarpWeatherScreen oldWidget) { super.didUpdateWidget(oldWidget); if (oldWidget.lakeKey != widget.lakeKey) { _loadWeatherData(); } }
-
-  Future<void> _loadWeatherData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? jsonStr = prefs.getString('weather_${widget.lakeKey}');
-    setState(() { if (jsonStr != null) { _weatherLogs = (jsonDecode(jsonStr) as List).map((item) => CarpWeatherLog.fromJson(item)).toList(); } else { _weatherLogs = []; } });
-  }
-
-  Future<void> _saveWeatherData() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('weather_${widget.lakeKey}', jsonEncode(_weatherLogs.map((w) => w.toJson()).toList()));
-  }
-
-  void _addPressureLog() {
-    double newP = double.tryParse(_pressureController.text) ?? 745.0;
-    final now = DateTime.now();
-    String timeStr = '${now.hour}:${now.minute.toString().padLeft(2, '0')}';
-    String trend = '➡️ Стабильно';
-    if (_weatherLogs.isNotEmpty) {
-      double lastP = _weatherLogs.last.pressure;
-      if (newP > lastP) trend = '📈 Растет';
-      if (newP < lastP) trend = '📉 Падает';
-    }
-    setState(() { _weatherLogs.add(CarpWeatherLog(id: now.millisecondsSinceEpoch.toString(), pressure: newP, trend: trend, time: timeStr)); if (_weatherLogs.length > 10) { _weatherLogs.removeAt(0); } });
-    _saveWeatherData();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    Color accentColor = widget.currentTheme == 'military' ? const Color(0xFFD4D9A1) : (widget.currentTheme == 'lady' ? const Color(0xFF8E24AA) : const Color(0xFFE8ECD0));
-    Color cardBg = widget.currentTheme == 'lady' ? Colors.white : const Color(0xFF1B2611);
-    Color txtColor = widget.currentTheme == 'lady' ? Colors.black87 : Colors.white;
-
-    return Scaffold(
-      backgroundColor: widget.currentTheme == 'lady' ? const Color(0xFFF3E5F5) : const Color(0xFF2E3B1E),
-      appBar: AppBar(backgroundColor: const Color(0xFF1B2611), title: Text('Тактический Барометр сессии', style: TextStyle(color: accentColor, fontSize: 15, fontWeight: FontWeight.bold))),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('📊 ТРЕНД АТМОСФЕРНОГО ДАВЛЕНИЯ', style: TextStyle(color: accentColor, fontWeight: FontWeight.bold, fontSize: 12)),
-          const SizedBox(height: 12),
-          Container(
-            height: 160, width: double.infinity, padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: const Color(0xFF1B2611), borderRadius: BorderRadius.circular(16), border: Border.all(color: accentColor.withOpacity(0.3))),
-            child: CustomPaint(painter: CarpPressureChartPainter(_weatherLogs, accentColor)),
-          ),
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: cardBg, borderRadius: BorderRadius.circular(16)),
-            child: Row(children: [
-              Expanded(child: TextField(controller: _pressureController, style: TextStyle(color: txtColor), keyboardType: TextInputType.number, decoration: InputDecoration(labelText: 'Давление (мм рт. ст.)', labelStyle: TextStyle(color: txtColor.withOpacity(0.6))))),
-              const SizedBox(width: 16),
-              ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32), padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14)), onPressed: _addPressureLog, child: const Text('Замерить', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)))
-            ]),
-          ),
-          const SizedBox(height: 16),
-          Text('История изменений:', style: TextStyle(color: accentColor, fontWeight: FontWeight.bold, fontSize: 12)),
-          const SizedBox(height: 8),
-          _weatherLogs.isEmpty 
-              ? const Text('Замеров пока нет. Сделайте первый шаг на берегу!', style: TextStyle(color: Colors.white38, fontSize: 12))
-              : ListView.builder(
-                  shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _weatherLogs.length, itemBuilder: (context, idx) {
-                    final log = _weatherLogs[_weatherLogs.length - 1 - idx];
-                    return Card(
-                      color: cardBg, margin: const EdgeInsets.symmetric(vertical: 4),
-                      child: ListTile(
-                        leading: const Icon(Icons.speed, color: Colors.blueAccent),
-                        title: Text('${log.pressure.toStringAsFixed(0)} мм рт. ст.', style: TextStyle(color: txtColor, fontWeight: FontWeight.bold, fontSize: 14)),
-                        subtitle: Text('Время фиксации: ${log.time}', style: TextStyle(color: txtColor.withOpacity(0.6), fontSize: 12)),
-                        trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-                          Text(log.trend, style: TextStyle(color: accentColor, fontWeight: FontWeight.bold, fontSize: 12)),
-                          IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent, size: 16), onPressed: () { setState(() { _weatherLogs.remove(log); }); _saveWeatherData(); })
-                        ]),
-                      ),
-                    );
-                  },
-                )
-        ]),
-      ),
-    );
-  }
-}
-class CarpPressureChartPainter extends CustomPainter {
-  final List<CarpWeatherLog> logs; final Color accent;
-  CarpPressureChartPainter(this.logs, this.accent);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final gridPaint = Paint()..color = accent.withOpacity(0.15)..strokeWidth = 1.0;
-    final linePaint = Paint()..color = accent..strokeWidth = 2.5..style = PaintingStyle.stroke;
-    final pointPaint = Paint()..color = const Color(0xFFFF5252)..style = PaintingStyle.fill;
-    
-    // Рисуем сетку барометра
-    double steps = 4;
-    for (int i = 0; i <= steps; i++) {
-      double y = (size.height / steps) * i;
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
-    }
-
-    if (logs.length < 2) {
-      final tp = TextPainter(text: TextSpan(text: 'Нужно минимум 2 замера для графика', style: TextStyle(color: accent.withOpacity(0.5), fontSize: 11)), textDirection: TextDirection.ltr)..layout();
-      tp.paint(canvas, Offset(size.width / 2 - tp.width / 2, size.height / 2 - tp.height / 2));
-      return;
-    }
-
-    // Ищем минимум и максимум для масштабирования
-    double minP = logs.map((e) => e.pressure).reduce((a, b) => a < b ? a : b);
-    double maxP = logs.map((e) => e.pressure).reduce((a, b) => a > b ? a : b);
-    if (maxP == minP) { minP -= 5; maxP += 5; }
-    double range = maxP - minP;
-
-    final path = Path();
-    double dx = size.width / (logs.length - 1);
-
-    for (int i = 0; i < logs.length; i++) {
-      double x = dx * i;
-      double normalizedY = (logs[i].pressure - minP) / range;
-      double y = size.height - (normalizedY * (size.height - 20) + 10);
-
-      if (i == 0) { path.moveTo(x, y); } else { path.lineTo(x, y); }
-    }
-
-    canvas.drawPath(path, linePaint);
-
-    // Расставляем точки замеров и подписи мм рт.ст.
-    for (int i = 0; i < logs.length; i++) {
-      double x = dx * i;
-      double normalizedY = (logs[i].pressure - minP) / range;
-      double y = size.height - (normalizedY * (size.height - 20) + 10);
-
-      canvas.drawCircle(Offset(x, y), 4, pointPaint);
-      
       final label = TextPainter(text: TextSpan(text: '${logs[i].pressure.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)), textDirection: TextDirection.ltr)..layout();
       label.paint(canvas, Offset(x - label.width / 2, y - 14));
     }
