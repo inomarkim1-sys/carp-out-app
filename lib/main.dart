@@ -769,9 +769,10 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
   List<CarpMixLog> _mixes = [];
   List<PvaStickLog> _sticks = [];
 
-  final List<int> _timerSecondsList =;
-  final List<int> _currentCountdownList =;
-  final List<bool> _isTimerRunningList = [false, false, false, false];
+    final List<int> _timerSecondsList = List<int>.filled(4, 2400, growable: true);
+  final List<int> _currentCountdownList = List<int>.filled(4, 0, growable: true);
+  final List<bool> _isTimerRunningList = List<bool>.filled(4, false, growable: true);
+
 
   @override
   void initState() {
