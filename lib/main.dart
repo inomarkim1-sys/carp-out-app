@@ -1210,7 +1210,7 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
     final picked = await picker.pickImage(source: src, imageQuality: 75);
     if (picked != null) {
       final appDir = await getApplicationDocumentsDirectory();
-      final filename = 'trophy_${DateTime.now().millisecondsSinceEpoch.jpg}';
+      final filename = 'trophy_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final savedFile = await File(picked.path).copy('${appDir.path}/$filename');
       setState(() { _selectedImageFile = savedFile.path; });
     }
@@ -1239,7 +1239,7 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
         return AlertDialog(
           backgroundColor: const Color(0xFF11160B), title: const Text('Зафиксировать трофей 🏆'),
           content: SingleChildScrollView(
-            child: Column(mainAxisSize: MainAxisSize.min children: [
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
               TextField(controller: _weightCtrl, style: const TextStyle(color: Colors.white), keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Вес трофея (кг)', labelStyle: TextStyle(color: Colors.white60))),
               TextField(controller: _notesCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Насадка / Комментарий', labelStyle: TextStyle(color: Colors.white60))),
               const SizedBox(height: 14),
