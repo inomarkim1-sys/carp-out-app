@@ -40,7 +40,7 @@ class _CarpOutAppAppState extends State<CarpOutApp> {
       surfaceColor = const Color(0xFF2E3B1E);
       accentColor = const Color(0xFFE8ECD0);
     } else if (_currentTheme == 'lady') {
-      // ТЗ Выполнено: Нежная рыбачка с гармоничными пастельными тонами
+      // ТЗ Выполнено: Нежная рыбачка с мягкими пастельными тонами вместо ядовито-зеленых
       baseThemeColor = const Color(0xFFFCE4EC); 
       surfaceColor = const Color(0xFFF8BBD0); 
       accentColor = const Color(0xFF880E4F); 
@@ -88,7 +88,6 @@ class _CarpOutAppAppState extends State<CarpOutApp> {
     );
   }
 }
-
 class CarpOutAppIconPainter extends CustomPainter {
   final Color accent;
   CarpOutAppIconPainter(this.accent);
@@ -159,7 +158,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   Map<String, int> _fishSpeciesStats = {'Карп': 0, 'Амур': 0, 'Карась': 0, 'Толстолоб': 0, 'Лещ': 0, 'Сом': 0};
   
   final ValueNotifier<int> _rodResetSignal = ValueNotifier<int>(0);
-
+}
   @override
   void initState() { super.initState(); _loadAllAppData(); }
 
@@ -202,7 +201,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   void _updateMarkersList(List<String> newMarkers) { setState(() { _markerNames = newMarkers; }); }
-
   void _showEditNameDialog() {
     final controller = TextEditingController(text: _anglerName);
     showDialog(
@@ -317,7 +315,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       CarpFeedScreen(lakeKey: _selectedLake, availableMarkers: _markerNames, currentTheme: widget.currentTheme, rodResetSignal: _rodResetSignal),
       FishSocialScreen(lakeKey: _selectedLake, currentTheme: widget.currentTheme),
     ];
-
     return Scaffold(
       drawer: Drawer(
         backgroundColor: drawerBg,
@@ -348,7 +345,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Настройки system:', style: TextStyle(color: accentColor, fontSize: 11, fontWeight: FontWeight.bold)),
+                Text('Настройки системы:', style: TextStyle(color: accentColor, fontSize: 11, fontWeight: FontWeight.bold)),
                 IconButton(
                   icon: Icon(Icons.settings, color: accentColor),
                   onPressed: () { Navigator.pop(context); _showInterfaceSettings(); },
@@ -397,7 +394,6 @@ class _CarpOutDashboardState extends State<CarpOutDashboard> {
   }
 
   String _getCurrentDate() { final now = DateTime.now(); final months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']; return '${now.day} ${months[now.month - 1]} ${now.year} г.'; }
-
   void _showSpeciesSummary(BuildContext context) {
     bool isPink = widget.currentTheme == 'lady';
     showDialog(
@@ -420,6 +416,7 @@ class _CarpOutDashboardState extends State<CarpOutDashboard> {
       ),
     );
   }
+
   void _showInTheNetDialog(BuildContext context) {
     final weightController = TextEditingController();
     String selectedSpecies = 'Карп';
@@ -525,7 +522,7 @@ class _CarpOutDashboardState extends State<CarpOutDashboard> {
           ]),
         ),
         
-                const SizedBox(height: 20),
+        const SizedBox(height: 20),
         GridView.count(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -544,6 +541,10 @@ class _CarpOutDashboardState extends State<CarpOutDashboard> {
           ],
         ),
         const SizedBox(height: 20),
+        SizedBox(width: double.infinity, height: 52, child: ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: cardBg, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), side: BorderSide(color: accentColor, width: 1.2)), onPressed: () => _showInTheNetDialog(context), icon: Icon(Icons.phishing, color: accentColor), label: Text('В подсаке! 🎣', style: TextStyle(color: accentColor, fontSize: 16, fontWeight: FontWeight.bold))))
+      ])),
+    );
+  }
 
   Widget _buildStatCard(String title, String value, IconData icon, Color iconColor, Color bg, Color txt, Color accent) { 
     return Container(
@@ -561,7 +562,6 @@ class _CarpOutDashboardState extends State<CarpOutDashboard> {
     ); 
   }
 }
-
 class MarkerMapScreenNew extends StatefulWidget {
   final String lakeKey; final Function(List<String>) onMarkersChanged; final String currentTheme;
   const MarkerMapScreenNew({Key? key, required this.lakeKey, required this.onMarkersChanged, required this.currentTheme}) : super(key: key);
@@ -627,7 +627,8 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
     if (perspectiveWidth > 0) {
       calcA = dx / perspectiveWidth;
       if (calcA < -1.0) calcA = -1.0;
-      if (calcA > 1.0) calcA = 1.0;
+      if (calcA > 1.0) sigcalcA = 1.0;
+      calcA = calcA.clamp(-1.0, 1.0);
     }
     
     _handleRadarTap(calcD, calcA);
@@ -655,7 +656,7 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
               ),
               DropdownButton<String>(
                 dropdownColor: isPink ? const Color(0xFFFFF0F5) : const Color(0xFF11160B), value: _selectedBottomType, isExpanded: true, style: TextStyle(color: isPink ? Colors.black87 : Colors.white, fontWeight: FontWeight.bold),
-                items: <String>['🐚 Ракушка', '🍃 Ил', '🪨 Камни', '🪵 Коряга', '🏖️ Песок'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+                items: <String>['🐚 Ракушка', '🍃 Ил', 'ке Камни', '🪵 Коряга', '🏖️ Песок'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
                 onChanged: (v) { setDialogState(() { _selectedBottomType = v!; }); },
               ),
             ]),
@@ -672,7 +673,6 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
       if (_activeToolMode == 'reed') anomalyMarker = '🌿 Камыш';
       if (_activeToolMode == 'stone') anomalyMarker = '🪨 Камни';
       
-      // ТЗ Выполнено: Алгоритм автоматического объединения дубликатов на маркерной карте
       bool merged = false;
       for (var existing in _anomalies) {
         if (existing.type.contains(anomalyMarker.substring(2)) && (existing.distance - calcDistance).abs() < 3.0 && (existing.angle - calcAngle).abs() < 0.15) {
@@ -769,6 +769,7 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
     );
   }
 }
+
 class CarpClipsCalculator extends StatefulWidget {
   final String currentTheme; const CarpClipsCalculator({Key? key, required this.currentTheme}) : super(key: key);
   @override
@@ -1209,7 +1210,7 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
     final picked = await picker.pickImage(source: src, imageQuality: 75);
     if (picked != null) {
       final appDir = await getApplicationDocumentsDirectory();
-      final filename = 'trophy_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final filename = 'trophy_${DateTime.now().millisecondsSinceEpoch.jpg}';
       final savedFile = await File(picked.path).copy('${appDir.path}/$filename');
       setState(() { _selectedImageFile = savedFile.path; });
     }
@@ -1238,7 +1239,7 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
         return AlertDialog(
           backgroundColor: const Color(0xFF11160B), title: const Text('Зафиксировать трофей 🏆'),
           content: SingleChildScrollView(
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
+            child: Column(mainAxisSize: MainAxisSize.min children: [
               TextField(controller: _weightCtrl, style: const TextStyle(color: Colors.white), keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Вес трофея (кг)', labelStyle: TextStyle(color: Colors.white60))),
               TextField(controller: _notesCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Насадка / Комментарий', labelStyle: TextStyle(color: Colors.white60))),
               const SizedBox(height: 14),
@@ -1294,7 +1295,7 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
     return Scaffold(
       backgroundColor: scaffoldBg,
       appBar: AppBar(backgroundColor: const Color(0xFF11160B), title: Text('Галерея рекордов и трофеев', style: TextStyle(color: accentColor, fontSize: 15, fontWeight: FontWeight.bold)), actions: [IconButton(icon: Icon(Icons.add_a_photo, color: accentColor), onPressed: _addTrophyDialog)]),
-      body: _trophies.isEmpty ? const Center(child: Text('Пока нет трофейных записей.', style: const TextStyle(color: Colors.white38))) : GridView.builder(
+      body: _trophies.isEmpty ? const Center(child: Text('Пока нет трофейных записей.', style: TextStyle(color: Colors.white38))) : GridView.builder(
         padding: const EdgeInsets.all(12), gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 0.8),
         itemCount: _trophies.length, itemBuilder: (context, idx) {
           final t = _trophies[_trophies.length - 1 - idx];
