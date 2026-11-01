@@ -545,9 +545,23 @@ class _CarpOutDashboardState extends State<CarpOutDashboard> {
         ),
         const SizedBox(height: 20),
 
-
-  Widget _buildStatCard(String title, String value, IconData icon, Color iconColor, Color bg, Color txt, Color accent) { return Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12), border: Border.all(color: accent.withOpacity(0.3), width: 1.2)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [Row(children: [Icon(icon, color: iconColor, size: 18), const SizedBox(width: 6), Text(title, style: TextStyle(color: txt.withOpacity(0.7), fontSize: 11, fontWeight: FontWeight.bold))]), const SizedBox(height: 8), Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: accent))])); }
+  Widget _buildStatCard(String title, String value, IconData icon, Color iconColor, Color bg, Color txt, Color accent) { 
+    return Container(
+      padding: const EdgeInsets.all(12), 
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12), border: Border.all(color: accent.withOpacity(0.3), width: 1.2)), 
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start, 
+        mainAxisAlignment: MainAxisAlignment.center, 
+        children: [
+          Row(children: [Icon(icon, color: iconColor, size: 18), const SizedBox(width: 6), Text(title, style: TextStyle(color: txt.withOpacity(0.7), fontSize: 11, fontWeight: FontWeight.bold))]), 
+          const SizedBox(height: 8), 
+          Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: accent))
+        ]
+      )
+    ); 
+  }
 }
+
 class MarkerMapScreenNew extends StatefulWidget {
   final String lakeKey; final Function(List<String>) onMarkersChanged; final String currentTheme;
   const MarkerMapScreenNew({Key? key, required this.lakeKey, required this.onMarkersChanged, required this.currentTheme}) : super(key: key);
@@ -564,7 +578,7 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
   String _selectedBottomType = '🐚 Ракушка';
   String _selectedRod = 'Рабочее №1';
   
-  String _activeToolMode = 'point'; // point - точки, log - коряга, bush - куст, reed - камыш, stone - камни
+  String _activeToolMode = 'point'; 
   double _dragDistance = 0.0; double _dragAngle = 0.0; bool _isDragging = false;
 
   @override
