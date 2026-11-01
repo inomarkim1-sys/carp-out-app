@@ -158,7 +158,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   Map<String, int> _fishSpeciesStats = {'Карп': 0, 'Амур': 0, 'Карась': 0, 'Толстолоб': 0, 'Лещ': 0, 'Сом': 0};
   
   final ValueNotifier<int> _rodResetSignal = ValueNotifier<int>(0);
-}
+
   @override
   void initState() { super.initState(); _loadAllAppData(); }
 
@@ -201,7 +201,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   void _updateMarkersList(List<String> newMarkers) { setState(() { _markerNames = newMarkers; }); }
-  void _showEditNameDialog() {
+void _showEditNameDialog() {
     final controller = TextEditingController(text: _anglerName);
     showDialog(
       context: context,
@@ -627,7 +627,7 @@ class _MarkerMapScreenNewState extends State<MarkerMapScreenNew> {
     if (perspectiveWidth > 0) {
       calcA = dx / perspectiveWidth;
       if (calcA < -1.0) calcA = -1.0;
-      if (calcA > 1.0) sigcalcA = 1.0;
+      if (calcA > 1.0) calcA = 1.0;
       calcA = calcA.clamp(-1.0, 1.0);
     }
     
