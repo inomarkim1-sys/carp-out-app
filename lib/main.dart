@@ -525,18 +525,26 @@ class _CarpOutDashboardState extends State<CarpOutDashboard> {
           ]),
         ),
         
+                const SizedBox(height: 20),
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 1.3,
+          children: [
+            GestureDetector(
+              onTap: () => _showSpeciesSummary(context),
+              child: _buildStatCard('Всего хвостов', '${widget.catches} шт.', Icons.phishing, isPink ? const Color(0xFFC2185B) : const Color(0xFF4A5D32), cardBg, txtColor, accentColor),
+            ),
+            _buildStatCard('Общий вес', '${widget.weight.toStringAsFixed(3)} кг', Icons.scale, isPink ? const Color(0xFFC2185B) : const Color(0xFF4A5D32), cardBg, txtColor, accentColor),
+            _buildStatCard('Средний вес', '${averageWeight.toStringAsFixed(3)} кг', Icons.analytics, isPink ? const Color(0xFFC2185B) : const Color(0xFF4A5D32), cardBg, txtColor, accentColor),
+            _buildStatCard('BIG FISH 🔥', '${widget.bigFish} кг', Icons.emoji_events, const Color(0xFFFF5252), cardBg, txtColor, accentColor),
+          ],
+        ),
         const SizedBox(height: 20),
-        GridView.count(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 1.3, children: [
-          GestureDetector(onTap: () => _showSpeciesSummary(context), child: _buildStatCard('Всего хвостов', '${widget.catches} шт.', isPink ? const Color(0xFFC2185B) : const Color(0xFF4A5D32), cardBg, txtColor, accentColor)),
-          _buildStatCard('Общий вес', '${widget.weight.toStringAsFixed(3)} кг', isPink ? const Color(0xFFC2185B) : const Color(0xFF4A5D32), cardBg, txtColor, accentColor),
-          _buildStatCard('Средний вес', '${averageWeight.toStringAsFixed(3)} кг', isPink ? const Color(0xFFC2185B) : const Color(0xFF4A5D32), cardBg, txtColor, accentColor),
-          _buildStatCard('BIG FISH 🔥', '${widget.bigFish} кг', const Color(0xFFFF5252), cardBg, txtColor, accentColor)
-        ]),
-        const SizedBox(height: 20),
-        SizedBox(width: double.infinity, height: 52, child: ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: cardBg, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), side: BorderSide(color: accentColor, width: 1.2)), onPressed: () => _showInTheNetDialog(context), icon: Icon(Icons.phishing, color: accentColor), label: Text('В подсаке! 🎣', style: TextStyle(color: accentColor, fontSize: 16, fontWeight: FontWeight.bold))))
-      ])),
-    );
-  }
+
 
   Widget _buildStatCard(String title, String value, IconData icon, Color iconColor, Color bg, Color txt, Color accent) { return Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12), border: Border.all(color: accent.withOpacity(0.3), width: 1.2)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [Row(children: [Icon(icon, color: iconColor, size: 18), const SizedBox(width: 6), Text(title, style: TextStyle(color: txt.withOpacity(0.7), fontSize: 11, fontWeight: FontWeight.bold))]), const SizedBox(height: 8), Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: accent))])); }
 }
