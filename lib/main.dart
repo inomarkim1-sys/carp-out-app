@@ -830,7 +830,7 @@ class _CarpFeedScreenState extends State<CarpFeedScreen> with SingleTickerProvid
 
   @override
   void initState() {
-    super.override();
+    super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _loadFeedData();
     widget.rodResetSignal.addListener(_handleRodResetFromDashboard);
@@ -1089,16 +1089,16 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
       setState(() { _selectedImageFile = savedFile.path; });
     }
   }
-}
+
   Future<void> _selectDateTime(BuildContext context) async {
     final DateTime? pickedDate = await showDatePicker(
       context: context, initialDate: _selectedCatchDateTime, firstDate: DateTime(2020), lastDate: DateTime(2030),
-      builder: (context, child) => Theme(data: ThemeData.dark().copyWith(colorScheme: const ColorScheme.dark(primary: Color(0xFF4A5D32), surface: Color(0xFF11160B))), child: child!),
+      builder: (context, child) => Theme(data: ThemeData.dark().copyWith(colorScheme: const ColorScheme.dark(primary: const Color(0xFF4A5D32), surface: const Color(0xFF11160B))), child: child!),
     );
     if (pickedDate != null) {
       final TimeOfDay? pickedTime = await showTimePicker(
         context: context, initialTime: TimeOfDay.fromDateTime(_selectedCatchDateTime),
-        builder: (context, child) => Theme(data: ThemeData.dark().copyWith(colorScheme: const ColorScheme.dark(primary: Color(0xFF4A5D32), surface: Color(0xFF11160B))), child: child!),
+        builder: (context, child) => Theme(data: ThemeData.dark().copyWith(colorScheme: const ColorScheme.dark(primary: const Color(0xFF4A5D32), surface: const Color(0xFF11160B))), child: child!),
       );
       if (pickedTime != null) { setState(() { _selectedCatchDateTime = DateTime(pickedDate.year, pickedDate.month, pickedDate.day, pickedTime.hour, pickedTime.minute); }); }
     }
@@ -1127,24 +1127,14 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
               ),
               const SizedBox(height: 14),
               Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(backgroundColor: btnColor),
-                  onPressed: () async { await _pickImage(ImageSource.camera); setDialogState(() {}); },
-                  icon: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
-                  label: const Text('Камера', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
-                ),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(backgroundColor: btnColor),
-                  onPressed: () async { await _pickImage(ImageSource.gallery); setDialogState(() {}); },
-                  icon: const Icon(Icons.photo_library, color: Colors.white, size: 16),
-                  label: const Text('Галерея', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
-                ),
+                ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: btnColor), onPressed: () async { await _pickImage(ImageSource.camera); setDialogState(() {}); }, icon: const Icon(Icons.camera_alt, color: Colors.white, size: 16), label: const Text('Камера', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: btnColor), onPressed: () async { await _pickImage(ImageSource.gallery); setDialogState(() {}); }, icon: const Icon(Icons.photo_library, color: Colors.white, size: 16), label: const Text('Галерея', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
               ]),
               if (_selectedImageFile.isNotEmpty) ...[const SizedBox(height: 12), Container(height: 100, width: 140, decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), image: DecorationImage(image: FileImage(File(_selectedImageFile)), fit: BoxFit.cover)))]
             ]),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: TextStyle(color: Colors.white70))),
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена', style: const TextStyle(color: Colors.white70))),
             ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4A5D32)), onPressed: () {
               if (_weightCtrl.text.isNotEmpty) {
                 Navigator.pop(context);
@@ -1152,7 +1142,7 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
                 setState(() { _trophies.add(FishTrophy(id: DateTime.now().millisecondsSinceEpoch.toString(), weight: _weightCtrl.text, dateStr: customDateStr, imagePath: _selectedImageFile, notes: _notesCtrl.text.isNotEmpty ? _notesCtrl.text : 'Без описания')); });
                 _saveTrophies();
               }
-            }, child: const Text('Сохранить', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+            }, child: const Text('Сохранить', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
           ],
         );
       }),
@@ -1169,7 +1159,7 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
     return Scaffold(
       backgroundColor: scaffoldBg,
       appBar: AppBar(backgroundColor: const Color(0xFF11160B), title: Text('Галерея рекордов и трофеев', style: TextStyle(color: accentColor, fontSize: 15, fontWeight: FontWeight.bold)), actions: [IconButton(icon: Icon(Icons.add_a_photo, color: accentColor), onPressed: _addTrophyDialog)]),
-      body: _trophies.isEmpty ? const Center(child: Text('Пока нет трофейных записей.', style: TextStyle(color: Colors.white38))) : GridView.builder(
+      body: _trophies.isEmpty ? const Center(child: Text('Пока нет трофейных записей.', style: const TextStyle(color: Colors.white38))) : GridView.builder(
         padding: const EdgeInsets.all(12), gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 0.8),
         itemCount: _trophies.length, itemBuilder: (context, idx) {
           final t = _trophies[_trophies.length - 1 - idx];
@@ -1178,7 +1168,7 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Expanded(child: t.imagePath.isNotEmpty && File(t.imagePath).existsSync() ? Container(decoration: BoxDecoration(borderRadius: const BorderRadius.vertical(top: Radius.circular(14)), image: DecorationImage(image: FileImage(File(t.imagePath)), fit: BoxFit.cover))) : Container(color: Colors.black38, child: Center(child: Icon(Icons.image_not_supported, color: accentColor.withOpacity(0.5))))),
               Padding(padding: const EdgeInsets.all(8.0), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('${t.weight} кг 🔥', style: TextStyle(color: accentColor, fontWeight: FontWeight.bold, fontSize: 14)), IconButton(constraints: const BoxConstraints(), padding: EdgeInsets.zero, icon: const Icon(Icons.delete, color: Colors.redAccent, size: 16), onPressed: () { setState(() { _trophies.remove(t); }); _saveTrophies(); })]),
+                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('${t.weight} кг 🔥', style: TextStyle(color: accentColor, fontWeight: FontWeight.bold, fontSize: 14)), IconButton(constraints: const BoxConstraints(), padding: EdgeInsets.zero, icon: const Icon(Icons.delete, color: Colors.redAccent, size: 16), onPressed: () { setState(() { _trophies.remove(t); }); _saveTrophies(); })}]),
                 const SizedBox(height: 2), Text(t.dateStr, style: TextStyle(color: txtColor.withOpacity(0.6), fontSize: 10)),
                 const SizedBox(height: 4), Text(t.notes, style: TextStyle(color: txtColor, fontSize: 11, fontWeight: FontWeight.w500), maxLines: 2, overflow: TextOverflow.ellipsis),
               ])),
@@ -1189,6 +1179,7 @@ class _FishSocialScreenState extends State<FishSocialScreen> {
     );
   }
 }
+
 class CarpWeatherScreen extends StatefulWidget {
   final String lakeKey; final String currentTheme;
   const CarpWeatherScreen({Key? key, required this.lakeKey, required this.currentTheme}) : super(key: key);
